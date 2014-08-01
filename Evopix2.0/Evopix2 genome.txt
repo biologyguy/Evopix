@@ -1,0 +1,15 @@
+;Evopic id
+
+;One path at a time
+;Path_id,cx,cy,radius,fill_color,stroke_thickness,stroke_color
+
+;muscles
+;linked_to,
+;firing conditions
+
+;Pipes
+;linked_to
+;
+
+
+1~1,100,100,40,#54C6F5,1,#000000;2-1,150,80,40,#54C6F5,1,#000000;2-2,50,80,40,#54C6F5,1,#000000;3-1-1,100,120,#54C6F5,1,#000000;~
