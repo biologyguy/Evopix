@@ -27,7 +27,7 @@ $path_type_array_p2 = array();
 
 for($a = 1; $a < $num_paths_p1; $a++)
 	{
-	$end_path_id = strcspn($paths_array_p1[$a],"rn");
+	$end_path_id = strcspn($paths_array_p1[$a],"rl");
 	$path_id = substr($paths_array_p1[$a],0,$end_path_id);
 	$path_type = substr($paths_array_p1[$a],$end_path_id,1);
 	array_push($path_id_array_p1,$path_id);

@@ -2,13 +2,18 @@
 import sys
 
 class Evopic():
-    def __init__(self):
-        self.paths = False
-        self.min_x, self.min_y = [9999999999.9, 9999999999.9]
-        self.zeroed_paths = True  # change to False
+    def __init__(self, evp):
+        self.evp = evp
+        self.paths = False 
 
-    def parse_evp(self, evp_data):
-        self.paths = evp_data.split("\n")
+        self._parse_evp()
+        
+        #min_x, min_y = [9999999999.9, 9999999999.9]  # arbitrarily set large min values for self.zero_paths()
+        self.zeroed_paths = False  # The raw evp genome is free to roam around cartesian space. When it's zeroed out \
+                                   # with self.zero_paths(), this gets set to True
+
+    def _parse_evp(self):  # Convert evp genome file into a dictionary of lists of its component parts
+        self.paths = self.evp.split("\n")
         count = 0
         for path in self.paths:
             attributes = path.split(":")
@@ -59,9 +64,9 @@ class Evopic():
         return output
 
     def svg_out(self, scale=100):
-        if not self.zeroed_paths:
-            print "Error: object's zeroed_path data has not been set"
-            return False
+        #if not self.zeroed_paths:
+        #    print "Error: object's zeroed_path data has not been set"
+        #    return False
 
         path_ids = self.loop_paths('path_id')
         points = self.loop_paths('points')
@@ -147,13 +152,11 @@ class Evopic():
         mid_y = abs(pt1[1]-pt2[1])/2 + min(pt1[1], pt2[1])
         return [mid_x, mid_y]
 
-    def zero_paths(self):
-        if not self.paths:
-            print "Error: object's paths data has not been set"
-            return False
 
-        # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line
-        # segments for bezier calc
+    def zero_evp(self):  #This is not done yet
+        min_x, min_y = [9999999999.9, 9999999999.9]  # arbitrarily set large min values for self.zero_paths()
+
+        # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line segments for bezier calc
         line_segments = []
         points = self.loop_paths("points")
         path_ids = self.loop_paths("path_id")
@@ -188,40 +191,37 @@ class Evopic():
 
                 mid_pt6 = self.find_mid(mid_pt4, mid_pt5)
 
-                if self.min_x > mid_pt6[0]:
-                    self.min_x = mid_pt6[0]
+                if min_x > mid_pt6[0]:
+                    min_x = mid_pt6[0]
 
-                if self.min_x > seg[0][0]:
-                    self.min_x = seg[0][0]
+                if min_x > seg[0][0]:
+                    min_x = seg[0][0]
 
-                if self.min_x > seg[3][0]:
-                    self.min_x = seg[3][0]
+                if min_x > seg[3][0]:
+                    min_x = seg[3][0]
 
-                if self.min_y > mid_pt6[1]:
-                    self.min_y = mid_pt6[1]
+                if min_y > mid_pt6[1]:
+                    min_y = mid_pt6[1]
 
-                if self.min_y > seg[0][1]:
-                    self.min_y = seg[0][1]
+                if min_y > seg[0][1]:
+                    min_y = seg[0][1]
 
-                if self.min_y > seg[3][1]:
-                    self.min_y = seg[3][1]
+                if min_y > seg[3][1]:
+                    min_y = seg[3][1]
 
             count += 1
 
-
-
-        print self.min_x
-        print self.min_y
+        print min_x
+        print min_y
         return
 
 
+#--------------------------------------------------------#
 
-
-bob = Evopic()
-
-with open("bob.evp", "r") as infile:
-    bob.parse_evp(infile.read())
-    print bob.zero_paths()
-    #print bob.svg_out()
+with open("../genomes/bob.evp", "r") as infile:
+    bob = Evopic(infile.read())
+    #print bob.evp
+    #print breed.zero_evp(bob.evp)
+    print bob.svg_out()
 #print bob.paths[0]["points"]
 
