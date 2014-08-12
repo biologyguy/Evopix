@@ -1,0 +1,9 @@
+#Python binaries
+*.pyc
+
+#iPython files
+*.ipynb*
+
+#PyCharm profile stuff
+.idea
+.idea/*
