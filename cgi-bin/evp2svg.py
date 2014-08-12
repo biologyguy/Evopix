@@ -40,8 +40,11 @@ class Evopic():
         count = 0
         for point in points:
             point_id, coords = point.split("~")
-            coords = coords.split(";")[:-1]
-            points[count] = {"point_id": point_id, "coords": coords}
+            float_coords = []
+            for i in coords.split(";")[:-1]:  # Get the coordinates for each point into a float, instead of a string
+                float_coords.append([float(i.split(",")[0]), float(i.split(",")[0])])
+
+            points[count] = {"point_id": point_id, "coords": float_coords}
             count += 1
 
         return points

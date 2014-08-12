@@ -9,7 +9,7 @@ def breed(evp1, evp2):
 
 def zero_evp(evp):  #This is not done yet
     evopic = evp2svg.Evopic(evp)
-    min_x, min_y = [9999999999.9, 9999999999.9]  # arbitrarily set large min values for self.zero_paths()
+    min_x, min_y, min_x_seq, min_y_seg = [9999999999.9, 9999999999.9, [], []]  # arbitrarily set large min values for self.zero_paths()
 
 
     # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line segments for bezier calc
@@ -20,23 +20,21 @@ def zero_evp(evp):  #This is not done yet
     count = 0
     for point in points:
         line_segments = []
-        if not path_ids[count][-1] == "x":
+        if not path_ids[count][-1] == "x":  # Do this if the path is closed
             for i in range(len(point)):
-                if i+1 == len(point):
+                if i + 1 == len(point):
                     line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[0]['coords'][0], point[0]['coords'][1]])
                 else:
-                    line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[i+1]['coords'][0], point[i+1]['coords'][1]])
-        else:
+                    line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[i + 1]['coords'][0], point[i + 1]['coords'][1]])
+        else:  # Do this for open paths
             for i in range(len(point)):
-                if i+1 == len(point):
+                if i + 1 == len(point):
                     continue
                 else:
-                    line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[i+1]['coords'][0], point[i+1]['coords'][1]])
+                    line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[i + 1]['coords'][0], point[i + 1]['coords'][1]])
 
+        print(line_segments)
         for seg in line_segments:
-            for i in range(len(seg)):
-                seg[i] = seg[i].split(",")
-                seg[i] = [float(seg[i][0]), float(seg[i][1])]
 
             mid_pt1 = evopic.find_mid(seg[0], seg[1])
             mid_pt2 = evopic.find_mid(seg[2], seg[3])
@@ -67,6 +65,7 @@ def zero_evp(evp):  #This is not done yet
 
         count += 1
 
+
     path_count = 0
     for path in evopic.paths:
         point_count = 0
@@ -74,9 +73,8 @@ def zero_evp(evp):  #This is not done yet
             coords_count = 0
             for coords in point['coords']:
                 #print coords
-                coords = coords.split(',')
-                coords[0] = float(coords[0]) - min_x
-                coords[1] = float(coords[1]) - min_y
+                coords[0] = coords[0] - min_x
+                coords[1] = coords[1] - min_y
 
                 try:
                     evopic.paths[path_count]['points'][point_count]['coords'][coords_count] = "%s,%s" % (coords[0], coords[1])
@@ -93,9 +91,10 @@ def zero_evp(evp):  #This is not done yet
             #sys.exit()
         path_count += 1
 
-    #print evopic.paths[0]['points']
-    #print evopic.svg_out()
-    print(evopic.evp)
+
+    #print(evopic.paths[0]['points'])
+    #print(evopic.svg_out())
+    #print(evopic.evp)
     return
 
 
@@ -167,10 +166,12 @@ def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
 
 if __name__ == '__main__':
     #bounds = get_curve_bounds(532, 333, 117, 305, 28, 93, 265, 42)
-    bounds = get_curve_bounds(88.9514, 320.4029, 31.6589, 281.0587, 0.7516, 223.7982, 12.5989, 163.8201)
-    print(bounds)
     #Prints: {"left":135.77684,"top":42,"right":532,"bottom":333,"points":[{"X":135.77684049079755,"Y":144.86387466397255},{"X":532,"Y":333},{"X":265,"Y":42}],"tvalues":[0.6365030674846626,0,1]}
 
+    bounds = get_curve_bounds(88.9514, 320.4029, 31.6589, 281.0587, 0.7516, 223.7982, 12.5989, 163.8201)
+    print(bounds)
+    blahh = {'right': 88.9514, 'top': 163.8201, 'left': 10.091368, 'bottom': 320.4029}
 
-    #with open("../genomes/bob.evp", "r") as infile:
-    #    zero_evp(infile.read())
+    with open("../genomes/bob.evp", "r") as infile:
+        zero_evp(infile.read())
+
