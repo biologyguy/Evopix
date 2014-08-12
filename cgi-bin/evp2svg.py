@@ -1,5 +1,6 @@
 #! /usr/bin/python
 import sys
+import breed
 
 class Evopic():
     def __init__(self, evp):
@@ -211,17 +212,18 @@ class Evopic():
 
             count += 1
 
-        print min_x
-        print min_y
+        print(min_x)
+        print(min_y)
         return
 
 
 #--------------------------------------------------------#
 
-with open("../genomes/bob.evp", "r") as infile:
-    bob = Evopic(infile.read())
-    #print bob.evp
-    #print breed.zero_evp(bob.evp)
-    print bob.svg_out()
+if __name__ == '__main__':
+    with open("../genomes/bob.evp", "r") as infile:
+        bob = Evopic(infile.read())
+        #print bob.evp
+        print(breed.zero_evp(bob.evp))
+        #print(bob.svg_out())
 #print bob.paths[0]["points"]
 

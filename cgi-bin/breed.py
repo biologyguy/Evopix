@@ -2,8 +2,8 @@
 __author__ = 'bondsr'
 import evp2svg, sys, math
 
+
 def breed(evp1, evp2):
-    x = 1
     return
 
 
@@ -13,7 +13,6 @@ def zero_evp(evp):  #This is not done yet
 
 
     # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line segments for bezier calc
-    line_segments = []
 
     points = evopic.loop_paths("points")
     path_ids = evopic.loop_paths("path_id")
@@ -82,10 +81,10 @@ def zero_evp(evp):  #This is not done yet
                 try:
                     evopic.paths[path_count]['points'][point_count]['coords'][coords_count] = "%s,%s" % (coords[0], coords[1])
                 except:
-                    print evopic.paths[point_count]
-                    print point_count
-                    print evopic.paths[point_count]['points'][point_count]
-                    print evopic.paths[point_count]['points'][point_count]['coords'][coords_count]
+                    print(evopic.paths[point_count])
+                    print(point_count)
+                    print(evopic.paths[point_count]['points'][point_count])
+                    print(evopic.paths[point_count]['points'][point_count]['coords'][coords_count])
                     sys.exit()
 
                 coords_count += 1
@@ -95,11 +94,12 @@ def zero_evp(evp):  #This is not done yet
         path_count += 1
 
     #print evopic.paths[0]['points']
-    print evopic.svg_out()
+    #print evopic.svg_out()
+    print(evopic.evp)
     return
 
 
-## I don't thing I need to  calculate this for all curves --- ony the curves with min_x and min_y from a first pass of
+## I don't think I need to  calculate this for all curves --- ony the curves with min_x and min_y from a first pass of
 # zero_evp()
 def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
     """Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
@@ -108,20 +108,18 @@ def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
     Convert to Python: Steve Bond"""
 
     tvalues = []
-    bounds = [[], []]
-    points = []
+    bounds = {"X": [], "Y": []}
 
-    #var a, b, c, t, t1, t2, b2ac, sqrtb2ac;
     for i in range(2):
         if i == 0:
-            b = 6 * x0 - 12 * x1 + 6 * x2
-            a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3
-            c = 3 * x1 - 3 * x0
+            b = 6. * x0 - 12. * x1 + 6. * x2
+            a = -3. * x0 + 9. * x1 - 9. * x2 + 3. * x3
+            c = 3. * x1 - 3. * x0
 
         else:
-            b = 6 * y0 - 12 * y1 + 6 * y2
-            a = -3 * y0 + 9 * y1 - 9 * y2 + 3 * y3
-            c = 3 * y1 - 3 * y0
+            b = 6. * y0 - 12. * y1 + 6. * y2
+            a = -3. * y0 + 9. * y1 - 9. * y2 + 3. * y3
+            c = 3. * y1 - 3. * y0
 
         if abs(a) < 0.0000000000001:  # Numerical robustness
             if abs(b) < 0.0000000000001:  # Numerical robustness
@@ -134,156 +132,45 @@ def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
 
             continue
 
-        b2ac = b * b - 4 * c * a
+        b2ac = b * b - 4. * c * a
         sqrtb2ac = math.sqrt(b2ac)
         if b2ac < 0:
             continue
 
-        t1 = (-b + sqrtb2ac) / (2 * a)
+        t1 = (-b + sqrtb2ac) / (2. * a)
         if 0 < t1 < 1:
             tvalues.append(t1)
 
-        t2 = (-b - sqrtb2ac) / (2 * a)
+        t2 = (-b - sqrtb2ac) / (2. * a)
         if 0 < t2 < 1:
             tvalues.append(t2)
 
     j = len(tvalues)
-    jlen = j
 
-    while j >= 0:
-        t = tvalues[j]
-        mt = 1 - t
-        x = (mt * mt * mt * x0) + (3 * mt * mt * t * x1) + (3 * mt * t * t * x2) + (t * t * t * x3)
-        bounds[0][j] = x
-
-        y = (mt * mt * mt * y0) + (3 * mt * mt * t * y1) + (3 * mt * t * t * y2) + (t * t * t * y3)
-        bounds[1][j] = y
-        points[j] = {"X": x, "Y": y}
+    while j > 0:
         j -= 1
+        t = tvalues[j]
+        mt = 1. - t
+        x = (mt * mt * mt * x0) + (3. * mt * mt * t * x1) + (3. * mt * t * t * x2) + (t * t * t * x3)
+        bounds["X"].append(x)
 
-    tvalues[jlen] = 0
-    tvalues[jlen + 1] = 1
-    points[jlen] = {"X": x0, "Y": y0}
-    points[jlen + 1] = {"X": x3, "Y": y3}
+        y = (mt * mt * mt * y0) + (3. * mt * mt * t * y1) + (3. * mt * t * t * y2) + (t * t * t * y3)
+        bounds["Y"].append(y)
 
-    bounds[0][jlen] = x0
-    bounds[1][jlen] = y0
-    bounds[0][jlen + 1] = x3
-    bounds[1][jlen + 1] = y3
-
-    return {"left": min(bounds[0]), "top": min(bounds[1]), "right": max(bounds[0]),
-            "bottom": max(bounds[1]), "points": points, "tvalues": tvalues}
-
-
-#Usage:
-bounds = get_curve_bounds(532, 333, 117, 305, 28, 93, 265, 42)
-
-print bounds
-#Prints: {"left":135.77684049079755,"top":42,"right":532,"bottom":333,"points":[{"X":135.77684049079755,"Y":144.86387466397255},{"X":532,"Y":333},{"X":265,"Y":42}],"tvalues":[0.6365030674846626,0,1]}
-
-#with open("../genomes/bob.evp", "r") as infile:
-#    zero_evp(infile.read())
-'''
-function getBoundsOfCurve(x0, y0, x1, y1, x2, y2, x3, y3)
-    {
-    var tvalues = new Array();
-    var bounds = [new Array(), new Array()];
-    var points = new Array();
-
-    #var a, b, c, t, t1, t2, b2ac, sqrtb2ac;
-    for i in range(2):
-        if i == 0:
-            b = 6 * x0 - 12 * x1 + 6 * x2
-            a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3
-            c = 3 * x1 - 3 * x0
-
-        else:
-            b = 6 * y0 - 12 * y1 + 6 * y2
-            a = -3 * y0 + 9 * y1 - 9 * y2 + 3 * y3
-            c = 3 * y1 - 3 * y0
-
-        if abs(a) < 0.0000000000001:  # Numerical robustness
-            if abs(b) < 0.0000000000001:  # Numerical robustness
-                continue
+    bounds["X"].append(x0)
+    bounds["Y"].append(y0)
+    bounds["X"].append(x3)
+    bounds["Y"].append(y3)
+    return {"left": round(min(bounds["X"]), 6), "top": round(min(bounds["Y"]), 6), "right": round(max(bounds["X"]), 6),
+            "bottom": round(max(bounds["Y"]), 6)}
 
 
-    var a, b, c, t, t1, t2, b2ac, sqrtb2ac;
-    for (var i = 0; i < 2; ++i)
-        {
-        if (i == 0)
-            {
-            b = 6 * x0 - 12 * x1 + 6 * x2;
-            a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3;
-            c = 3 * x1 - 3 * x0;
-            }
-        else
-            {
-            b = 6 * y0 - 12 * y1 + 6 * y2;
-            a = -3 * y0 + 9 * y1 - 9 * y2 + 3 * y3;
-            c = 3 * y1 - 3 * y0;
-            }
+if __name__ == '__main__':
+    #bounds = get_curve_bounds(532, 333, 117, 305, 28, 93, 265, 42)
+    bounds = get_curve_bounds(88.9514, 320.4029, 31.6589, 281.0587, 0.7516, 223.7982, 12.5989, 163.8201)
+    print(bounds)
+    #Prints: {"left":135.77684,"top":42,"right":532,"bottom":333,"points":[{"X":135.77684049079755,"Y":144.86387466397255},{"X":532,"Y":333},{"X":265,"Y":42}],"tvalues":[0.6365030674846626,0,1]}
 
-        if (abs(a) < 1e-12) // Numerical robustness
-            {
-            if (abs(b) < 1e-12) // Numerical robustness
-                {
-                continue;
-                }
-            t = -c / b;
-            if (0 < t && t < 1)
-                {
-                tvalues.push(t);
-                }
-            continue;
-            }
-        b2ac = b * b - 4 * c * a;
-        sqrtb2ac = sqrt(b2ac);
-        if (b2ac < 0)
-        {
-        continue;
-        }
-        t1 = (-b + sqrtb2ac) / (2 * a);
-        if (0 < t1 && t1 < 1)
-        {
-        tvalues.push(t1);
-        }
-        t2 = (-b - sqrtb2ac) / (2 * a);
-        if (0 < t2 && t2 < 1)
-        {
-        tvalues.push(t2);
-        }
-        }
 
-    var x, y, j = tvalues.length,
-    jlen = j,
-    mt;
-
-    return tvalues;
-
-    while (j--)
-        {
-        t = tvalues[j];
-        mt = 1 - t;
-        x = (mt * mt * mt * x0) + (3 * mt * mt * t * x1) + (3 * mt * t * t * x2) + (t * t * t * x3);
-        bounds[0][j] = x;
-
-        y = (mt * mt * mt * y0) + (3 * mt * mt * t * y1) + (3 * mt * t * t * y2) + (t * t * t * y3);
-        bounds[1][j] = y;
-        points[j] = {X: x, Y: y};
-
-        }
-
-    tvalues[jlen] = 0;
-    tvalues[jlen + 1] = 1;
-    points[jlen] = {X: x0, Y: y0};
-    points[jlen + 1] = {X: x3, Y: y3};
-    bounds[0][jlen] = x0;
-    bounds[1][jlen] = y0;
-    bounds[0][jlen + 1] = x3;
-    bounds[1][jlen + 1] = y3;
-
-    tvalues.length = bounds[0].length = bounds[1].length = points.length = jlen + 2;
-
-    return {left: min.apply(null, bounds[0]), top: min.apply(null, bounds[1]), right: max.apply(null, bounds[0]), bottom: max.apply(null, bounds[1]),
-    points: points, tvalues: tvalues};
-    };'''
+    #with open("../genomes/bob.evp", "r") as infile:
+    #    zero_evp(infile.read())
