@@ -11,9 +11,7 @@ def zero_evp(evp):  #This is not done yet
     evopic = evp2svg.Evopic(evp)
     min_x, min_y, min_x_seq, min_y_seg = [9999999999.9, 9999999999.9, [], []]  # arbitrarily set large min values for self.zero_paths()
 
-
     # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line segments for bezier calc
-
     points = evopic.loop_paths("points")
     path_ids = evopic.loop_paths("path_id")
 
@@ -33,7 +31,10 @@ def zero_evp(evp):  #This is not done yet
                 else:
                     line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[i + 1]['coords'][0], point[i + 1]['coords'][1]])
 
-        print(line_segments)
+        temp = line_segments[0]
+        print(temp)
+        print(get_curve_bounds(temp[0][0], temp[0][1], temp[1][0], temp[1][1], temp[2][0], temp[2][1], temp[3][0], temp[3][1]))
+        sys.exit()
         for seg in line_segments:
 
             mid_pt1 = evopic.find_mid(seg[0], seg[1])
@@ -64,7 +65,6 @@ def zero_evp(evp):  #This is not done yet
                 min_y = seg[3][1]
 
         count += 1
-
 
     path_count = 0
     for path in evopic.paths:
@@ -98,7 +98,6 @@ def zero_evp(evp):  #This is not done yet
     return
 
 
-## I don't think I need to  calculate this for all curves --- ony the curves with min_x and min_y from a first pass of
 # zero_evp()
 def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
     """Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
@@ -169,7 +168,7 @@ if __name__ == '__main__':
     #Prints: {"left":135.77684,"top":42,"right":532,"bottom":333,"points":[{"X":135.77684049079755,"Y":144.86387466397255},{"X":532,"Y":333},{"X":265,"Y":42}],"tvalues":[0.6365030674846626,0,1]}
 
     bounds = get_curve_bounds(88.9514, 320.4029, 31.6589, 281.0587, 0.7516, 223.7982, 12.5989, 163.8201)
-    print(bounds)
+    #print(bounds)
     blahh = {'right': 88.9514, 'top': 163.8201, 'left': 10.091368, 'bottom': 320.4029}
 
     with open("../genomes/bob.evp", "r") as infile:
