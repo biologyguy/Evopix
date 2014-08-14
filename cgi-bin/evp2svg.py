@@ -1,18 +1,9 @@
 #! /usr/bin/python
-import sys
-import breed
-
-
 class Evopic():
     def __init__(self, evp):
         self.evp = evp
-        self.paths = False 
-
+        self.paths = False
         self._parse_evp()
-        
-        #min_x, min_y = [9999999999.9, 9999999999.9]  # arbitrarily set large min values for self.zero_paths()
-        self.zeroed_paths = False  # The raw evp genome is free to roam around cartesian space. When it's zeroed out \
-                                   # with self.zero_paths(), this gets set to True
 
     def _parse_evp(self):  # Convert evp genome file into a dictionary of lists of its component parts
         self.paths = self.evp.split("\n")
@@ -36,6 +27,9 @@ class Evopic():
             self.paths[count]["points"] = self.read_points(self.paths[count]["points"])
             count += 1
 
+    def reconstruct_evp(self):
+        x = 1
+
     def read_points(self, points_string):
         points = points_string.split("t")[1:]
         count = 0
@@ -43,7 +37,7 @@ class Evopic():
             point_id, coords = point.split("~")
             float_coords = []
             for i in coords.split(";")[:-1]:  # Get the coordinates for each point into a float, instead of a string
-                float_coords.append([float(i.split(",")[0]), float(i.split(",")[0])])
+                float_coords.append([float(i.split(",")[0]), float(i.split(",")[1])])
 
             points[count] = {"point_id": point_id, "coords": float_coords}
             count += 1
@@ -69,10 +63,6 @@ class Evopic():
         return output
 
     def svg_out(self, scale=100):
-        #if not self.zeroed_paths:
-        #    print "Error: object's zeroed_path data has not been set"
-        #    return False
-
         path_ids = self.loop_paths('path_id')
         points = self.loop_paths('points')
         linears = self.loop_paths('linear')
@@ -151,74 +141,6 @@ class Evopic():
                 svg += "<path id='path%s' d='%s' style='fill:url(#%sGradient%s);fill-rule:evenodd;stroke:#%s;stroke-width:%s;stroke-opacity:%s' />\n" % strings
         svg += "</svg>"
         return svg
-
-    def find_mid(self, pt1, pt2):
-        mid_x = abs(pt1[0]-pt2[0])/2 + min(pt1[0], pt2[0])
-        mid_y = abs(pt1[1]-pt2[1])/2 + min(pt1[1], pt2[1])
-        return [mid_x, mid_y]
-
-
-    def zero_evp(self):  #This is not done yet
-        min_x, min_y = [9999999999.9, 9999999999.9]  # arbitrarily set large min values for self.zero_paths()
-
-        # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line segments for bezier calc
-        line_segments = []
-        points = self.loop_paths("points")
-        path_ids = self.loop_paths("path_id")
-
-        count = 0
-        for point in points:
-            line_segments = []
-            if not path_ids[count][-1] == "x":
-                for i in range(len(point)):
-                    if i+1 == len(point):
-                        line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[0]['coords'][0], point[0]['coords'][1]])
-                    else:
-                        line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[i+1]['coords'][0], point[i+1]['coords'][1]])
-            else:
-                for i in range(len(point)):
-                    if i+1 == len(point):
-                        continue
-                    else:
-                        line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[i+1]['coords'][0], point[i+1]['coords'][1]])
-
-            for seg in line_segments:
-                for i in range(len(seg)):
-                    seg[i] = seg[i].split(",")
-                    seg[i] = [float(seg[i][0]), float(seg[i][1])]
-
-                mid_pt1 = self.find_mid(seg[0], seg[1])
-                mid_pt2 = self.find_mid(seg[2], seg[3])
-                mid_pt3 = self.find_mid(seg[1], seg[2])
-
-                mid_pt4 = self.find_mid(mid_pt1, mid_pt3)
-                mid_pt5 = self.find_mid(mid_pt2, mid_pt3)
-
-                mid_pt6 = self.find_mid(mid_pt4, mid_pt5)
-
-                if min_x > mid_pt6[0]:
-                    min_x = mid_pt6[0]
-
-                if min_x > seg[0][0]:
-                    min_x = seg[0][0]
-
-                if min_x > seg[3][0]:
-                    min_x = seg[3][0]
-
-                if min_y > mid_pt6[1]:
-                    min_y = mid_pt6[1]
-
-                if min_y > seg[0][1]:
-                    min_y = seg[0][1]
-
-                if min_y > seg[3][1]:
-                    min_y = seg[3][1]
-
-            count += 1
-
-        print(min_x)
-        print(min_y)
-        return
 
 
 #--------------------------------------------------------#

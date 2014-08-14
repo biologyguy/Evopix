@@ -31,38 +31,12 @@ def zero_evp(evp):  #This is not done yet
                 else:
                     line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[i + 1]['coords'][0], point[i + 1]['coords'][1]])
 
-        temp = line_segments[0]
-        print(temp)
-        print(get_curve_bounds(temp[0][0], temp[0][1], temp[1][0], temp[1][1], temp[2][0], temp[2][1], temp[3][0], temp[3][1]))
-        sys.exit()
         for seg in line_segments:
 
-            mid_pt1 = evopic.find_mid(seg[0], seg[1])
-            mid_pt2 = evopic.find_mid(seg[2], seg[3])
-            mid_pt3 = evopic.find_mid(seg[1], seg[2])
+            bezier_bounds = (get_curve_bounds(seg[0][0], seg[0][1], seg[1][0], seg[1][1], seg[2][0], seg[2][1], seg[3][0], seg[3][1]))
 
-            mid_pt4 = evopic.find_mid(mid_pt1, mid_pt3)
-            mid_pt5 = evopic.find_mid(mid_pt2, mid_pt3)
-
-            mid_pt6 = evopic.find_mid(mid_pt4, mid_pt5)
-
-            if min_x > mid_pt6[0]:
-                min_x = mid_pt6[0]
-
-            if min_x > seg[0][0]:
-                min_x = seg[0][0]
-
-            if min_x > seg[3][0]:
-                min_x = seg[3][0]
-
-            if min_y > mid_pt6[1]:
-                min_y = mid_pt6[1]
-
-            if min_y > seg[0][1]:
-                min_y = seg[0][1]
-
-            if min_y > seg[3][1]:
-                min_y = seg[3][1]
+            min_x = bezier_bounds['left'] if bezier_bounds['left'] < min_x else min_x
+            min_y = bezier_bounds['top'] if bezier_bounds['top'] < min_y else min_y
 
         count += 1
 
@@ -78,6 +52,7 @@ def zero_evp(evp):  #This is not done yet
 
                 try:
                     evopic.paths[path_count]['points'][point_count]['coords'][coords_count] = "%s,%s" % (coords[0], coords[1])
+
                 except:
                     print(evopic.paths[point_count])
                     print(point_count)
@@ -92,13 +67,11 @@ def zero_evp(evp):  #This is not done yet
         path_count += 1
 
 
-    #print(evopic.paths[0]['points'])
-    #print(evopic.svg_out())
-    #print(evopic.evp)
-    return
+    # need to make an Evopic method to reconstruct the evp file from the updated (ie zeroed) coords.
+    #evopic.reconstruct_evp()
+    print(evopic.evp)
+    return  #evopic.evp
 
-
-# zero_evp()
 def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
     """Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
     Original version: NISHIO Hirokazu
