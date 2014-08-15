@@ -3,7 +3,7 @@ __author__ = 'bondsr'
 import evp2svg, sys, math
 
 
-def breed(evp1, evp2):
+def breed(evp1, evp2):  #Note: The original evp file (i.e., not zeroed) needs to be used for breeding. Store the zeroed evp for printing.
     return
 
 

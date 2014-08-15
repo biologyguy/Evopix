@@ -1,4 +1,6 @@
 #! /usr/bin/python
+import sys
+
 class Evopic():
     def __init__(self, evp):
         self.evp = evp
@@ -18,7 +20,6 @@ class Evopic():
                 linear = linear.split(",")
                 self.paths[count] = {"path_id": path_id[1:], "points": points, "radial": radial[1:],
                                      "linear": linear[1:], "stops": stops, "stroke": stroke}
-
             else:
                 path_id, points, stroke = attributes
                 stroke = stroke.split(",")
@@ -27,8 +28,26 @@ class Evopic():
             self.paths[count]["points"] = self.read_points(self.paths[count]["points"])
             count += 1
 
-    def reconstruct_evp(self):
-        x = 1
+    def reconstruct_evp(self):  #Uses the attributes in self.paths to create an evp genome. Useful when zero_evp() is called during breeding
+        evp_out = ""
+        for path in self.paths:
+            evp_out += "p%s:" % path["path_id"]
+            for point in path["points"]:
+                coords = point["coords"]
+                print(coords)
+                evp_out += "t%s~%s,%s;%s,%s;%s,%s;" % (point["point_id"], coords[0][0], coords[0][1], coords[1][0],
+                                                       coords[1][1], coords[2][0], coords[2][1])
+
+            evp_out += ":r,%s,%s,%s,%s,%s" % tuple(path["radial"])
+            evp_out += ":l,%s,%s,%s,%s:" % tuple(path["linear"])
+            for stop in path["stops"]:
+                params = stop["params"]
+                evp_out += "o%s~%s,%s,%s;" % (stop["stop_id"], params[0], params[1], params[2])
+
+            evp_out += ":s%s,%s,%s\n" % tuple(path["stroke"])
+
+        print(evp_out)
+
 
     def read_points(self, points_string):
         points = points_string.split("t")[1:]
@@ -149,7 +168,7 @@ if __name__ == '__main__':
     with open("../genomes/bob.evp", "r") as infile:
         bob = Evopic(infile.read())
         #print bob.evp
-        print(breed.zero_evp(bob.evp))
+        print(bob.reconstruct_evp())
         #print(bob.svg_out())
 #print bob.paths[0]["points"]
 
