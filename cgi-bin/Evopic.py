@@ -1,20 +1,26 @@
 #! /usr/bin/python
 import sys
 
+
 class Evopic():
     def __init__(self, evp):
         self.evp = evp
-        self.paths = False
+        self.paths = []
         self._parse_evp()
 
-    def _parse_evp(self):  # Convert evp genome file into a dictionary of lists of its component parts
+    def _parse_evp(self):
+        """Convert evp genome file into a dictionary of lists of its component attributes"""
         self.paths = self.evp.split("\n")[:-1]
         count = 0
         for path in self.paths:
             attributes = path.split(":")
             if len(attributes) == 6:
                 path_id, points, radial, linear, stops, stroke = attributes
-                stops = self.read_stops(stops)
+                stops = stops.split(";")[:-1]
+                for i in range(len(stops)):
+                    stop = stops[i].split("~")
+                    stops[i] = {"stop_id": stop[0][1:], "params": stop[1].split(",")}
+
                 stroke = stroke.split(",")
                 radial = radial.split(",")
                 linear = linear.split(",")
@@ -25,63 +31,53 @@ class Evopic():
                 stroke = stroke.split(",")
                 self.paths[count] = {"path_id": path_id[1:], "points": points, "stroke": stroke}
 
-            self.paths[count]["points"] = self.read_points(self.paths[count]["points"])
+            points = self.paths[count]["points"].split("t")[1:]
+            for i in range(len(points)):
+                point_id, coords = points[i].split("~")
+                float_coords = []
+                for j in coords.split(";")[:-1]:  # Switch 'coordinates' from string to [float, float]
+                    float_coords.append([float(j.split(",")[0]), float(j.split(",")[1])])
+
+                points[i] = {"point_id": point_id, "coords": float_coords}
+
+            self.paths[count]["points"] = points
             count += 1
         return
 
-    def read_points(self, points_string):
-        points = points_string.split("t")[1:]
-        count = 0
-        for point in points:
-            point_id, coords = point.split("~")
-            float_coords = []
-            for i in coords.split(";")[:-1]:  # Get the coordinates for each point into a float, instead of a string
-                float_coords.append([float(i.split(",")[0]), float(i.split(",")[1])])
-
-            points[count] = {"point_id": point_id, "coords": float_coords}
-            count += 1
-        return points
-
-    def read_stops(self, stops_string):
-        stops = stops_string.split(";")[:-1]
-        count = 0
-        for stop in stops:
-            stop = stop.split("~")
-            stops[count] = {"stop_id": stop[0][1:], "params": stop[1].split(",")}
-            count += 1
-        return stops
-
     def loop_paths(self, attrib):
+        """Pushes the values for a single attribute from every path into a list"""
         output = []
         for path in self.paths:
             try:
                 output += [path[attrib]]
-            except KeyError:
+            except KeyError:  # This is a hack for skipping linears, radials, and stops for non-closed paths
                 output += [False]
         return output
 
-    def reconstruct_evp(self):  #Uses the attributes in self.paths to create an evp genome. Useful when zero_evp() is called during breeding
-        evp_out = ""
+    def reconstruct_evp(self):
+        """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
+        new_evp = ""
         for path in self.paths:
-            evp_out += "p%s:" % path["path_id"]
+            new_evp += "p%s:" % path["path_id"]
             for point in path["points"]:
                 coords = point["coords"]
-                evp_out += "t%s~%s,%s;%s,%s;%s,%s;" % (point["point_id"], coords[0][0], coords[0][1], coords[1][0],
+                new_evp += "t%s~%s,%s;%s,%s;%s,%s;" % (point["point_id"], coords[0][0], coords[0][1], coords[1][0],
                                                        coords[1][1], coords[2][0], coords[2][1])
 
             if path["path_id"][-1] in ["r", "l"]:  # skip if the path is not closed
-                evp_out += ":r,%s,%s,%s,%s,%s" % tuple(path["radial"])
-                evp_out += ":l,%s,%s,%s,%s:" % tuple(path["linear"])
+                new_evp += ":r,%s,%s,%s,%s,%s" % tuple(path["radial"])
+                new_evp += ":l,%s,%s,%s,%s:" % tuple(path["linear"])
 
                 for stop in path["stops"]:
                     params = stop["params"]
-                    evp_out += "o%s~%s,%s,%s;" % (stop["stop_id"], params[0], params[1], params[2])
+                    new_evp += "o%s~%s,%s,%s;" % (stop["stop_id"], params[0], params[1], params[2])
 
-            evp_out += ":%s,%s,%s\n" % tuple(path["stroke"])
-        self.evp = evp_out
+            new_evp += ":%s,%s,%s\n" % tuple(path["stroke"])
+        self.evp = new_evp
         return
 
     def svg_out(self, scale=100):  # need to implement a scaling factor, so full sized vs. thumbnail versions can be made
+        """Uses the info in self.paths to create an SVG file. Returned as a string."""
         path_ids = self.loop_paths('path_id')
         points = self.loop_paths('points')
         linears = self.loop_paths('linear')
@@ -146,7 +142,7 @@ class Evopic():
                 count = 0
                 for point in points[i]:
                     point = point['coords']
-                    if count == 0:
+                    if count == 0:  # This always true on the first pass through the loop, then always false
                         start_point = (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
                         points_string += "%s C %s" % (str(point[1]).strip('[]'), str(point[2]).strip('[]'))
 
