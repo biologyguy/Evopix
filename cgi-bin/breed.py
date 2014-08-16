@@ -1,17 +1,23 @@
 #! /usr/bin/python
 __author__ = 'bondsr'
 from Evopic import Evopic
-import sys, math
+import math
 
 
 def breed(evp1, evp2):
     """Notes:-The original evp file (i.e., not zeroed) needs to be used for breeding. Store the zeroed evp for printing.
              -When calculating thr min radius of radial stops, do not go below 0.002 (it breaks the fill)
+             -Not sure if best to pass in evp files or evopic objects. Probably objects...
     """
     return
 
 
 def zero_evp(evp):
+    """New Evopix are able to wander around Cartesian space, which means they would start to wander off the canvas
+    pretty quickly if we print the SVG true to their actual genome coords. Instead, create a separate evp file that
+    finds the bounding box of the image and positions it close to 0,0. It's important to still breed from the original
+    non-zeroed evp though, because a mutation on the extreme left of top of the image will result in new values for all
+    coords, making it look like much more divergence between parent and offspring than there really is."""
     evopic = Evopic(evp)
     min_x, min_y, min_x_seq, min_y_seg = [9999999999.9, 9999999999.9, [], []]  # arbitrarily set large min values
 
@@ -52,24 +58,13 @@ def zero_evp(evp):
         for point in path['points']:
             coords_count = 0
             for coords in point['coords']:
-                #print coords
                 coords[0] = coords[0] - min_x
                 coords[1] = coords[1] - min_y
 
-                try:
-                    evopic.paths[path_count]['points'][point_count]['coords'][coords_count] = [round(coords[0],4), round(coords[1],4)]
-
-                except:
-                    print(evopic.paths[point_count])
-                    print(point_count)
-                    print(evopic.paths[point_count]['points'][point_count])
-                    print(evopic.paths[point_count]['points'][point_count]['coords'][coords_count])
-                    sys.exit("Crap... Failure in zero_evp().")
-
+                evopic.paths[path_count]['points'][point_count]['coords'][coords_count] = [round(coords[0], 4),
+                                                                                           round(coords[1], 4)]
                 coords_count += 1
-            #print evopic.paths[point_count]['points'][point_count]['coords']
             point_count += 1
-            #sys.exit()
         path_count += 1
 
     evopic.reconstruct_evp()
@@ -77,7 +72,8 @@ def zero_evp(evp):
 
 
 def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
-    """Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
+    """Calculates the extreme points of a cubic Bezier curve
+    Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
     Original version: NISHIO Hirokazu
     Modifications: Timo
     Convert to Python: Steve Bond"""
@@ -136,8 +132,8 @@ def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
     bounds["Y"].append(y0)
     bounds["X"].append(x3)
     bounds["Y"].append(y3)
-    return {"left": round(min(bounds["X"]), 6), "top": round(min(bounds["Y"]), 6), "right": round(max(bounds["X"]), 6),
-            "bottom": round(max(bounds["Y"]), 6)}
+    return {"left": round(min(bounds["X"]), 4), "top": round(min(bounds["Y"]), 4), "right": round(max(bounds["X"]), 4),
+            "bottom": round(max(bounds["Y"]), 4)}
 
 
 #-------------------------Sandbox-------------------------------#
@@ -145,7 +141,7 @@ if __name__ == '__main__':
     #bounds = get_curve_bounds(532, 333, 117, 305, 28, 93, 265, 42)
     #Prints: {"left":135.77684,"top":42,"right":532,"bottom":333,"points":[{"X":135.77684049079755,"Y":144.86387466397255},{"X":532,"Y":333},{"X":265,"Y":42}],"tvalues":[0.6365030674846626,0,1]}
 
-    bounds = get_curve_bounds(88.9514, 320.4029, 31.6589, 281.0587, 0.7516, 223.7982, 12.5989, 163.8201)
+    #bounds = get_curve_bounds(88.9514, 320.4029, 31.6589, 281.0587, 0.7516, 223.7982, 12.5989, 163.8201)
     #print(bounds)
     blahh = {'right': 88.9514, 'top': 163.8201, 'left': 10.091368, 'bottom': 320.4029}
 
