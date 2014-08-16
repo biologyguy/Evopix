@@ -8,7 +8,7 @@ class Evopic():
         self._parse_evp()
 
     def _parse_evp(self):  # Convert evp genome file into a dictionary of lists of its component parts
-        self.paths = self.evp.split("\n")
+        self.paths = self.evp.split("\n")[:-1]
         count = 0
         for path in self.paths:
             attributes = path.split(":")
@@ -28,27 +28,6 @@ class Evopic():
             self.paths[count]["points"] = self.read_points(self.paths[count]["points"])
             count += 1
 
-    def reconstruct_evp(self):  #Uses the attributes in self.paths to create an evp genome. Useful when zero_evp() is called during breeding
-        evp_out = ""
-        for path in self.paths:
-            evp_out += "p%s:" % path["path_id"]
-            for point in path["points"]:
-                coords = point["coords"]
-                print(coords)
-                evp_out += "t%s~%s,%s;%s,%s;%s,%s;" % (point["point_id"], coords[0][0], coords[0][1], coords[1][0],
-                                                       coords[1][1], coords[2][0], coords[2][1])
-
-            evp_out += ":r,%s,%s,%s,%s,%s" % tuple(path["radial"])
-            evp_out += ":l,%s,%s,%s,%s:" % tuple(path["linear"])
-            for stop in path["stops"]:
-                params = stop["params"]
-                evp_out += "o%s~%s,%s,%s;" % (stop["stop_id"], params[0], params[1], params[2])
-
-            evp_out += ":s%s,%s,%s\n" % tuple(path["stroke"])
-
-        print(evp_out)
-
-
     def read_points(self, points_string):
         points = points_string.split("t")[1:]
         count = 0
@@ -64,7 +43,7 @@ class Evopic():
         return points
 
     def read_stops(self, stops_string):
-        stops = stops_string.split(";")
+        stops = stops_string.split(";")[:-1]
         count = 0
         for stop in stops:
             stop = stop.split("~")
@@ -81,7 +60,28 @@ class Evopic():
                 output += [False]
         return output
 
-    def svg_out(self, scale=100):
+    def reconstruct_evp(self):  #Uses the attributes in self.paths to create an evp genome. Useful when zero_evp() is called during breeding
+        evp_out = ""
+        for path in self.paths:
+            evp_out += "p%s:" % path["path_id"]
+            for point in path["points"]:
+                coords = point["coords"]
+                evp_out += "t%s~%s,%s;%s,%s;%s,%s;" % (point["point_id"], coords[0][0], coords[0][1], coords[1][0],
+                                                       coords[1][1], coords[2][0], coords[2][1])
+
+            if path["path_id"][-1] in ["r", "l"]:  # skip if the path is not closed
+                evp_out += ":r,%s,%s,%s,%s,%s" % tuple(path["radial"])
+                evp_out += ":l,%s,%s,%s,%s:" % tuple(path["linear"])
+
+                for stop in path["stops"]:
+                    params = stop["params"]
+                    evp_out += "o%s~%s,%s,%s;" % (stop["stop_id"], params[0], params[1], params[2])
+
+            evp_out += ":%s,%s,%s\n" % tuple(path["stroke"])
+
+        return evp_out
+
+    def svg_out(self, scale=100):  # need to implement a scaling factor, so full sized vs. thumbnail versions can be made
         path_ids = self.loop_paths('path_id')
         points = self.loop_paths('points')
         linears = self.loop_paths('linear')
