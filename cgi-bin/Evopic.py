@@ -160,10 +160,12 @@ class Evopic():
 
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
-    with open("../genomes/bob.evp", "r") as infile:
+    path = "../genomes/bubba"
+    with open("%s.evp" % path, "r") as infile:
         bob = Evopic(infile.read())
         #print bob.evp
         #print(bob.reconstruct_evp())
-        print(bob.svg_out())
+        with open("%s.svg" % path, "w") as ofile:
+            ofile.write(bob.svg_out())
 #print bob.paths[0]["points"]
 

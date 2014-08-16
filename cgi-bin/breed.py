@@ -6,7 +6,7 @@ import math
 
 def breed(evp1, evp2):
     """Notes:-The original evp file (i.e., not zeroed) needs to be used for breeding. Store the zeroed evp for printing.
-             -When calculating thr min radius of radial stops, do not go below 0.002 (it breaks the fill)
+             -moderate to extreme values in offset and radius totally break the fill of a gradient in some browsers
              -Pass in parents as evopic objects.
     """
     return
