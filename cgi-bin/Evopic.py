@@ -27,6 +27,7 @@ class Evopic():
 
             self.paths[count]["points"] = self.read_points(self.paths[count]["points"])
             count += 1
+        return
 
     def read_points(self, points_string):
         points = points_string.split("t")[1:]
@@ -39,7 +40,6 @@ class Evopic():
 
             points[count] = {"point_id": point_id, "coords": float_coords}
             count += 1
-
         return points
 
     def read_stops(self, stops_string):
@@ -78,8 +78,8 @@ class Evopic():
                     evp_out += "o%s~%s,%s,%s;" % (stop["stop_id"], params[0], params[1], params[2])
 
             evp_out += ":%s,%s,%s\n" % tuple(path["stroke"])
-
-        return evp_out
+        self.evp = evp_out
+        return
 
     def svg_out(self, scale=100):  # need to implement a scaling factor, so full sized vs. thumbnail versions can be made
         path_ids = self.loop_paths('path_id')
@@ -129,13 +129,13 @@ class Evopic():
                 for point in points[i]:
                     point = point['coords']
                     if count == 0:
-                        points_string += "%s C %s" % (point[0], point[1])
+                        points_string += "%s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
 
                     elif count == len(points[i])-1:
-                        points_string += " %s %s" % (point[0], point[1])
+                        points_string += " %s %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
 
                     else:
-                        points_string += " %s %s C %s" % (point[0], point[1], point[2])
+                        points_string += " %s %s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'), str(point[2]).strip('[]'))
 
                     count += 1
 
@@ -147,11 +147,11 @@ class Evopic():
                 for point in points[i]:
                     point = point['coords']
                     if count == 0:
-                        start_point = (point[0], point[1])
-                        points_string += "%s C %s" % (point[1], point[2])
+                        start_point = (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
+                        points_string += "%s C %s" % (str(point[1]).strip('[]'), str(point[2]).strip('[]'))
 
                     else:
-                        points_string += " %s %s C %s" % (point[0], point[1], point[2])
+                        points_string += " %s %s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'), str(point[2]).strip('[]'))
 
                     count += 1
 
@@ -162,13 +162,12 @@ class Evopic():
         return svg
 
 
-#--------------------------------------------------------#
-
+#-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
     with open("../genomes/bob.evp", "r") as infile:
         bob = Evopic(infile.read())
         #print bob.evp
-        print(bob.reconstruct_evp())
-        #print(bob.svg_out())
+        #print(bob.reconstruct_evp())
+        print(bob.svg_out())
 #print bob.paths[0]["points"]
 

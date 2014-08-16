@@ -1,15 +1,19 @@
 #! /usr/bin/python
 __author__ = 'bondsr'
-import evp2svg, sys, math
+from Evopic import Evopic
+import sys, math
 
 
-def breed(evp1, evp2):  #Note: The original evp file (i.e., not zeroed) needs to be used for breeding. Store the zeroed evp for printing.
+def breed(evp1, evp2):
+    """Notes:-The original evp file (i.e., not zeroed) needs to be used for breeding. Store the zeroed evp for printing.
+             -When calculating thr min radius of radial stops, do not go below 0.002 (it breaks the fill)
+    """
     return
 
 
-def zero_evp(evp):  #This is not done yet
-    evopic = evp2svg.Evopic(evp)
-    min_x, min_y, min_x_seq, min_y_seg = [9999999999.9, 9999999999.9, [], []]  # arbitrarily set large min values for self.zero_paths()
+def zero_evp(evp):
+    evopic = Evopic(evp)
+    min_x, min_y, min_x_seq, min_y_seg = [9999999999.9, 9999999999.9, [], []]  # arbitrarily set large min values
 
     # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line segments for bezier calc
     points = evopic.loop_paths("points")
@@ -40,6 +44,8 @@ def zero_evp(evp):  #This is not done yet
 
         count += 1
 
+    #adujust min x,y so they are not perfectly 0. Giving a little bit of margin looks nicer.
+    min_x, min_y = [min_x - 3, min_y - 3]
     path_count = 0
     for path in evopic.paths:
         point_count = 0
@@ -51,14 +57,14 @@ def zero_evp(evp):  #This is not done yet
                 coords[1] = coords[1] - min_y
 
                 try:
-                    evopic.paths[path_count]['points'][point_count]['coords'][coords_count] = "%s,%s" % (coords[0], coords[1])
+                    evopic.paths[path_count]['points'][point_count]['coords'][coords_count] = [round(coords[0],4), round(coords[1],4)]
 
                 except:
                     print(evopic.paths[point_count])
                     print(point_count)
                     print(evopic.paths[point_count]['points'][point_count])
                     print(evopic.paths[point_count]['points'][point_count]['coords'][coords_count])
-                    sys.exit()
+                    sys.exit("Crap... Failure in zero_evp().")
 
                 coords_count += 1
             #print evopic.paths[point_count]['points'][point_count]['coords']
@@ -66,11 +72,9 @@ def zero_evp(evp):  #This is not done yet
             #sys.exit()
         path_count += 1
 
+    evopic.reconstruct_evp()
+    return evopic.evp
 
-    # need to make an Evopic method to reconstruct the evp file from the updated (ie zeroed) coords.
-    #evopic.reconstruct_evp()
-    print(evopic.evp)
-    return  #evopic.evp
 
 def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
     """Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
@@ -136,6 +140,7 @@ def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
             "bottom": round(max(bounds["Y"]), 6)}
 
 
+#-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
     #bounds = get_curve_bounds(532, 333, 117, 305, 28, 93, 265, 42)
     #Prints: {"left":135.77684,"top":42,"right":532,"bottom":333,"points":[{"X":135.77684049079755,"Y":144.86387466397255},{"X":532,"Y":333},{"X":265,"Y":42}],"tvalues":[0.6365030674846626,0,1]}
@@ -145,5 +150,6 @@ if __name__ == '__main__':
     blahh = {'right': 88.9514, 'top': 163.8201, 'left': 10.091368, 'bottom': 320.4029}
 
     with open("../genomes/bob.evp", "r") as infile:
-        zero_evp(infile.read())
-
+        #print(zero_evp(infile.read()))
+        bob = Evopic(zero_evp(infile.read()))
+        print(bob.svg_out())
