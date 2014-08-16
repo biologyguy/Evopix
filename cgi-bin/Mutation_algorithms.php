@@ -432,7 +432,7 @@ Merge points
 						break;
 	
 						case 9:
-						$change = (sqrt(-2*log(lcg_value()))*cos(2*M_PI*lcg_value()))*2;
+						$change = (algorithmsqrt(-2*log(lcg_value()))*cos(2*M_PI*lcg_value()))*2;
 						$grade_info_array[9] = $grade_info_array[9]+$change;
 						break;
 						}

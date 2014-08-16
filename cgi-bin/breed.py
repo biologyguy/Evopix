@@ -7,7 +7,7 @@ import math
 def breed(evp1, evp2):
     """Notes:-The original evp file (i.e., not zeroed) needs to be used for breeding. Store the zeroed evp for printing.
              -When calculating thr min radius of radial stops, do not go below 0.002 (it breaks the fill)
-             -Not sure if best to pass in evp files or evopic objects. Probably objects...
+             -Pass in parents as evopic objects.
     """
     return
 
