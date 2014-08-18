@@ -1,0 +1,96 @@
+<html>
+	<head>
+	<title>
+	EvoPix
+	</title>
+	<title>EvoPix</title>
+	<link rel='shortcut icon' href='/favicon.ico'>
+    <style>
+	body
+		{
+		background:#29BFEF;
+		font-family:Verdana, Geneva, sans-serif;
+		margin:0;
+		}
+	
+	#background_image
+		{
+		position:fixed;
+		top:0;
+		left:0;
+		}
+	
+	#background_hills 
+		{
+		position: fixed;
+		left: 0;
+		bottom: 0;
+		}
+	
+	#main_content
+		{
+		margin-left: 10%;
+		margin-right:10%;
+		position:relative;
+		width:1000px;
+		background:#FFC;
+		border:medium #666 solid;
+		margin-left: 10%;
+		margin-right: 10%;
+		}
+		
+	</style>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script language="javascript" type="application/javascript" src="javascripts/evopix_class.js"></script>
+    <script language="javascript" type="application/javascript">
+	$(document).ready(function() 
+		{
+		$coords = new coords(4);
+		$coords.set(5,5);
+		alert($coords.x() + " and " + $coords.y());
+		
+		$("h1").click(function() 
+			{
+			alert("Hello world!");
+			});
+		
+		});
+		
+	
+	</script>
+    
+    </head>
+	<body>
+	<img id="background_image" src="images/background_sun.svg"/>
+    <img id="background_hills" src="images/background_hills.svg"/>
+    <div id="main_content">
+    <h1>EvoPix</h1>
+	<hr />
+	<br />Welcome Steve!<br/>
+	<p>Not too long ago, abiogenesis occurred in the world of the EvoPix, creating <a href='users/Beako/svg_files/1.svg'>Bob</a> from the primordial goo. Through the marvels of <i>in silico</i> biology, Bob tore himself into two, and promptly started to breed with himself... I know, it's weird, but even computer generated pictures have needs. Your task, should you choose to accept it, is to direct the evolution of EvoPix by selectively breeding them for traits you deem worthy. You will find that EvoPix biology is not so different from our own; offspring inherit a mix of traits from their parents, but new traits can be acquired incrementally through random mutation. It is still early in EvoPix history, so you may find that everyone looks very similar to Bob. In essence, there is only a single species, so you are free to mate any EvoPic to any other EvoPic. In time however, you are going to find that certain individuals can no longer interbreed... They have diverged to far from one another genetically, and are on the road to becoming distinct species. </p>
+<p>This is a very pared down version of the website I aspire to create, and its purpose is to test out the code I've written which breeds and mutates EvoPix. I have given each of the ten people involved in this first beta test a farm which can house a maximum of 50 EvoPix, but you will each need to collect a few specimens from the wild first to get your breeding colony started. Wild EvoPix are simply those released from farms that have become full, or which were discarded for some undesirable trait.</p>
+<p>Please use the links below to begin your foray into EvoPic husbandry and selective breeding. If you notice anything unusual, and you think it may be a bug in the program, please email me to let me know.</p>
+<p>Now off you go. Turn the ancestors of Bob into something beautiful!</p>
+<br /><br /><br /><br /><br />
+	<center><table>
+		<tr>
+			<td width='140'>Hype Score: 0</td>
+			<td>Money: 85</td>
+		</tr>
+	</table></center>
+	<hr width='500'/>
+	<center>
+		<table>
+			<tr>
+				<td width='100'><a href='farm.php'>Farm</a></td>
+				<td width='100'><a href='gallery.php'>Gallery</a></td>
+				<td width='130'><a href='hunting.php'>Go Hunting</a></td>
+				<td><a href='genealogy.php'>Genealogy</a></td>
+			</tr>
+		</table>
+	</center>
+
+</div>
+
+</body>
+</html>
