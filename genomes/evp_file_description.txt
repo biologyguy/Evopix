@@ -1,0 +1,41 @@
+**Paths**
+Paths are separated by newlines, and attributes within each path are delimited by colons.
+
+Assume the path has been split into a list on ":"
+
+Attribute[0] ==> Path type and id. e.g., p3r 
+position 1 is a throw away character indicating 'path'
+position 2 is expandable, and is the path id #
+position 3 denotes whether the path is a line 'x', or a closed path 'r' or 'l'. The 'r' and 'l' stand for linear and radial, and are used to control the type of gradient applied to the path.
+
+Attribute[1] ==> Path point coordinates. e.g., t27~235.1424,178.0456;246.0286,180.9712;246.0286,180.9712;t28~...
+position 1 is a throw away character indicating 'point'
+position 2 is expandable, and is the point id #
+position 3 is a ~, separating the point id and the control points
+position 4 is everything after the ~, and is three pairs of (x,y) coordinates separated by semicolons. The set describes a single position on a bezier curve, with the first and last coords representing the curve control handles, and the second coord representing the point itself.
+
+Attribute[2] ==> Radial gradient params. e.g., r,0.5,0.5,0.5,0.5,0.01 (not used in linear paths)
+position 1 is a throw away character indication 'radial'
+positions 2, 3, 4, and 5 are cx, cy, fx, fy as specified by SVG
+position 6 is the radial length
+See http://www.w3.org/TR/SVG/pservers.html#RadialGradientElement for details
+
+Attribute[3] ==> Linear gradient params. e.g., l,0.0,0.5,0.01,0.5 (not used in linear paths)
+position 1 is a throw away character indication 'linear'
+positions 2, 3, 4, and 5 are x1, y1, x2, and y2 as specified by SVG
+See http://www.w3.org/TR/SVG/pservers.html#LinearGradientElement for details
+
+Attribute[4] ==> Gradient stops. e.g, o4~112200,1.0,1.0;o5~... (not used in linear paths)
+position 1 is a throw away character indication 'stop'
+position 2 is expandable, and is the stop id #
+position 3 is a ~, separating the stop id and the colour parameter
+position 4 is a hexadecimal (6 character) RGB code for the stop colour
+position 5 specifies opacity
+position 6 specifies the stop offset
+position 7 is a semicolon to separate stops from one another as well as the next attribute
+
+Attribute[5] ==> Stroke. e.g., s000000,0.648,1.0
+position 1 is a throw away character indication 'stroke'
+position 2 is a hexadecimal (6 character) RGB code for the stroke colour
+position 3 is the stroke width (in points)
+position 4 is the stroke opacity
