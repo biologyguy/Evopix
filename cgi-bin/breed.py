@@ -9,7 +9,7 @@ def breed(evp1, evp2):
              -moderate to extreme values in offset and radius totally break the fill of a gradient in some browsers
              -Pass in parents as evopic objects.
     """
-    return
+    return "A couple of Evopics just made a baby.\n"
 
 
 def zero_evp(evp):
@@ -138,14 +138,10 @@ def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
 
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
-    #bounds = get_curve_bounds(532, 333, 117, 305, 28, 93, 265, 42)
-    #Prints: {"left":135.77684,"top":42,"right":532,"bottom":333,"points":[{"X":135.77684049079755,"Y":144.86387466397255},{"X":532,"Y":333},{"X":265,"Y":42}],"tvalues":[0.6365030674846626,0,1]}
-
-    #bounds = get_curve_bounds(88.9514, 320.4029, 31.6589, 281.0587, 0.7516, 223.7982, 12.5989, 163.8201)
-    #print(bounds)
-    blahh = {'right': 88.9514, 'top': 163.8201, 'left': 10.091368, 'bottom': 320.4029}
-
     with open("../genomes/bob.evp", "r") as infile:
-        #print(zero_evp(infile.read()))
-        bob = Evopic(zero_evp(infile.read()))
-        print(bob.svg_out())
+        bob = Evopic(infile.read())
+
+    with open("../genomes/sue.evp", "r") as infile:
+        sue = Evopic(infile.read())
+
+    print(breed(bob, sue))
