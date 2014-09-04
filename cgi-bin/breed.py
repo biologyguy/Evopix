@@ -1,5 +1,4 @@
 #! /usr/bin/python
-__author__ = 'bondsr'
 from Evopic import Evopic
 import math
 
@@ -28,7 +27,7 @@ def zero_evp(evp):
     count = 0
     for point in points:
         line_segments = []
-        if not path_ids[count][-1] == "x":  # Do this if the path is closed
+        if not evopic.paths[path_ids[count]]["type"] == "x":  # Do this if the path is closed
             for i in range(len(point)):
                 if i + 1 == len(point):
                     line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[0]['coords'][0], point[0]['coords'][1]])
@@ -52,8 +51,8 @@ def zero_evp(evp):
 
     #adujust min x,y so they are not perfectly 0. Giving a little bit of margin looks nicer.
     min_x, min_y = [min_x - 3, min_y - 3]
-    path_count = 0
-    for path in evopic.paths:
+    for path_id in evopic.paths_z_pos:
+        path = evopic.paths[path_id]
         point_count = 0
         for point in path['points']:
             coords_count = 0
@@ -61,11 +60,10 @@ def zero_evp(evp):
                 coords[0] = coords[0] - min_x
                 coords[1] = coords[1] - min_y
 
-                evopic.paths[path_count]['points'][point_count]['coords'][coords_count] = [round(coords[0], 4),
+                evopic.paths[path_id]['points'][point_count]['coords'][coords_count] = [round(coords[0], 4),
                                                                                            round(coords[1], 4)]
                 coords_count += 1
             point_count += 1
-        path_count += 1
 
     evopic.reconstruct_evp()
     return evopic.evp
@@ -140,7 +138,7 @@ def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
 if __name__ == '__main__':
     with open("../genomes/bob.evp", "r") as infile:
         bob = Evopic(infile.read())
-
+        print(zero_evp(bob.evp))
     with open("../genomes/sue.evp", "r") as infile:
         sue = Evopic(infile.read())
 
