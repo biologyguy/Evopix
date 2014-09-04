@@ -10,29 +10,23 @@ def similarity_score(evo_1, evo_2):
     """
     sim_score = 1.
 
-    #Match path IDs, and subtract the size of non-shared paths
-    evo_1_path_ids = []
-    evo_1_path_sizes = []
-    for path in evo_1.paths:
-        evo_1_path_ids.append(int(path["path_id"][:-1]))
-        evo_1_path_sizes.append(len(path["points"]))
-
-    evo_2_path_ids = []
-    evo_2_path_sizes = []
-    for path in evo_2.paths:
-        evo_2_path_ids.append(int(path["path_id"][:-1]))
-        evo_2_path_sizes.append(len(path["points"]))
-
+    #Match path IDs, and account for non-shared paths
+    total_points = 0
+    matched_points = 0
     matched_paths = []
-    for path_id in list(evo_1_path_ids):
-        if path_id in evo_2_path_ids:
-            matched_paths.append(path_id)
-            del evo_1_path_ids[evo_1_path_ids.index(path_id)]
-            del evo_2_path_ids[evo_2_path_ids.index(path_id)]
+    for path_id in evo_1.paths_z_pos:
+        total_points += len(evo_1.paths[path_id]["points"])
 
-    print(evo_1_path_sizes)
-    print(evo_2_path_sizes)
-    print(matched_paths)
+        if path_id in evo_2.paths_z_pos:
+            matched_points += len(evo_1.paths[path_id]["points"]) + len(evo_2.paths[path_id]["points"])
+            matched_paths.append(path_id)
+
+    for path_id in evo_2.paths_z_pos:
+        total_points += len(evo_2.paths[path_id]["points"])
+
+    sim_score *= float(matched_points)/float(total_points)
+
+    #Run through each matched path, and get the weighted average (based on number of points) sim score.
 
     return sim_score
 
@@ -45,7 +39,7 @@ if __name__ == '__main__':
     with open("../genomes/bubba.evp", "r") as infile:
         sue = Evopic(infile.read())
 
-    print(similarity_score(bob, sue))
+    print("%s\n" % similarity_score(bob, sue))
 
-    for i in bob.paths[0]:
-        print("%s: %s" % (i, bob.paths[0][i]))
+    for i in bob.paths[1]:
+        print("%s: %s" % (i, bob.paths[1][i]))
