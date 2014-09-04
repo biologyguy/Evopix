@@ -5,17 +5,20 @@ import sys
 class Evopic():
     def __init__(self, evp):
         self.evp = evp
-        self.paths = []
+        self.paths = {}
+        self.paths_z_pos = []
         self._parse_evp()
 
     def _parse_evp(self):
         """Convert evp genome file into a dictionary of lists of its component attributes"""
-        self.paths = self.evp.split("\n")[:-1]
-        count = 0
-        for path in self.paths:
+        count = 1
+        for path in self.evp.split("\n")[:-1]:
             attributes = path.split(":")
             if len(attributes) == 6:
                 path_id, points, radial, linear, stops, stroke = attributes
+                path_type = path_id[-1:]
+                path_id = int(path_id[1:-1])
+                self.paths_z_pos.append(path_id)
                 stops = stops.split(";")[:-1]
                 for i in range(len(stops)):
                     stop = stops[i].split("~")
@@ -26,14 +29,17 @@ class Evopic():
                 stroke[1], stroke[2] = [float(stroke[1]), float(stroke[2])]
                 radial = [float(i) for i in radial.split(",")[1:]]
                 linear = [float(i) for i in linear.split(",")[1:]]
-                self.paths[count] = {"path_id": int(path_id[1:-1]), "type": path_id[-1:], "points": points, "radial": radial,
-                                     "linear": linear, "stops": stops, "stroke": stroke}
+                self.paths[path_id] = {"path_id": path_id, "type": path_type, "points": points, "radial": radial,
+                                       "linear": linear, "stops": stops, "stroke": stroke}
             else:
                 path_id, points, stroke = attributes
+                path_type = path_id[-1:]
+                path_id = int(path_id[1:-1])
+                self.paths_z_pos.append(path_id)
                 stroke = stroke.split(",")
-                self.paths[count] = {"path_id": int(path_id[1:-1]), "type": path_id[-1:], "points": points, "stroke": stroke}
+                self.paths[path_id] = {"path_id": path_id, "type": path_type, "points": points, "stroke": stroke}
 
-            points = self.paths[count]["points"].split("t")[1:]
+            points = self.paths[path_id]["points"].split("t")[1:]
             for i in range(len(points)):
                 point_id, coords = points[i].split("~")
                 float_coords = []
@@ -42,14 +48,15 @@ class Evopic():
 
                 points[i] = {"point_id": int(point_id), "coords": float_coords}
 
-            self.paths[count]["points"] = points
+            self.paths[path_id]["points"] = points
             count += 1
         return
 
     def loop_paths(self, attrib):
         """Pushes the values for a single attribute from every path into a list"""
         output = []
-        for path in self.paths:
+        for path_id in self.paths_z_pos:
+            path = self.paths[path_id]
             try:
                 output += [path[attrib]]
             except KeyError:  # This is a hack for skipping linears, radials, and stops for non-closed paths
@@ -59,7 +66,8 @@ class Evopic():
     def reconstruct_evp(self):
         """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
         new_evp = ""
-        for path in self.paths:
+        for path_id in self.paths_z_pos:
+            path = self.paths[path_id]
             new_evp += "p%s%s:" % (path["path_id"], path["type"])
             for point in path["points"]:
                 coords = point["coords"]
@@ -144,7 +152,7 @@ class Evopic():
                 count = 0
                 for point in points[i]:
                     point = point['coords']
-                    if count == 0:  # This always true on the first pass through the loop, then always false
+                    if count == 0:  # This is always true on the first pass through the loop, then always false
                         start_point = (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
                         points_string += "%s C %s" % (str(point[1]).strip('[]'), str(point[2]).strip('[]'))
 
@@ -166,7 +174,8 @@ if __name__ == '__main__':
     with open("%s.evp" % path, "r") as infile:
         bob = Evopic(infile.read())
 
-    print("%s\n" % bob.paths[0])
-    print(bob.svg_out())
+    print("Attribute\tValue(s)")
+    for attrib in bob.paths[1]:
+        print("%s:\t%s" % (attrib, bob.paths[1][attrib]))
 
 
