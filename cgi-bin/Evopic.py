@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 import sys
 
 
@@ -89,6 +89,7 @@ class Evopic():
     def svg_out(self, scale=100):  # need to implement a scaling factor, so full sized vs. thumbnail versions can be made
         """Uses the info in self.paths to create an SVG file. Returned as a string."""
         path_ids = self.loop_paths('path_id')
+        path_type = self.loop_paths('type')
         points = self.loop_paths('points')
         linears = self.loop_paths('linear')
         radials = self.loop_paths('radial')
@@ -106,19 +107,22 @@ class Evopic():
         for i in range(len(linears)):
             if not linears[i]:
                 continue
-            x1, y1, x2, y2 = linears[i]
-            svg += "\t<linearGradient id='linearGradient%s' x1='%s' y1='%s' x2='%s' y2='%s'>\n" % (path_ids[i], x1, y1, x2, y2)
-            for j in stops[i]:
-                color, opacity, offset = j['params']
-                svg += "\t\t<stop stop-color='#%s' stop-opacity='%s' offset='%s' />\n" % (color, opacity, offset)
-            svg += "\t</linearGradient>\n"
 
-            cx, cy, fx, fy, r = radials[i]
-            svg += "\t<radialGradient id='radialGradient%s' cx='%s' cy='%s' fx='%s' fy='%s' r='%s'>\n" % (path_ids[i], cx, cy, fx, fy, r)
-            for j in stops[i]:
-                color, opacity, offset = j['params']
-                svg += "\t\t<stop stop-color='#%s' stop-opacity='%s' offset='%s' />\n" % (color, opacity, offset)
-            svg += "\t</radialGradient>\n"
+            if path_type[i] == 'l':
+                x1, y1, x2, y2 = linears[i]
+                svg += "\t<linearGradient id='linearGradient%s' x1='%s' y1='%s' x2='%s' y2='%s'>\n" % (path_ids[i], x1, y1, x2, y2)
+                for j in stops[i]:
+                    color, opacity, offset = j['params']
+                    svg += "\t\t<stop stop-color='#%s' stop-opacity='%s' offset='%s' />\n" % (color, opacity, offset)
+                svg += "\t</linearGradient>\n"
+
+            if path_type[i] == 'r':
+                cx, cy, fx, fy, r = radials[i]
+                svg += "\t<radialGradient id='radialGradient%s' cx='%s' cy='%s' fx='%s' fy='%s' r='%s'>\n" % (path_ids[i], cx, cy, fx, fy, r)
+                for j in stops[i]:
+                    color, opacity, offset = j['params']
+                    svg += "\t\t<stop stop-color='#%s' stop-opacity='%s' offset='%s' />\n" % (color, opacity, offset)
+                svg += "\t</radialGradient>\n"
 
         svg += "</defs>\n"
 
@@ -174,6 +178,8 @@ if __name__ == '__main__':
     with open("%s.evp" % path, "r") as infile:
         bob = Evopic(infile.read())
 
+    print(bob.svg_out())
+    sys.exit()
     print("Attribute\tValue(s)")
     for attrib in bob.paths[1]:
         print("%s:\t%s" % (attrib, bob.paths[1][attrib]))
