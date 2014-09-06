@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 from Evopic import Evopic
+import sys
 
 
 def find_path_area(path):  # Input is an individual path from Evopic.paths
@@ -19,6 +20,15 @@ def find_path_area(path):  # Input is an individual path from Evopic.paths
         ox, oy = x, y
     return abs(area/2)
 
+
+def find_path_length(path):  # Input is an individual path from Evopic.paths
+    length = 0.
+    ox, oy = path["points"][0]["coords"][1]
+    del path["points"][0]
+    for i in path["points"]:
+        length += line_length([ox, oy], i["coords"][1])
+        ox, oy = i["coords"][1]
+    return length
 
 def line_length(point_a, point_b):  # implement Pythagorean theorem
     length = (abs(point_a[0] - point_b[0])**2 + abs(point_a[1] - point_b[1])**2)**0.5
@@ -88,10 +98,10 @@ def similarity_score(evo_1, evo_2):
     total_point_count = 0
     path_sim_info = {"ids": [], "num_points": [], "sim_scores": []}
     for path_id in matched_paths:
+        path_1, path_2 = [evo_1.paths[path_id], evo_2.paths[path_id]]
+        # For closed paths, the size of the path is based on area
         if evo_1.paths[path_id]["type"] in ["r", "l"]:
-            path_1, path_2 = [evo_1.paths[path_id], evo_2.paths[path_id]]
-
-            ave_path_area = (find_path_area(path_1) + find_path_area(path_2))/2
+            ave_path_area = (find_path_area(path_1) + find_path_area(path_2))/2.
             path_size = ave_path_area ** 0.5  # Used to assess the magnitude of differences between points
 
             num_points_in_paths = len(path_1["points"]) + len(path_2["points"])
@@ -103,13 +113,16 @@ def similarity_score(evo_1, evo_2):
             point_matches = match_path_points(path_1, path_2)
 
             matches_sim_score = sum(point_matches["matches"])/len(point_matches["matches"])
-            matches_sim_score = 1-(matches_sim_score/(matches_sim_score + path_size))
+            matches_sim_score = 1. - (matches_sim_score/(matches_sim_score + path_size))
 
-            final_points_sim_score = matches_sim_score * (1 - (point_matches["unmatched"] / num_points_in_paths))
+            final_points_sim_score = matches_sim_score * (1. - (point_matches["unmatched"] / num_points_in_paths))
             print(final_points_sim_score)
 
+        # For open paths, the size is based on total path length
         else:
-            x = 1
+            print(find_path_length(path_1))
+            #ave_path_length = (find_path_length(path_1) + find_path_length(path_2))/2.
+
 
         #break
     return sim_score
