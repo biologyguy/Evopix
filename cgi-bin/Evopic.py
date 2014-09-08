@@ -14,32 +14,39 @@ class Evopic():
         count = 1
         for path in self.evp.split("\n")[:-1]:
             attributes = path.split(":")
-            if len(attributes) == 6:
-                path_id, points, radial, linear, stops, stroke = attributes
-                path_type = path_id[-1:]
-                path_id = int(path_id[1:-1])
-                self.paths_z_pos.append(path_id)
+            path_id = attributes[0]
+            del attributes[0]
+            path_type = path_id[-1:]
+            path_id = int(path_id[1:-1])
+
+            self.paths[path_id] = {"path_id": path_id, "type": path_type}
+            self.paths_z_pos.append(path_id)
+
+            if len(attributes) == 5:
+                points, radial, linear, stops, stroke = attributes
+
+                radial = [float(i) for i in radial.split(",")[1:]]
+                self.paths[path_id]["radial"] = radial
+
+                linear = [float(i) for i in linear.split(",")[1:]]
+                self.paths[path_id]["linear"] = linear
+
                 stops = stops.split(";")[:-1]
                 for i in range(len(stops)):
                     stop = stops[i].split("~")
                     stops[i] = {"stop_id": int(stop[0][1:]), "params": stop[1].split(",")}
                     stops[i]["params"][1], stops[i]["params"][2] = [float(stops[i]["params"][1]), float(stops[i]["params"][2])]
 
-                stroke = stroke.split(",")
-                stroke[1], stroke[2] = [float(stroke[1]), float(stroke[2])]
-                radial = [float(i) for i in radial.split(",")[1:]]
-                linear = [float(i) for i in linear.split(",")[1:]]
-                self.paths[path_id] = {"path_id": path_id, "type": path_type, "points": points, "radial": radial,
-                                       "linear": linear, "stops": stops, "stroke": stroke}
-            else:
-                path_id, points, stroke = attributes
-                path_type = path_id[-1:]
-                path_id = int(path_id[1:-1])
-                self.paths_z_pos.append(path_id)
-                stroke = stroke.split(",")
-                self.paths[path_id] = {"path_id": path_id, "type": path_type, "points": points, "stroke": stroke}
+                self.paths[path_id]["stops"] = stops
 
-            points = self.paths[path_id]["points"].split("t")[1:]
+            else:
+                points, stroke = attributes
+
+            stroke = stroke.split(",")
+            stroke[0], stroke[1], stroke[2] = [stroke[0][1:], float(stroke[1]), float(stroke[2])]
+            self.paths[path_id]["stroke"] = stroke
+
+            points = points.split("t")[1:]
             for i in range(len(points)):
                 point_id, coords = points[i].split("~")
                 float_coords = []
