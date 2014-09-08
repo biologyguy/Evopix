@@ -35,6 +35,21 @@ def line_length(point_a, point_b):  # implement Pythagorean theorem
     return length
 
 
+def colour_diff(stroke_1, stroke_2):
+    r1 = int(stroke_1[:2], 16)
+    r2 = int(stroke_2[:2], 16)
+    g1 = int(stroke_1[2:4], 16)
+    g2 = int(stroke_2[2:4], 16)
+    b1 = int(stroke_1[4:], 16)
+    b2 = int(stroke_2[4:], 16)
+    output = 1.
+    output -= abs(r1 - r2)/255 * (1./3.)
+    output -= abs(g1 - g2)/255 * (1./3.)
+    output -= abs(b1 - b2)/255 * (1./3.)
+
+    return output
+
+
 def match_path_points(path_1, path_2):
     """
     Returns the abs differences between control-point-control points for all matched points in the paths, and counts
@@ -73,8 +88,12 @@ def match_path_points(path_1, path_2):
 
 def similarity_score(evo_1, evo_2):
     """
-    Weightings: - Path presence/absence (weighted by size)
-                - Path similarity between shared paths
+    Weightings: -   Path points, 60% total weighting for closed paths, and 80% for lines. Each path is weighted
+                    according to size. Where a path is present in one and not the other, a value of 0% equivalent is
+                    applied
+                -   Stroke size contributes 10% to closed paths, and 20% to lines
+                -   Gradients each contribute 5%
+                -   Stops contribute 20%
     """
     #Match path IDs, and count # points so similarity can be weighted to path sizes
     total_points = 0
@@ -91,8 +110,12 @@ def similarity_score(evo_1, evo_2):
         total_points += len(evo_2.paths[path_id]["points"])
 
     #Run through each matched path, and get the weighted average (based on number of points) sim score.
-    path_sim_info = {"ids": [], "num_points": [], "sim_scores": []}
+    path_sim_info = {"ids": [], "num_points": [], "point_sim_scores": [], "stroke_sim_scores": [],
+                     "gradient_sim_scores": [], "stop_sim_scores": []}
+
     for path_id in matched_paths:
+        path_sim_info["ids"].append(path_id)
+
         path_1, path_2 = [evo_1.paths[path_id], evo_2.paths[path_id]]
 
         # For closed paths, the size of the path is based on area
@@ -105,6 +128,7 @@ def similarity_score(evo_1, evo_2):
             path_size = (find_path_length(path_1) + find_path_length(path_2))/2.
 
         num_points_in_paths = len(path_1["points"]) + len(path_2["points"])
+        path_sim_info["num_points"].append(num_points_in_paths)
 
         point_matches = match_path_points(path_1, path_2)
 
@@ -112,14 +136,15 @@ def similarity_score(evo_1, evo_2):
         matches_sim_score = 1. - (matches_sim_score/(matches_sim_score + path_size))
 
         final_points_sim_score = matches_sim_score * (1. - (point_matches["unmatched"] / num_points_in_paths))
+        path_sim_info["point_sim_scores"].append(final_points_sim_score)
 
-        path_sim_info["ids"].append(path_id)
-        path_sim_info["num_points"].append(num_points_in_paths)
-        path_sim_info["sim_scores"].append(final_points_sim_score)
+        # Stroke similarity (Colour = 33%, width = 33%, opacity = 33%)
+        colour = colour_diff(path_1["stroke"][0][1:], path_2["stroke"][0][1:])
+        print(colour)
 
     sim_score = 0.
     for i in range(len(path_sim_info["ids"])):
-        sim_score += path_sim_info["num_points"][i] / total_points * path_sim_info["sim_scores"][i]
+        sim_score += path_sim_info["num_points"][i] / total_points * path_sim_info["point_sim_scores"][i]
 
     # Still need to include similarity info on strokes and gradients
     return sim_score
@@ -134,5 +159,10 @@ if __name__ == '__main__':
         sue = Evopic(infile.read())
 
     print("Similarity score\n%s\n" % similarity_score(bob, sue))
+
+    print(bob.paths[1]["stroke"])
+    print(bob.paths[1]["linear"])
+    print(bob.paths[1]["radial"])
+    print(bob.paths[1]["stops"])
 
 
