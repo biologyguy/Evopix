@@ -134,19 +134,58 @@ def similarity_score(evo_1, evo_2):
 
         matches_sim_score = sum(point_matches["matches"])/len(point_matches["matches"])
         matches_sim_score = 1. - (matches_sim_score/(matches_sim_score + path_size))
-
         final_points_sim_score = matches_sim_score * (1. - (point_matches["unmatched"] / num_points_in_paths))
         path_sim_info["point_sim_scores"].append(final_points_sim_score)
 
-        # Stroke similarity (Colour = 33%, width = 33%, opacity = 33%)
-        colour = colour_diff(path_1["stroke"][0][1:], path_2["stroke"][0][1:])
-        print(colour)
+        # Stroke similarity (colour = 47.5%, opacity = 17.5%, width = 35%)
+        colour = colour_diff(path_1["stroke"][0], path_2["stroke"][0])
+        opacity = 1. - abs(path_1["stroke"][2] - path_2["stroke"][2])
+        width = 1. - abs(path_1["stroke"][1] - path_2["stroke"][1])/(path_1["stroke"][1] + path_2["stroke"][1])
 
+        path_sim_info["stroke_sim_scores"].append((0.475 * colour) + (0.175 * opacity) + (0.35 * width))
+
+        # Gradients and stops are only in closed paths
+        if evo_1.paths[path_id]["type"] in ["r", "l"]:
+            p1_grad_attribs = path_1["radial"] + path_1["linear"]
+            p2_grad_attribs = path_2["radial"] + path_2["linear"]
+            grad_sim = 1.
+            for i in range(len(p1_grad_attribs)):
+                grad_sim -= abs(p1_grad_attribs[i] - p2_grad_attribs[i])/len(p1_grad_attribs)
+
+            path_sim_info["gradient_sim_scores"].append(grad_sim)
+
+            # getting stop info is going to be similar to getting num paths or points
+            path_sim_info["stop_sim_scores"].append(True)
+
+        else:
+            path_sim_info["gradient_sim_scores"].append(False)
+            path_sim_info["stop_sim_scores"].append(False)
+
+    # Add it all together
     sim_score = 0.
     for i in range(len(path_sim_info["ids"])):
-        sim_score += path_sim_info["num_points"][i] / total_points * path_sim_info["point_sim_scores"][i]
+        weight = path_sim_info["num_points"][i] / total_points
 
-    # Still need to include similarity info on strokes and gradients
+        if evo_1.paths[path_sim_info["ids"][i]]["type"] in ["r", "l"]:
+            # points
+            sim_score += weight * path_sim_info["point_sim_scores"][i] * 0.6
+
+            # strokes
+            sim_score += weight * path_sim_info["stroke_sim_scores"][i] * 0.1
+
+            # gradients
+            sim_score += weight * path_sim_info["gradient_sim_scores"][i] * 0.1
+
+            #stops
+            sim_score += weight * 0. * 0.2
+
+        else:
+            # points
+            sim_score += weight * path_sim_info["point_sim_scores"][i] * 0.8
+
+            # strokes
+            sim_score += weight * path_sim_info["stroke_sim_scores"][i] * 0.2
+
     return sim_score
 
 
@@ -155,14 +194,11 @@ if __name__ == '__main__':
     with open("../genomes/bob.evp", "r") as infile:
         bob = Evopic(infile.read())
 
-    with open("../genomes/bubba.evp", "r") as infile:
+    with open("../genomes/sue.evp", "r") as infile:
         sue = Evopic(infile.read())
 
     print("Similarity score\n%s\n" % similarity_score(bob, sue))
 
-    print(bob.paths[1]["stroke"])
-    print(bob.paths[1]["linear"])
-    print(bob.paths[1]["radial"])
     print(bob.paths[1]["stops"])
 
 
