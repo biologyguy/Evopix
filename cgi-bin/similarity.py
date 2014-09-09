@@ -119,7 +119,7 @@ def similarity_score(evo_1, evo_2):
         path_1, path_2 = [evo_1.paths[path_id], evo_2.paths[path_id]]
 
         # For closed paths, the size of the path is based on area
-        if evo_1.paths[path_id]["type"] in ["r", "l"]:
+        if path_1["type"] in ["r", "l"]:
             ave_path_area = (find_path_area(path_1) + find_path_area(path_2))/2.
             path_size = ave_path_area ** 0.5  # Used to assess the magnitude of differences between points
 
@@ -145,7 +145,7 @@ def similarity_score(evo_1, evo_2):
         path_sim_info["stroke_sim_scores"].append((0.475 * colour) + (0.175 * opacity) + (0.35 * width))
 
         # Gradients and stops are only in closed paths
-        if evo_1.paths[path_id]["type"] in ["r", "l"]:
+        if path_1["type"] in ["r", "l"]:
             p1_grad_attribs = path_1["radial"] + path_1["linear"]
             p2_grad_attribs = path_2["radial"] + path_2["linear"]
             grad_sim = 1.
@@ -155,6 +155,31 @@ def similarity_score(evo_1, evo_2):
             path_sim_info["gradient_sim_scores"].append(grad_sim)
 
             # getting stop info is going to be similar to getting num paths or points
+            stops_1_dict, stops_2_dict, stops_2_ids = {}, {}, []
+
+            for stop in path_1["stops"]:
+                stops_1_dict[stop["stop_id"]] = stop["params"]
+
+            for stop in path_2["stops"]:
+                stops_2_dict[stop["stop_id"]] = stop["params"]
+                stops_2_ids.append(stop["stop_id"])
+
+            output = {"matches": [], "unmatched": 0}
+
+            for stop_id in stops_1_dict:
+                if stop_id in stops_2_ids:
+                    output["matches"].append(stops_1_dict[stop_id][0])
+                    output["matches"].append(stops_1_dict[stop_id][1])
+                    output["matches"].append(stops_1_dict[stop_id][2])
+
+                    del stops_2_ids[stops_2_ids.index(stop_id)]
+
+                else:
+                    output["unmatched"] += 1
+
+            output["unmatched"] += len(stops_2_ids)
+            print(output)
+            sys.exit()
             path_sim_info["stop_sim_scores"].append(True)
 
         else:
@@ -177,7 +202,7 @@ def similarity_score(evo_1, evo_2):
             sim_score += weight * path_sim_info["gradient_sim_scores"][i] * 0.1
 
             #stops
-            sim_score += weight * 0. * 0.2
+            sim_score += weight * 0.0 * 0.2
 
         else:
             # points
@@ -200,5 +225,3 @@ if __name__ == '__main__':
     print("Similarity score\n%s\n" % similarity_score(bob, sue))
 
     print(bob.paths[1]["stops"])
-
-
