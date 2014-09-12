@@ -136,7 +136,7 @@ class Evopic():
         #paths
         for i in range(len(path_ids)):
             path_id = path_ids[i]
-            grad_type = "linear" if path_ids[i] == "l" else "radial"
+            grad_type = "linear" if path_type[i] == "l" else "radial"
             color, width, opacity = strokes[i]
 
             points_string = "M "

@@ -1,6 +1,5 @@
 #! /usr/bin/python
 from Evopic import Evopic
-import math
 
 
 def breed(evp1, evp2):
@@ -102,7 +101,7 @@ def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
             continue
 
         b2ac = b * b - 4. * c * a
-        sqrtb2ac = math.sqrt(b2ac)
+        sqrtb2ac = b2ac ** 0.5
         if b2ac < 0:
             continue
 
