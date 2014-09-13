@@ -21,18 +21,38 @@ def find_path_area(path):  # Input is an individual path from Evopic.paths
     return abs(area/2)
 
 
-def find_path_length(path):  # Input is an individual path from Evopic.paths
+def find_path_perimeter(path):  # Input is an individual path from Evopic.paths
     length = 0.
     ox, oy = path["points"][0]["coords"][1]
     for i in path["points"][1:]:
         length += line_length([ox, oy], i["coords"][1])
         ox, oy = i["coords"][1]
+
+    if path["type"] in ["r", "l"]:
+        length += line_length([ox, oy], path["points"][0]["coords"][1])
+
     return length
 
 
 def line_length(point_a, point_b):  # implement Pythagorean theorem
     length = (abs(point_a[0] - point_b[0])**2 + abs(point_a[1] - point_b[1])**2)**0.5
     return length
+
+
+def path_size(path):
+    """
+    Returns a value that is comparable between closed and open paths, and smooths out the possible issues in closed
+    paths relating to area vs perimeter measurement (ie, it's possible to have a lot of perimeter with very little area)
+    """
+    # For closed paths, the size of the path is average(sqrt(area) * 4, perimeter)
+    if path["type"] in ["r", "l"]:
+        size = (find_path_area(path) ** 0.5 + find_path_perimeter(path))/2.
+
+    # For open paths, the size is just path length
+    else:
+        size = find_path_perimeter(path)
+
+    return size
 
 
 def colour_diff(stroke_1, stroke_2):
@@ -118,22 +138,13 @@ def similarity_score(evo_1, evo_2):
 
         path_1, path_2 = [evo_1.paths[path_id], evo_2.paths[path_id]]
 
-        # For closed paths, the size of the path is based on area
-        if path_1["type"] in ["r", "l"]:
-            ave_path_area = (find_path_area(path_1) + find_path_area(path_2))/2.
-            path_size = ave_path_area ** 0.5  # Used to assess the magnitude of differences between points
-
-        # For open paths, the size is based on total path length
-        else:
-            path_size = (find_path_length(path_1) + find_path_length(path_2))/2.
-
         num_points_in_paths = len(path_1["points"]) + len(path_2["points"])
         path_sim_info["num_points"].append(num_points_in_paths)
 
         point_matches = match_path_points(path_1, path_2)
 
         matches_sim_score = sum(point_matches["matches"])/len(point_matches["matches"])
-        matches_sim_score = 1. - (matches_sim_score/(matches_sim_score + path_size))
+        matches_sim_score = 1. - (matches_sim_score/(matches_sim_score + (path_size(path_1) + path_size(path_2))/2))
         final_points_sim_score = matches_sim_score * (1. - (point_matches["unmatched"] / num_points_in_paths))
         path_sim_info["point_sim_scores"].append(final_points_sim_score)
 
