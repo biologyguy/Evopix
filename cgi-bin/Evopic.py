@@ -64,27 +64,26 @@ class Evopic():
             count += 1
         return
 
-
     def reconstruct_evp(self):
         """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
         new_evp = ""
         for path_id in self.paths_z_pos:
             path = self.paths[path_id]
-            new_evp += "p%s%s:" % (path["path_id"], path["type"])
-            for point in path["points"]:
+            new_evp += "p%s%s:" % (path.id, path.type)
+            for point in path.points:
                 coords = point["coords"]
                 new_evp += "t%s~%s,%s;%s,%s;%s,%s;" % (point["point_id"], coords[0][0], coords[0][1], coords[1][0],
                                                        coords[1][1], coords[2][0], coords[2][1])
 
-            if path["type"] in ["r", "l"]:  # skip if the path is not closed
-                new_evp += ":r,%s,%s,%s,%s,%s" % tuple(path["radial"])
-                new_evp += ":l,%s,%s,%s,%s:" % tuple(path["linear"])
+            if path.type in ["r", "l"]:  # skip if the path is not closed
+                new_evp += ":r,%s,%s,%s,%s,%s" % tuple(path.radial)
+                new_evp += ":l,%s,%s,%s,%s:" % tuple(path.linear)
 
-                for stop in path["stops"]:
+                for stop in path.stops:
                     params = stop["params"]
                     new_evp += "o%s~%s,%s,%s;" % (stop["stop_id"], params[0], params[1], params[2])
 
-            new_evp += ":%s,%s,%s\n" % tuple(path["stroke"])
+            new_evp += ":%s,%s,%s\n" % tuple(path.stroke)
         self.evp = new_evp
         return
 
@@ -227,16 +226,13 @@ class Path():
         return size
 
 
-
-
-
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
     path = "../genomes/bubba"
     with open("%s.evp" % path, "r") as infile:
         bob = Evopic(infile.read())
-
-    print(bob.svg_out())
+    bob.reconstruct_evp()
+    print(bob.evp)
     with open("../genomes/test.svg", "w") as ofile:
         ofile.write(bob.svg_out())
     sys.exit()
