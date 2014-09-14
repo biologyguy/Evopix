@@ -26,31 +26,21 @@ def match_path_points(path_1, path_2):
     :param path_1: Evopic.paths[<path_id>] 
     :param path_2: Evopic.paths[<path_id>] matched to path_1
     """
-    path_1_dict, path_2_dict, path_2_ids = {}, {}, []
-    for point in path_1.points:
-        path_1_dict[point["point_id"]] = point["coords"]
-
-    for point in path_2.points:
-        path_2_dict[point["point_id"]] = point["coords"]
-        path_2_ids.append(point["point_id"])
-
     output = {"matches": [], "unmatched": 0}
 
-    for point_id in path_1_dict:
-        if point_id in path_2_ids:
-            pt_1 = path_1_dict[point_id]
-            pt_2 = path_2_dict[point_id]
+    for point_id in path_1.points_order:
+        if point_id in path_2.points_order:
+            pt_1 = path_1.points[point_id]
+            pt_2 = path_2.points[point_id]
 
             output["matches"].append(Path.line_length(pt_1[0], pt_2[0]))
             output["matches"].append(Path.line_length(pt_1[1], pt_2[1]))
             output["matches"].append(Path.line_length(pt_1[2], pt_2[2]))
 
-            del path_2_ids[path_2_ids.index(point_id)]
-
         else:
             output["unmatched"] += 1
 
-    output["unmatched"] += len(path_2_ids)
+    output["unmatched"] += len(path_2.points_order) - (len(output["matches"]) / 3.)
     return output
 
 
