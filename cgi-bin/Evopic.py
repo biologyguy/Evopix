@@ -177,14 +177,19 @@ class Path():
         self.points = []
         self.stroke = []
 
-    def find_area(path):  # Input is an individual path from Evopic.paths
+    @staticmethod
+    def line_length(point_a, point_b):  # implement Pythagorean theorem
+        length = (abs(point_a[0] - point_b[0])**2 + abs(point_a[1] - point_b[1])**2)**0.5
+        return length
+
+    def find_area(self):  # Input is an individual path from Evopic.paths
         """
         Modified from http://www.arachnoid.com/area_irregular_polygon/index.html
         Calculates the area of an irregular polygon using the sum of the cross products of each neighboring pair of coords.
         It's super nice, because it scales at N.
         """
         array = []
-        for i in path["points"]:
+        for i in self.points:
             array.append(i["coords"][1])
 
         area = 0
@@ -194,34 +199,30 @@ class Path():
             ox, oy = x, y
         return abs(area/2)
 
-    def find_perimeter(path):  # Input is an individual path from Evopic.paths
+    def find_perimeter(self):  # Input is an individual path from Evopic.paths
         length = 0.
-        ox, oy = path["points"][0]["coords"][1]
-        for i in path["points"][1:]:
+        ox, oy = self.points[0]["coords"][1]
+        for i in self.points[1:]:
             length += self.line_length([ox, oy], i["coords"][1])
             ox, oy = i["coords"][1]
 
-        if path["type"] in ["r", "l"]:
-            length += self.line_length([ox, oy], path["points"][0]["coords"][1])
+        if self.type in ["r", "l"]:
+            length += self.line_length([ox, oy], self.points[0]["coords"][1])
 
         return length
 
-    def line_length(point_a, point_b):  # implement Pythagorean theorem
-        length = (abs(point_a[0] - point_b[0])**2 + abs(point_a[1] - point_b[1])**2)**0.5
-        return length
-
-    def path_size(path):
+    def path_size(self):
         """
         Returns a value that is comparable between closed and open paths, and smooths out the possible issues in closed
         paths relating to area vs perimeter measurement (ie, it's possible to have a lot of perimeter with very little area)
         """
         # For closed paths, the size of the path is average(sqrt(area) * 4, perimeter)
-        if path["type"] in ["r", "l"]:
-            size = (self.find_area(path) ** 0.5 + self.find_perimeter(path))/2.
+        if self.type in ["r", "l"]:
+            size = (self.find_area() ** 0.5 + self.find_perimeter())/2.
 
         # For open paths, the size is just path length
         else:
-            size = self.find_perimeter(path)
+            size = self.find_perimeter()
 
         return size
 
