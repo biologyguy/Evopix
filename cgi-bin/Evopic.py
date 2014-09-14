@@ -50,15 +50,17 @@ class Evopic():
             path.stroke = stroke
 
             points = points.split("t")[1:]
+            points_dict = {}
             for i in range(len(points)):
                 point_id, coords = points[i].split("~")
+                path.points_order.append(int(point_id))
                 float_coords = []
                 for j in coords.split(";")[:-1]:  # Switch 'coordinates' from string to [float, float]
                     float_coords.append([float(j.split(",")[0]), float(j.split(",")[1])])
 
-                points[i] = {"point_id": int(point_id), "coords": float_coords}
+                points_dict[int(point_id)] = float_coords
 
-            path.points = points
+            path.points = points_dict
 
             self.paths[path_id] = path
             count += 1
@@ -70,9 +72,9 @@ class Evopic():
         for path_id in self.paths_z_pos:
             path = self.paths[path_id]
             new_evp += "p%s%s:" % (path.id, path.type)
-            for point in path.points:
-                coords = point["coords"]
-                new_evp += "t%s~%s,%s;%s,%s;%s,%s;" % (point["point_id"], coords[0][0], coords[0][1], coords[1][0],
+            for point_id in path.points_order:
+                coords = path.points[point_id]
+                new_evp += "t%s~%s,%s;%s,%s;%s,%s;" % (point_id, coords[0][0], coords[0][1], coords[1][0],
                                                        coords[1][1], coords[2][0], coords[2][1])
 
             if path.type in ["r", "l"]:  # skip if the path is not closed
@@ -131,8 +133,8 @@ class Evopic():
 
             if path.type == 'x':  # closed paths first
                 count = 0
-                for point in path.points:
-                    point = point['coords']
+                for point_id in path.points_order:
+                    point = path.points[point_id]
                     if count == 0:
                         points_string += "%s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
 
@@ -149,8 +151,8 @@ class Evopic():
 
             else:
                 count = 0
-                for point in path.points:
-                    point = point['coords']
+                for point_id in path.points_order:
+                    point = path.points[point_id]
                     if count == 0:  # This is always true on the first pass through the loop, then always false
                         start_point = (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
                         points_string += "%s C %s" % (str(point[1]).strip('[]'), str(point[2]).strip('[]'))
@@ -174,7 +176,8 @@ class Path():
         self.radial = []
         self.linear = []
         self.stops = []
-        self.points = []
+        self.points = {}
+        self.points_order = []
         self.stroke = []
 
     @staticmethod
@@ -189,8 +192,8 @@ class Path():
         It's super nice, because it scales at N.
         """
         array = []
-        for i in self.points:
-            array.append(i["coords"][1])
+        for point_id in self.points_order:
+            array.append(self.points[point_id][1])
 
         area = 0
         ox, oy = array[-1]  # set the 'first' point as the same as the last point, to close the path
@@ -201,13 +204,14 @@ class Path():
 
     def find_perimeter(self):  # Input is an individual path from Evopic.paths
         length = 0.
-        ox, oy = self.points[0]["coords"][1]
-        for i in self.points[1:]:
-            length += self.line_length([ox, oy], i["coords"][1])
-            ox, oy = i["coords"][1]
+        ox, oy = self.points[self.points_order[0]][1]
+        for point_id in self.points_order[1:]:
+            point = self.points[point_id]
+            length += self.line_length([ox, oy], point[1])
+            ox, oy = point[1]
 
         if self.type in ["r", "l"]:
-            length += self.line_length([ox, oy], self.points[0]["coords"][1])
+            length += self.line_length([ox, oy], self.points[self.points_order[0]][1])
 
         return length
 
@@ -232,10 +236,10 @@ if __name__ == '__main__':
     path = "../genomes/bubba"
     with open("%s.evp" % path, "r") as infile:
         bob = Evopic(infile.read())
-    bob.reconstruct_evp()
-    print(bob.evp)
-    with open("../genomes/test.svg", "w") as ofile:
-        ofile.write(bob.svg_out())
+    #bob.reconstruct_evp()
+    print(bob.paths[5].path_size())
+    #with open("../genomes/test.svg", "w") as ofile:
+    #    ofile.write(bob.svg_out())
     sys.exit()
     print("Attribute\tValue(s)")
     for attrib in bob.paths[1]:
