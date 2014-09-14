@@ -64,16 +64,6 @@ class Evopic():
             count += 1
         return
 
-    def loop_paths(self, attrib):
-        """Pushes the values for a single attribute from every path into a list"""
-        output = []
-        for path_id in self.paths_z_pos:
-            path = self.paths[path_id]
-            try:
-                output += [path[attrib]]
-            except KeyError:  # This is a hack for skipping linears, radials, and stops for non-closed paths
-                output += [False]
-        return output
 
     def reconstruct_evp(self):
         """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
@@ -100,13 +90,6 @@ class Evopic():
 
     def svg_out(self, scale=100):  # need to implement a scaling factor, so full sized vs. thumbnail versions can be made
         """Uses the info in self.paths to create an SVG file. Returned as a string."""
-        path_ids = self.loop_paths('path_id')
-        path_type = self.loop_paths('type')
-        points = self.loop_paths('points')
-        linears = self.loop_paths('linear')
-        radials = self.loop_paths('radial')
-        stops = self.loop_paths('stops')
-        strokes = self.loop_paths('stroke')
 
         #header info
         svg = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>\n"
@@ -116,22 +99,23 @@ class Evopic():
 
         #gradient/color info
         svg += "<defs>\n"
-        for i in range(len(linears)):
-            if not linears[i]:
+        for i in self.paths_z_pos:
+            path = self.paths[i]
+            if path.type == 'x':
                 continue
 
-            if path_type[i] == 'l':
-                x1, y1, x2, y2 = linears[i]
-                svg += "\t<linearGradient id='linearGradient%s' x1='%s' y1='%s' x2='%s' y2='%s'>\n" % (path_ids[i], x1, y1, x2, y2)
-                for j in stops[i]:
+            if path.type == 'l':
+                x1, y1, x2, y2 = path.linear
+                svg += "\t<linearGradient id='linearGradient%s' x1='%s' y1='%s' x2='%s' y2='%s'>\n" % (path.id, x1, y1, x2, y2)
+                for j in path.stops:
                     color, opacity, offset = j['params']
                     svg += "\t\t<stop stop-color='#%s' stop-opacity='%s' offset='%s' />\n" % (color, opacity, offset)
                 svg += "\t</linearGradient>\n"
 
-            if path_type[i] == 'r':
-                cx, cy, fx, fy, r = radials[i]
-                svg += "\t<radialGradient id='radialGradient%s' cx='%s' cy='%s' fx='%s' fy='%s' r='%s'>\n" % (path_ids[i], cx, cy, fx, fy, r)
-                for j in stops[i]:
+            if path.type == 'r':
+                cx, cy, fx, fy, r = path.radial
+                svg += "\t<radialGradient id='radialGradient%s' cx='%s' cy='%s' fx='%s' fy='%s' r='%s'>\n" % (path.id, cx, cy, fx, fy, r)
+                for j in path.stops:
                     color, opacity, offset = j['params']
                     svg += "\t\t<stop stop-color='#%s' stop-opacity='%s' offset='%s' />\n" % (color, opacity, offset)
                 svg += "\t</radialGradient>\n"
@@ -139,21 +123,21 @@ class Evopic():
         svg += "</defs>\n"
 
         #paths
-        for i in range(len(path_ids)):
-            path_id = path_ids[i]
-            grad_type = "linear" if path_type[i] == "l" else "radial"
-            color, width, opacity = strokes[i]
+        for i in self.paths_z_pos:
+            path = self.paths[i]
+            grad_type = "linear" if path.type == "l" else "radial"
+            color, width, opacity = path.stroke
 
             points_string = "M "
 
-            if not linears[i]:
+            if path.type == 'x':  # closed paths first
                 count = 0
-                for point in points[i]:
+                for point in path.points:
                     point = point['coords']
                     if count == 0:
                         points_string += "%s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
 
-                    elif count == len(points[i])-1:
+                    elif count == len(path.points)-1:
                         points_string += " %s %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
 
                     else:
@@ -161,12 +145,12 @@ class Evopic():
 
                     count += 1
 
-                strings = (path_id, points_string, color[1:], width, opacity)
+                strings = (path.id, points_string, color[1:], width, opacity)
                 svg += "<path id='path%s' d='%s' style='fill:none;stroke:#%s;stroke-width:%s;stroke-opacity:%s' />\n" % strings
 
             else:
                 count = 0
-                for point in points[i]:
+                for point in path.points:
                     point = point['coords']
                     if count == 0:  # This is always true on the first pass through the loop, then always false
                         start_point = (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
@@ -178,7 +162,7 @@ class Evopic():
                     count += 1
 
                 points_string += " %s %s z" % start_point
-                strings = (path_id, points_string, grad_type, path_id, color[1:], width, opacity)
+                strings = (path.id, points_string, grad_type, path.id, color[1:], width, opacity)
                 svg += "<path id='path%s' d='%s' style='fill:url(#%sGradient%s);fill-rule:evenodd;stroke:#%s;stroke-width:%s;stroke-opacity:%s' />\n" % strings
         svg += "</svg>"
         return svg
@@ -252,7 +236,9 @@ if __name__ == '__main__':
     with open("%s.evp" % path, "r") as infile:
         bob = Evopic(infile.read())
 
-    print(bob.paths[1].points)
+    print(bob.svg_out())
+    with open("../genomes/test.svg", "w") as ofile:
+        ofile.write(bob.svg_out())
     sys.exit()
     print("Attribute\tValue(s)")
     for attrib in bob.paths[1]:
