@@ -85,7 +85,7 @@ class Evopic():
                     params = stop["params"]
                     new_evp += "o%s~%s,%s,%s;" % (stop["stop_id"], params[0], params[1], params[2])
 
-            new_evp += ":%s,%s,%s\n" % tuple(path.stroke)
+            new_evp += ":s%s,%s,%s\n" % tuple(path.stroke)
         self.evp = new_evp
         return
 
@@ -146,7 +146,7 @@ class Evopic():
 
                     count += 1
 
-                strings = (path.id, points_string, color[1:], width, opacity)
+                strings = (path.id, points_string, color, width, opacity)
                 svg += "<path id='path%s' d='%s' style='fill:none;stroke:#%s;stroke-width:%s;stroke-opacity:%s' />\n" % strings
 
             else:
@@ -163,7 +163,7 @@ class Evopic():
                     count += 1
 
                 points_string += " %s %s z" % start_point
-                strings = (path.id, points_string, grad_type, path.id, color[1:], width, opacity)
+                strings = (path.id, points_string, grad_type, path.id, color, width, opacity)
                 svg += "<path id='path%s' d='%s' style='fill:url(#%sGradient%s);fill-rule:evenodd;stroke:#%s;stroke-width:%s;stroke-opacity:%s' />\n" % strings
         svg += "</svg>"
         return svg
