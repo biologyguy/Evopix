@@ -16,12 +16,15 @@ def move_point(path_size, point):
 def mutate(evopic):
     mutation_rates = {"points": 0.025, "gradient": 0.01}
 
-    for path_id in evopic.paths_z_pos:
+    for path_id in evopic.paths_order:
         path = evopic.paths[path_id]
         if path["type"] in ["r", "l"]:
             size = find_path_area(path) ** 0.5
+            print(find_path_length(path), size * 4)
+
         else:
             size = find_path_length(path)
+            print(size)
 
         for point in evopic.paths[path_id]["points"]:
             if random() < mutation_rates["points"]:

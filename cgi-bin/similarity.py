@@ -57,15 +57,15 @@ def similarity_score(evo_1, evo_2):
     total_points = 0
     matched_points = 0
     matched_paths = []
-    for path_id in evo_1.paths_z_pos:
+    for path_id in evo_1.paths_order:
         path_1, path_2 = [evo_1.paths[path_id], evo_2.paths[path_id]]
         total_points += len(path_1.points)
 
-        if path_id in evo_2.paths_z_pos:
+        if path_id in evo_2.paths_order:
             matched_points += len(path_1.points) + len(path_2.points)
             matched_paths.append(path_id)
 
-    for path_id in evo_2.paths_z_pos:
+    for path_id in evo_2.paths_order:
         total_points += len(evo_2.paths[path_id].points)
 
     #Run through each matched path, and get the weighted average (based on number of points) sim score.

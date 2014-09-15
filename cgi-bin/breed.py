@@ -49,9 +49,9 @@ def zero_evp(evp):
 
         count += 1
 
-    #adujust min x,y so they are not perfectly 0. Giving a little bit of margin looks nicer.
+    #adjust min x,y so they are not perfectly 0. Giving a little bit of margin looks nicer.
     min_x, min_y = [min_x - 3, min_y - 3]
-    for path_id in evopic.paths_z_pos:
+    for path_id in evopic.paths_order:
         path = evopic.paths[path_id]
         for point_id in path.points_order:
             coords_count = 0

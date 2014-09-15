@@ -6,7 +6,7 @@ class Evopic():
     def __init__(self, evp):
         self.evp = evp
         self.paths = {}
-        self.paths_z_pos = []
+        self.paths_order = []
         self._parse_evp()
 
     def _parse_evp(self):
@@ -23,7 +23,7 @@ class Evopic():
 
             path.id = path_id
             path.type = path_type
-            self.paths_z_pos.append(path_id)
+            self.paths_order.append(path_id)
 
             if len(attributes) == 5:
                 points, radial, linear, stops, stroke = attributes
@@ -69,7 +69,7 @@ class Evopic():
     def reconstruct_evp(self):
         """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
         new_evp = ""
-        for path_id in self.paths_z_pos:
+        for path_id in self.paths_order:
             path = self.paths[path_id]
             new_evp += "p%s%s:" % (path.id, path.type)
             for point_id in path.points_order:
@@ -100,7 +100,7 @@ class Evopic():
 
         #gradient/color info
         svg += "<defs>\n"
-        for i in self.paths_z_pos:
+        for i in self.paths_order:
             path = self.paths[i]
             if path.type == 'x':
                 continue
@@ -124,7 +124,7 @@ class Evopic():
         svg += "</defs>\n"
 
         #paths
-        for i in self.paths_z_pos:
+        for i in self.paths_order:
             path = self.paths[i]
             grad_type = "linear" if path.type == "l" else "radial"
             color, width, opacity = path.stroke
