@@ -20,36 +20,28 @@ def zero_evp(evp):
     min_x, min_y, min_x_seq, min_y_seg = [9999999999.9, 9999999999.9, [], []]  # arbitrarily set large min values
 
     # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line segments for bezier calc
-    points = evopic.loop_paths("points")
-    path_ids = evopic.loop_paths("path_id")
+    for path_id in evopic.paths_order:
+        path = evopic.paths[path_id]
 
-    count = 0
-    for point in points:
         line_segments = []
-        if not evopic.paths[path_ids[count]]["type"] == "x":  # Do this if the path is closed
-            for i in range(len(point)):
-                if i + 1 == len(point):
-                    line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[0]['coords'][0], point[0]['coords'][1]])
-                else:
-                    line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[i + 1]['coords'][0], point[i + 1]['coords'][1]])
 
-        else:  # Do this for open paths
-            for i in range(len(point)):
-                if i + 1 == len(point):
-                    continue
-                else:
-                    line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[i + 1]['coords'][0], point[i + 1]['coords'][1]])
+        for i in range(len(path.points_order) - 1):  # Going all the way to end will give index error
+            point_1 = path.points[path.points_order[i]]
+            point_2 = path.points[path.points_order[i + 1]]
+            line_segments.append([point_1[1], point_1[2], point_2[0], point_2[1]])
+
+        if path.type in ["l", "r"]:  # For closed paths, link the first and last points
+            point_1 = path.points[path.points_order[-1]]
+            point_2 = path.points[path.points_order[0]]
+            line_segments.append([point_1[1], point_1[2], point_2[0], point_1[1]])
 
         for seg in line_segments:
-
             bezier_bounds = (get_curve_bounds(seg[0][0], seg[0][1], seg[1][0], seg[1][1], seg[2][0], seg[2][1], seg[3][0], seg[3][1]))
 
             min_x = bezier_bounds['left'] if bezier_bounds['left'] < min_x else min_x
             min_y = bezier_bounds['top'] if bezier_bounds['top'] < min_y else min_y
 
-        count += 1
-
-    #adjust min x,y so they are not perfectly 0. Giving a little bit of margin looks nicer.
+    #adjust min x,y so they are not perfectly 0. Giving a little bit of padding looks nicer.
     min_x, min_y = [min_x - 3, min_y - 3]
     for path_id in evopic.paths_order:
         path = evopic.paths[path_id]
@@ -61,7 +53,7 @@ def zero_evp(evp):
 
                 path.points[point_id][coords_count] = [round(coords[0], 4), round(coords[1], 4)]
                 coords_count += 1
-
+        #evopic.paths[path_id] = path
     evopic.reconstruct_evp()
     return evopic.evp
 
@@ -135,8 +127,5 @@ def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
 if __name__ == '__main__':
     with open("../genomes/bob.evp", "r") as infile:
         bob = Evopic(infile.read())
-        print(zero_evp(bob.evp))
     with open("../genomes/sue.evp", "r") as infile:
         sue = Evopic(infile.read())
-
-    print(breed(bob, sue))
