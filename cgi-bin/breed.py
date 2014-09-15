@@ -32,6 +32,7 @@ def zero_evp(evp):
                     line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[0]['coords'][0], point[0]['coords'][1]])
                 else:
                     line_segments.append([point[i]['coords'][1], point[i]['coords'][2], point[i + 1]['coords'][0], point[i + 1]['coords'][1]])
+
         else:  # Do this for open paths
             for i in range(len(point)):
                 if i + 1 == len(point):
@@ -52,17 +53,14 @@ def zero_evp(evp):
     min_x, min_y = [min_x - 3, min_y - 3]
     for path_id in evopic.paths_z_pos:
         path = evopic.paths[path_id]
-        point_count = 0
-        for point in path['points']:
+        for point_id in path.points_order:
             coords_count = 0
-            for coords in point['coords']:
+            for coords in path.points[point_id]:
                 coords[0] = coords[0] - min_x
                 coords[1] = coords[1] - min_y
 
-                evopic.paths[path_id]['points'][point_count]['coords'][coords_count] = [round(coords[0], 4),
-                                                                                           round(coords[1], 4)]
+                path.points[point_id][coords_count] = [round(coords[0], 4), round(coords[1], 4)]
                 coords_count += 1
-            point_count += 1
 
     evopic.reconstruct_evp()
     return evopic.evp
