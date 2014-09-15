@@ -2,13 +2,17 @@
 from argparse import (ArgumentParser, FileType)
 from Evopic import Evopic
 import random
+import sys
 
 def parse_args():
 
     parser = ArgumentParser(description='Create paths for a new offspring from mum and dad')
 
-    parser.add_argument('--mother', type=str, required=False, help='Mother evopic to breed with', default='/Users/jane/Documents/scripts_local/Evopix/genomes/sue.evp')
-    parser.add_argument('--father', type=str, required=False, help='Father evopic to breed with', default='/Users/jane/Documents/scripts_local/Evopix/genomes/bob.evp')
+    #parser.add_argument('--mother', type=str, required=False, help='Mother evopic to breed with', default='/Users/jane/Documents/scripts_local/Evopix/genomes/sue.evp')
+    #parser.add_argument('--father', type=str, required=False, help='Father evopic to breed with', default='/Users/jane/Documents/scripts_local/Evopix/genomes/bob.evp')
+
+    parser.add_argument('--mother', type=str, required=False, help='Mother evopic to breed with', default='/var/www/Evopix/genomes/sue.evp')
+    parser.add_argument('--father', type=str, required=False, help='Father evopic to breed with', default='/var/www/Evopix/genomes/bob.evp')
 
     return parser.parse_args()
 
@@ -27,6 +31,23 @@ def main():
     print(prop)
 
     #print(boy.paths[1].points)
+
+    #--------Try looping something like this--------#
+    mismatch_paths = []
+    for path_id in boy.paths_order:
+        if path_id not in girl.paths_order:
+            mismatch_paths.append(path_id)
+            continue
+
+        boy_path = boy.paths[path_id]
+        girl_path = girl.paths[path_id]
+        print("Boy path ID:%s\nPoint IDs\tCoords" % path_id)
+        for point_id in boy_path.points_order:
+            coords = boy_path.points[point_id]
+            print("\t%s\t\t%s" % (point_id, coords))
+
+        sys.exit("Exit at line 49")
+    #------------------------------------------------#
 
     for path in boy.paths:
         boy_points = boy.paths[path].points
@@ -71,4 +92,5 @@ def main():
                 
 if __name__ == '__main__':
     main()
+
 
