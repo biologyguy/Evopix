@@ -66,6 +66,12 @@ class Evopic():
             count += 1
         return
 
+    def num_points(self):
+        output = 0
+        for path in self.paths:
+            output += len(path.points)
+        return output
+
     def reconstruct_evp(self):
         """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
         new_evp = ""

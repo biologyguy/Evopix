@@ -1,8 +1,27 @@
 #!/usr/bin/python3
-from Evopic import Evopic
-from similarity import find_path_area, find_path_length, line_length
+from Evopic import *
 from random import random
-from math import log, pi, cos, sin, radians
+from math import log, pi, cos, sin, radians, factorial, exp
+
+
+def choose(n, k):  # n = sample size. k = number chosen. ie n choose k
+    return factorial(n)/(factorial(k) * factorial(n - k))
+
+
+def num_mutations(mu, num_items):  # mu = probability of success per item
+    mutations = 0
+    test_value = random()
+    prob_sum = 0.
+
+    for k in range(num_items):
+        prob_sum += choose(num_items, k) * (mu ** k) * ((1. - mu) ** (num_items - k))
+        if prob_sum < test_value:
+            mutations += 1
+            continue
+        else:
+            break
+
+    return mutations
 
 
 def move_point(path_size, point):
@@ -14,19 +33,22 @@ def move_point(path_size, point):
 
 
 def mutate(evopic):
-    mutation_rates = {"points": 0.025, "gradient": 0.01}
+    mutation_rates = {"path_split": (1./10000.), "points": 0.025, "gradient": 0.01}
+    magnitudes = {"points": 0.05}
+    num_points = evopic.num_points()
 
     for path_id in evopic.paths_order:
         path = evopic.paths[path_id]
-        if path["type"] in ["r", "l"]:
-            size = find_path_area(path) ** 0.5
-            print(find_path_length(path), size * 4)
+        if path.type in ["r", "l"]:
+            size = path.find_area() ** 0.5
+            print(path.find_perimeter(), size * 4)
 
         else:
-            size = find_path_length(path)
+            size = path.find_perimeter()
             print(size)
 
-        for point in evopic.paths[path_id]["points"]:
+        for point_id in path.points_order:
+            point = path.points[point_id]
             if random() < mutation_rates["points"]:
                 print(move_point(size, point))
         #break
