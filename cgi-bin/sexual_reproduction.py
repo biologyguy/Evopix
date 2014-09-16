@@ -10,6 +10,7 @@ def parse_args():
 
     parser.add_argument('--mother', type=str, required=False, help='Mother evopic to breed with', default='/Users/jane/Documents/scripts_local/Evopix/genomes/bubba.evp')
     parser.add_argument('--father', type=str, required=False, help='Father evopic to breed with', default='/Users/jane/Documents/scripts_local/Evopix/genomes/bob.evp')
+    parser.add_argument('--out', type=str, required=False, help='new evopic svg', default='/Users/jane/Documents/scripts_local/Evopix/genomes/baby.svg')
 
     #parser.add_argument('--mother', type=str, required=False, help='Mother evopic to breed with', default='/var/www/Evopix/genomes/sue.evp')
     #parser.add_argument('--father', type=str, required=False, help='Father evopic to breed with', default='/var/www/Evopix/genomes/bob.evp')
@@ -35,6 +36,8 @@ def main():
     #--------Try looping something like this--------#
     mismatch_paths = {'girl': [], 'boy': []}
     included_paths = {'girl': [], 'boy': []}
+    new_path_set = []
+    new_path_order = []
 
     for path_id in girl.paths_order:
         if path_id not in boy.paths_order:
@@ -52,37 +55,34 @@ def main():
             print("\t%s\t\t%s" % (point_id, coords))
         flip = random.randint(0, 1)
         if flip == 1:
-            included_paths['boy'].append(path_id)
+            #included_paths['boy'].append(path_id)
+            new_path_set.append(boy_path)
+            new_path_order.append(path_id)
         else:
-            included_paths['girl'].append(path_id)
+            #included_paths['girl'].append(path_id)
+            new_path_set.append(girl_path)
+            new_path_order.append(path_id)
 
     for path in mismatch_paths['girl']:
         flip = random.randint(0, 1)
         if flip == 1:
             included_paths['girl'].append(path)
+            new_path_set.append(girl.paths[path])
+            new_path_order.append(path)
     for path in mismatch_paths['boy']:
         flip = random.randint(0, 1)
         if flip == 1:
             included_paths['boy'].append(path)
-    print(included_paths)
+            new_path_set.append(boy.paths[path])
+            new_path_order.append(path)
+    #print(included_paths)
 
-    new_path_set = []
-    new_path_order = []
-
-    for path in included_paths['boy']:
-        new_path_set.append(boy.paths[path])
-        new_path_order.append(path)
-    for path in included_paths['girl']:
-        new_path_set.append(girl.paths[path])
-        new_path_order.append(path)
     print(new_path_set)
     print(new_path_order)
 
     baby = ''
-    print(new_path_set[2])
-    for path_id in new_path_order:
-        print(path_id)
-        path = new_path_set[path_id]
+    #print(new_path_set[2])
+    for path in new_path_set:
         baby += "p%s%s:" % (path.id, path.type)
         for point_id in path.points_order:
             coords = path.points[point_id]
@@ -98,10 +98,14 @@ def main():
                 baby += "o%s~%s,%s,%s;" % (stop["stop_id"], params[0], params[1], params[2])
 
         baby += ":s%s,%s,%s\n" % tuple(path.stroke)
+        
     baby_evo = Evopic(baby)
     print(baby_evo)
 
+    out_svg = baby_evo.svg_out()
 
+    with open(args.out, 'w') as f:
+        f.write(out_svg)
 
     sys.exit("Exit at line 49")
     #------------------------------------------------#
