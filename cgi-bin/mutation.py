@@ -1,11 +1,18 @@
 #!/usr/bin/python3
 from Evopic import *
-from random import random
+from random import random, sample, choice
 from math import log, pi, cos, sin, radians, factorial, exp
 
 
 def choose(n, k):  # n = sample size. k = number chosen. ie n choose k
-    return factorial(n)/(factorial(k) * factorial(n - k))
+    if k == 0 or k == n:
+        return 1
+
+    elif k == 1 or k == n - 1:
+        return n
+    
+    else:
+        return factorial(n)/(factorial(k) * factorial(n - k))
 
 
 def num_mutations(mu, num_items):  # mu = probability of success per item
@@ -29,30 +36,35 @@ def move_point(path_size, point):
     direction_change = (random() * 360)
     change_x = sin(radians(direction_change)) * distance_changed
     change_y = cos(radians(direction_change)) * distance_changed
-    return [change_x, change_y]
+
+    return [point[0] + change_x, point[1] + change_y]
 
 
 def mutate(evopic):
-    mutation_rates = {"path_split": (1./10000.), "points": 0.025, "gradient": 0.01}
+    mutation_rates = {"path_split": (1./10000.), "insert_point": 0.05, "del_point": 0.05, "point_move": 0.025, "gradient": 0.01}
     magnitudes = {"points": 0.05}
     num_points = evopic.num_points()
 
+    # insert new points
+    for i in range(num_mutations(mutation_rates["insert_point"], num_points)):
+        if i == 0:
+            continue
+        #print(sample(evopic.paths.items(), 1))
+
     for path_id in evopic.paths_order:
         path = evopic.paths[path_id]
-        if path.type in ["r", "l"]:
-            size = path.find_area() ** 0.5
-            print(path.find_perimeter(), size * 4)
-
-        else:
-            size = path.find_perimeter()
-            print(size)
+        size = path.path_size()
+        #print(size)
 
         for point_id in path.points_order:
             point = path.points[point_id]
-            if random() < mutation_rates["points"]:
-                print(move_point(size, point))
+            if random() < mutation_rates["point_move"]:
+                x = 1
+                #print(move_point(size, point[1]))
         #break
+    pick_path = sample(evopic.paths.items(), 1)
 
+    print(sample(evopic.paths[pick_path[0][0]].points.items(), 1))
     return evopic
 
 #-------------------------Sandbox-------------------------------#
