@@ -8,6 +8,7 @@ class Evopic():
         self.paths = {}
         self.paths_order = []
         self._parse_evp()
+        self._num_points = False
 
     def _parse_evp(self):
         """Convert evp genome file into a dictionary of lists of its component attributes"""
@@ -67,9 +68,14 @@ class Evopic():
         return
 
     def num_points(self):
+        if self._num_points:
+            return self._num_points
+
         output = 0
-        for path in self.paths:
-            output += len(path.points)
+        for path_id in self.paths:
+            output += len(self.paths[path_id].points)
+
+        self._num_points = output
         return output
 
     def reconstruct_evp(self):
