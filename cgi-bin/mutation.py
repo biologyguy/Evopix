@@ -46,25 +46,18 @@ def mutate(evopic):
     num_points = evopic.num_points()
 
     # insert new points
-    for i in range(num_mutations(mutation_rates["insert_point"], num_points)):
-        if i == 0:
-            continue
-        #print(sample(evopic.paths.items(), 1))
-
-    for path_id in evopic.paths_order:
-        path = evopic.paths[path_id]
-        size = path.path_size()
-        #print(size)
-
-        for point_id in path.points_order:
-            point = path.points[point_id]
-            if random() < mutation_rates["point_move"]:
-                x = 1
-                #print(move_point(size, point[1]))
-        #break
-
-    #delete points
+    # This needs to interact with the database
     num_deletions = num_mutations(mutation_rates["del_point"], num_points)
+    print("Insertions")
+    while num_deletions > 0:
+        path_id, point_id = choice(evopic.point_locations())
+        evopic.insert_point(path_id, point_id)
+        num_deletions -= 1
+        print(path_id, point_id)
+
+    # delete points
+    num_deletions = num_mutations(mutation_rates["del_point"], num_points)
+    print("Deletions")
     while num_deletions > 0:
         path_id, point_id = choice(evopic.point_locations())
         evopic.delete_point(path_id, point_id)
