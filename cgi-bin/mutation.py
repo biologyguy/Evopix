@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from Evopic import *
-from random import random, sample, choice
+from random import random, choice
 from math import log, pi, cos, sin, radians, factorial, exp
 
 
@@ -10,7 +10,7 @@ def choose(n, k):  # n = sample size. k = number chosen. ie n choose k
 
     elif k == 1 or k == n - 1:
         return n
-    
+
     else:
         return factorial(n)/(factorial(k) * factorial(n - k))
 
@@ -62,9 +62,15 @@ def mutate(evopic):
                 x = 1
                 #print(move_point(size, point[1]))
         #break
-    pick_path = sample(evopic.paths.items(), 1)
 
-    print(sample(evopic.paths[pick_path[0][0]].points.items(), 1))
+    #delete points
+    num_deletions = num_mutations(mutation_rates["del_point"], num_points)
+    while num_deletions > 0:
+        path_id, point_id = choice(evopic.point_locations())
+        evopic.delete_point(path_id, point_id)
+        num_deletions -= 1
+        print(path_id, point_id)
+
     return evopic
 
 #-------------------------Sandbox-------------------------------#
@@ -74,6 +80,6 @@ if __name__ == '__main__':
         bob = mutate(bob)
         #print(bob.svg_out())
 
-    #with open("../genomes/test.svg", "w") as ofile:
-    #    ofile.write(bob.svg_out())
+    with open("../genomes/test.svg", "w") as ofile:
+        ofile.write(bob.svg_out())
 

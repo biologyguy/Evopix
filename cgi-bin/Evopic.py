@@ -8,7 +8,8 @@ class Evopic():
         self.paths = {}
         self.paths_order = []
         self._parse_evp()
-        self._num_points = False
+        self._num_points = 0
+        self._point_locations = []
 
     def _parse_evp(self):
         """Convert evp genome file into a dictionary of lists of its component attributes"""
@@ -68,15 +69,39 @@ class Evopic():
         return
 
     def num_points(self):
-        if self._num_points:
+        if self._num_points != 0 and len(self._point_locations) != 0:
             return self._num_points
 
-        output = 0
         for path_id in self.paths:
-            output += len(self.paths[path_id].points)
+            path = self.paths[path_id]
+            self._num_points += len(path.points)
+            for point_id in path.points:
+                self._point_locations.append((path_id, point_id))
 
-        self._num_points = output
-        return output
+        return self._num_points
+
+    def point_locations(self):
+        if len(self._point_locations) == 0:
+            self.num_points()
+        return self._point_locations
+
+    def delete_point(self, path_id, point_id):
+        if len(self.paths[path_id].points) == 1:
+            del self.paths[path_id]
+            index = self.paths_order.index(path_id)
+            del self.paths_order[index]
+
+        else:
+            del self.paths[path_id].points[point_id]
+            index = self.paths[path_id].points_order.index(point_id)
+            del self.paths[path_id].points_order[index]
+
+        if self._num_points != 0:
+            self._num_points -= 1
+
+        if len(self._point_locations) != 0:
+            index = self._point_locations.index((path_id, point_id))
+            del self._point_locations[index]
 
     def reconstruct_evp(self):
         """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
@@ -249,7 +274,7 @@ if __name__ == '__main__':
     with open("%s.evp" % path, "r") as infile:
         bob = Evopic(infile.read())
     #bob.reconstruct_evp()
-    print(bob.paths[5].path_size())
+    print(bob.num_points())
     #with open("../genomes/test.svg", "w") as ofile:
     #    ofile.write(bob.svg_out())
     sys.exit()
