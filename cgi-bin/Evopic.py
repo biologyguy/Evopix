@@ -87,14 +87,10 @@ class Evopic():
 
     def delete_point(self, path_id, point_id):
         if len(self.paths[path_id].points) == 1:
-            del self.paths[path_id]
-            index = self.paths_order.index(path_id)
-            del self.paths_order[index]
+            self.delete_path(path_id)
 
         else:
-            del self.paths[path_id].points[point_id]
-            index = self.paths[path_id].points_order.index(point_id)
-            del self.paths[path_id].points_order[index]
+            self.paths[path_id].delete_point(point_id)
 
         if self._num_points != 0:
             self._num_points -= 1
@@ -102,6 +98,11 @@ class Evopic():
         if len(self._point_locations) != 0:
             index = self._point_locations.index((path_id, point_id))
             del self._point_locations[index]
+
+    def delete_path(self, path_id):
+        del self.paths[path_id]
+        index = self.paths_order.index(path_id)
+        del self.paths_order[index]
 
     def reconstruct_evp(self):
         """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
@@ -266,6 +267,11 @@ class Path():
             size = self.find_perimeter()
 
         return size
+
+    def delete_point(self, point_id):
+        del self.points[point_id]
+        index = self.points_order.index(point_id)
+        del self.points_order[index]
 
 
 #-------------------------Sandbox-------------------------------#
