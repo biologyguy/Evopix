@@ -104,6 +104,9 @@ class Evopic():
         index = self.paths_order.index(path_id)
         del self.paths_order[index]
 
+    def insert_point(self, path_id, point_id):
+        x = 1
+
     def reconstruct_evp(self):
         """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
         new_evp = ""
