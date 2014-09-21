@@ -222,15 +222,6 @@ class Path():
         self.points_order = []
         self.stroke = []
 
-    @staticmethod
-    def line_length(point_a, point_b):  # implement Pythagorean theorem
-        try:
-            length = (abs(point_a[0] - point_b[0]) ** 2 + abs(point_a[1] - point_b[1]) ** 2) ** 0.5
-        except TypeError:
-            print(point_a[0], point_b[0], point_a[1], point_b[1])
-            sys.exit("Error: Evopic.line_length()")
-        return length
-
     def find_area(self):  # Input is an individual path from Evopic.paths
         """
         Modified from http://www.arachnoid.com/area_irregular_polygon/index.html
@@ -257,11 +248,11 @@ class Path():
         ox, oy = self.points[self.points_order[0]][1]
         for point_id in self.points_order[1:]:
             point = self.points[point_id]
-            length += self.line_length([ox, oy], point[1])
+            length += Line([ox, oy], point[1]).length()
             ox, oy = point[1]
 
         if self.type in ["r", "l"]:
-            length += self.line_length([ox, oy], self.points[self.points_order[0]][1])
+            length += Line([ox, oy], self.points[self.points_order[0]][1]).length()
 
         return length
 
@@ -285,6 +276,19 @@ class Path():
         index = self.points_order.index(point_id)
         del self.points_order[index]
 
+
+class Line():
+    def __init__(self, point_a, point_b):
+        self.x1, self.y1, self.x2, self.y2 = float(point_a[0]), float(point_a[1]), float(point_b[0]), float(point_b[1])
+
+    def length(self):
+        return (abs(self.x1 - self.x2) ** 2 + abs(self.y1 - self.y2) ** 2) ** 0.5
+
+    def slope(self):
+        return (self.y2 - self.y1) / (self.x2 - self.x1)
+
+    def intercept(self):
+        return self.y2 - (self.slope() * self.x2)
 
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
