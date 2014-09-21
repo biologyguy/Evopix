@@ -179,7 +179,7 @@ class Evopic():
                     if count == 0:
                         points_string += "%s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
 
-                    elif count == len(path.points)-1:
+                    elif count == len(path.points) - 1:
                         points_string += " %s %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
 
                     else:
@@ -192,6 +192,7 @@ class Evopic():
 
             else:
                 count = 0
+                start_point = ("", "")
                 for point_id in path.points_order:
                     point = path.points[point_id]
                     if count == 0:  # This is always true on the first pass through the loop, then always false
@@ -223,7 +224,11 @@ class Path():
 
     @staticmethod
     def line_length(point_a, point_b):  # implement Pythagorean theorem
-        length = (abs(point_a[0] - point_b[0])**2 + abs(point_a[1] - point_b[1])**2)**0.5
+        try:
+            length = (abs(point_a[0] - point_b[0]) ** 2 + abs(point_a[1] - point_b[1]) ** 2) ** 0.5
+        except TypeError:
+            print(point_a[0], point_b[0], point_a[1], point_b[1])
+            sys.exit("Error: Evopic.line_length()")
         return length
 
     def find_area(self):  # Input is an individual path from Evopic.paths
@@ -239,9 +244,13 @@ class Path():
         area = 0
         ox, oy = array[-1]  # set the 'first' point as the same as the last point, to close the path
         for x, y in array:
-            area += (x * oy - y * ox)
+            try:
+                area += (x * oy - y * ox)
+            except TypeError:
+                print(x, oy, y, ox)
+                sys.exit("Error: Evopic.find_area()")
             ox, oy = x, y
-        return abs(area/2)
+        return abs(area / 2)
 
     def find_perimeter(self):  # Input is an individual path from Evopic.paths
         length = 0.
@@ -263,7 +272,7 @@ class Path():
         """
         # For closed paths, the size of the path is average(sqrt(area) * 4, perimeter)
         if self.type in ["r", "l"]:
-            size = (self.find_area() ** 0.5 + self.find_perimeter())/2.
+            size = (self.find_area() ** 0.5 + self.find_perimeter()) / 2.
 
         # For open paths, the size is just path length
         else:
@@ -279,8 +288,8 @@ class Path():
 
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
-    path = "../genomes/bubba"
-    with open("%s.evp" % path, "r") as infile:
+    evo_path = "../genomes/bubba"
+    with open("%s.evp" % evo_path, "r") as infile:
         bob = Evopic(infile.read())
     #bob.reconstruct_evp()
     print(bob.num_points())
