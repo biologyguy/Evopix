@@ -248,11 +248,11 @@ class Path():
         ox, oy = self.points[self.points_order[0]][1]
         for point_id in self.points_order[1:]:
             point = self.points[point_id]
-            length += Line([ox, oy], point[1]).length()
+            length += LineSeg([ox, oy], point[1]).length()
             ox, oy = point[1]
 
         if self.type in ["r", "l"]:
-            length += Line([ox, oy], self.points[self.points_order[0]][1]).length()
+            length += LineSeg([ox, oy], self.points[self.points_order[0]][1]).length()
 
         return length
 
@@ -277,7 +277,7 @@ class Path():
         del self.points_order[index]
 
 
-class Line():
+class LineSeg():
     def __init__(self, point_a, point_b):
         self.x1, self.y1, self.x2, self.y2 = float(point_a[0]), float(point_a[1]), float(point_b[0]), float(point_b[1])
 
@@ -285,10 +285,13 @@ class Line():
         return (abs(self.x1 - self.x2) ** 2 + abs(self.y1 - self.y2) ** 2) ** 0.5
 
     def slope(self):
+        if self.x2 == self.x1:  # this prevents divide-by-zero error when slope is infinity
+            return sys.maxsize
         return (self.y2 - self.y1) / (self.x2 - self.x1)
 
     def intercept(self):
         return self.y2 - (self.slope() * self.x2)
+
 
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
