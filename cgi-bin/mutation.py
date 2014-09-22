@@ -4,6 +4,7 @@ from random import random, choice, randint
 from math import log, pi, cos, sin, radians, factorial, exp
 import sys
 
+magnitudes = {"points": 0.05, "colors": 0.05, "strokes": 0.05, "stops": 0.05}
 
 def choose(n, k):  # n = sample size. k = number chosen. ie n choose k
     if k == 0 or k == n:
@@ -32,6 +33,11 @@ def pick(option_dict):
             rand_num -= option_dict[option]
 
 
+def rand_move(coefficient):
+# this function moves nicely between 0 and infinity: 80% of returned values fall between 3% and 13% of the coefficient
+    return coefficient * ((-2 * log(random(), 2)) ** 0.5)
+
+
 def num_mutations(mu, num_items):  # mu = probability of success per item
     mutations = 0
     test_value = random()
@@ -49,7 +55,7 @@ def num_mutations(mu, num_items):  # mu = probability of success per item
 
 
 def move_points(path_size, points):  # get path_size with path_size() function, and points is a list
-    distance_changed = 0.05 * path_size  # Make a fancy equation that accounts for path size and levels off somewhere between 0.0 and 0.05
+    distance_changed = rand_move(magnitudes["points"] * path_size)
     direction_change = (random() * 360)
     change_x = sin(radians(direction_change)) * distance_changed
     change_y = cos(radians(direction_change)) * distance_changed
@@ -60,8 +66,7 @@ def move_points(path_size, points):  # get path_size with path_size() function, 
 
 
 def mutate(evopic):
-    mutation_rates = {"path_split": 0.0001, "insert_point": 0.005, "del_point": 0.005, "point_move": 0.025, "gradient": 0.01}
-    magnitudes = {"points": 0.05}
+    mutation_rates = {"path_split": 0.0001, "insert_point": 0.001, "del_point": 0.001, "point_move": 0.02, "gradient": 0.01}
     num_points = evopic.num_points()
 
     # insert new points
@@ -98,7 +103,7 @@ def mutate(evopic):
         path = evopic.paths[path_id]
         point = path.points[point_id]
         move_type = pick(move_rates)
-
+        print(move_type)
         if move_type == "single":
             which_point = randint(0, 2)
             evopic.paths[path_id].points[point_id][which_point] = move_points(path.path_size(), [point[which_point]])[0]
@@ -141,11 +146,11 @@ def mutate(evopic):
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
     import breed
-    with open("../genomes/test.evp", "r") as infile:
+    with open("../genomes/bob.evp", "r") as infile:
         bob = Evopic(infile.read())
         bob = mutate(bob)
-        #print(breed.zero_evp(bob.evp))
+        baby = Evopic(breed.zero_evp(bob.evp))
 
     with open("../genomes/test.svg", "w") as ofile:
-        ofile.write(bob.svg_out())
+        ofile.write(baby.svg_out())
 
