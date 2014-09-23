@@ -4,7 +4,10 @@ from random import random, choice, randint
 from math import log, pi, cos, sin, radians, factorial, exp
 import sys
 
-magnitudes = {"points": 0.05, "colors": 0.05, "strokes": 0.05, "stops": 0.05}
+mutation_rates = {"path_split": 0.0001, "insert_point": 0.001, "del_point": 0.001, "point_move": 0.02, "gradient": 0.01,
+                  "stroke_color": 0.5, "stroke_width": 0.002, "stroke_opacity": 0.002}
+magnitudes = {"points": 0.05, "colors": 4, "opacity": 0.05, "strokes": 0.05, "stops": 0.05}
+
 
 def choose(n, k):  # n = sample size. k = number chosen. ie n choose k
     if k == 0 or k == n:
@@ -34,7 +37,7 @@ def pick(option_dict):
 
 
 def rand_move(coefficient):
-# this function moves nicely between 0 and infinity: 80% of returned values fall between 3% and 13% of the coefficient
+# this f(x) moves nicely between 0 and infinity: 80% of returned values fall between 3% and 13% of the coefficient
     return coefficient * ((-2 * log(random(), 2)) ** 0.5)
 
 
@@ -65,18 +68,39 @@ def move_points(path_size, points):  # get path_size with path_size() function, 
     return points
 
 
+def move_in_range(cur_value, val_range, magnitude):
+    dist_moved = rand_move(magnitude) * choice([1, -1])
+    new_value = dist_moved + cur_value
+    print("Distance:", dist_moved)
+    safety_check = 100
+    while new_value < min(val_range) or new_value > max(val_range):
+        if new_value < min(val_range):
+            new_value = min(val_range) + abs(min(val_range) - new_value)
+
+        elif new_value > max(val_range):
+            new_value = max(val_range) - abs(max(val_range) - new_value)
+
+        else:
+            sys.exit("Error: %s" % new_value)
+
+        if safety_check < 0:
+            sys.exit("Popped safety valve on move_in_range()")
+        safety_check -= 1
+
+    return new_value
+
+
 def mutate(evopic):
-    mutation_rates = {"path_split": 0.0001, "insert_point": 0.001, "del_point": 0.001, "point_move": 0.02, "gradient": 0.01}
     num_points = evopic.num_points()
 
     # insert new points
-    # This needs to interact with the database
-    num_deletions = num_mutations(mutation_rates["del_point"], num_points)
+    # Intsertion needs to interact with the database
+    num_insertions = num_mutations(mutation_rates["insert_point"], num_points)
     print("Insertions")
-    while num_deletions > 0:
-        path_id, point_id = choice(evopic.point_locations())
+    while num_insertions > 0:
+        path_id, point_id = choice(evopic.point_locations())  # using 'point_locations()' ensures proper distribution
         evopic.insert_point(path_id, point_id)
-        num_deletions -= 1
+        num_insertions -= 1
         print(path_id, point_id)
 
     # delete points
@@ -95,10 +119,10 @@ def mutate(evopic):
     move_rates = {"single": 0.7, "all": 0.25, "equalize": 0.05}
 
     print("Movements")
-    num_movements = num_mutations(mutation_rates["point_move"], num_points)
+    num_changes = num_mutations(mutation_rates["point_move"], num_points)
 
     # Point and/or control handle(s)
-    while num_movements > 0:
+    while num_changes > 0:
         path_id, point_id = choice(evopic.point_locations())
         path = evopic.paths[path_id]
         point = path.points[point_id]
@@ -138,7 +162,22 @@ def mutate(evopic):
 
             evopic.paths[path_id].points[point_id][move_handle] = final_new_point
 
-        num_movements -= 1
+        num_changes -= 1
+
+    # Stroke parameters
+    print("Strokes")
+    print("Color")
+    num_changes = num_mutations(mutation_rates["stroke_color"], len(evopic.paths))
+    while num_changes > 0:
+        path = evopic.paths[choice(evopic.paths_order)]
+        stroke = path.stroke
+        #int(stroke[0][2:4], 16)
+        #int(stroke[0][4:], 16)
+        value = int(stroke[0][:2], 16)
+
+        move_in_range(value, [0., 255.], magnitudes["colors"])
+
+        num_changes -= 1
 
     evopic.reconstruct_evp()
     return evopic
@@ -146,7 +185,7 @@ def mutate(evopic):
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
     import breed
-    with open("../genomes/bob.evp", "r") as infile:
+    with open("../genomes/bubba.evp", "r") as infile:
         bob = Evopic(infile.read())
         bob = mutate(bob)
         baby = Evopic(breed.zero_evp(bob.evp))
