@@ -5,5 +5,5 @@ from django.template import RequestContext
 
 
 def farm(request, user_id):
-    new_farm = Farm.objects.get(pk=user_id)
-    render_to_response('farm/farm.html', {'farm':new_farm}, RequestContext(request))
+    new_farm = evopix.objects.get(pk=id)
+    render_to_response('farm/farm.html', {'evopix':new_farm}, RequestContext(request))

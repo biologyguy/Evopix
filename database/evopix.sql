@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `evopix` (
   `evp` text CHARACTER SET utf8 NOT NULL,
   `zeroed_evp` text CHARACTER SET utf8 NOT NULL,
   `hype_score` int(10) unsigned NOT NULL DEFAULT '0',
-  `health` tinyint(4) NOT NULL,
+  `health` smallint(4) NOT NULL,
   `birthday` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `parent1` (`parent1`),
