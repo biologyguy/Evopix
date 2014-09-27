@@ -5,7 +5,7 @@ from math import log, pi, cos, sin, radians, factorial, exp
 import sys
 
 mutation_rates = {"path_split": 0.0001, "insert_point": 0.001, "del_point": 0.001, "point_move": 0.02,
-                  "gradient_param": 0.01, "gradient_split": 0.001,
+                  "gradient_param": 0.01, "gradient_split": 0.001, "stop_params": 0.1,
                   "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
 
 # 'Magnitudes' are coefficients that adjust mutational impact, determined empirically to 'feel' right
@@ -198,13 +198,16 @@ def mutate(evopic):
         evopic.paths[path_id] = path
         num_changes -= 1
 
-    # Gradient parameters
+    # Gradient and stop parameters
     path_ids = []
+    stop_locations = []
     for path_id in evopic.paths_order:
         if evopic.paths[path_id].type != "x":
             path_ids.append(path_id)
+            for i in range(len(evopic.paths[path_id].stops)):
+                stop_locations.append((path_id, i))
 
-    num_changes = num_mutations(mutation_rates["gradient_param"], len(path_ids) * 2)
+    num_changes = num_mutations(mutation_rates["gradient_param"], len(path_ids) * 2)  # Len(path_ids) is * 2 because they can be radial or linear
     while num_changes > 0:
         path_id = choice(path_ids)
         path = evopic.paths[path_id]
@@ -212,18 +215,26 @@ def mutate(evopic):
 
         if grad_type == "linear":
             position = choice(range(len(path.linear)))
-            print("linear", path.linear[position])
             path.linear[position] = move_in_range(path.linear[position], [0., 1.], magnitudes["gradient_params"])
-            print("linear", path.linear[position])
+
         else:
             position = choice(range(len(path.radial)))
-            print("radial", path.radial[position])
             path.radial[position] = move_in_range(path.radial[position], [0., 1.], magnitudes["gradient_params"])
-            print("radial", path.radial[position])
 
         evopic.paths[path_id] = path
         num_changes -= 1
 
+    num_changes = num_mutations(mutation_rates["stop_params"], len(stop_locations))
+    while num_changes > 0:
+        stop_loc = choice(stop_locations)
+        stop = evopic.paths[stop_loc[0]].stops[stop_loc[1]]
+        position = choice((0, 1, 2))
+        if position == 0:
+            stop = mutate_color("ffffff")
+        num_changes -= 1
+
+
+    print(evopic.paths[1].stops)
     evopic.reconstruct_evp()
     return evopic
 
