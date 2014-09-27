@@ -4,11 +4,13 @@ from random import random, choice, randint
 from math import log, pi, cos, sin, radians, factorial, exp
 import sys
 
-mutation_rates = {"path_split": 0.0001, "insert_point": 0.001, "del_point": 0.001, "point_move": 0.02, "gradient": 0.01,
+mutation_rates = {"path_split": 0.0001, "insert_point": 0.001, "del_point": 0.001, "point_move": 0.02,
+                  "gradient_param": 0.01, "gradient_split": 0.001,
                   "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
 
 # 'Magnitudes' are coefficients that adjust mutational impact, determined empirically to 'feel' right
-magnitudes = {"points": 0.03, "colors": 4, "opacity": 0.03, "max_stroke_width": 0.05, "stroke_width": 0.0005, "stops": 0.05}
+magnitudes = {"points": 0.03, "colors": 4, "opacity": 0.03, "max_stroke_width": 0.05, "stroke_width": 0.0005,
+              "stops": 0.05, "gradient_params": 0.015}
 
 
 def choose(n, k):  # n = sample size. k = number chosen. ie n choose k
@@ -195,6 +197,33 @@ def mutate(evopic):
         path.stroke[2] = move_in_range(path.stroke[2], [0., 1.], magnitudes["opacity"])
         evopic.paths[path_id] = path
         num_changes -= 1
+
+    # Gradient parameters
+    path_ids = []
+    for path_id in evopic.paths_order:
+        if evopic.paths[path_id].type != "x":
+            path_ids.append(path_id)
+
+    num_changes = num_mutations(mutation_rates["gradient_param"], len(path_ids) * 2)
+    while num_changes > 0:
+        path_id = choice(path_ids)
+        path = evopic.paths[path_id]
+        grad_type = choice(["linear", "radial"])
+
+        if grad_type == "linear":
+            position = choice(range(len(path.linear)))
+            print("linear", path.linear[position])
+            path.linear[position] = move_in_range(path.linear[position], [0., 1.], magnitudes["gradient_params"])
+            print("linear", path.linear[position])
+        else:
+            position = choice(range(len(path.radial)))
+            print("radial", path.radial[position])
+            path.radial[position] = move_in_range(path.radial[position], [0., 1.], magnitudes["gradient_params"])
+            print("radial", path.radial[position])
+
+        evopic.paths[path_id] = path
+        num_changes -= 1
+
     evopic.reconstruct_evp()
     return evopic
 
