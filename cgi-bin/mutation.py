@@ -5,8 +5,8 @@ from math import log, cos, sin, radians, factorial
 import sys
 
 # Mutation rates are the probability of an event happening per mutable character
-mutation_rates = {"path_split": 0.0001, "insert_point": 0.003, "del_point": 0.001, "point_move": 0.02,
-                  "gradient_param": 0.01, "stop_split": 0.001, "stop_params": 0.01,
+mutation_rates = {"path_split": 0.0001, "point_split": 0.003, "del_point": 0.001, "point_move": 0.02,
+                  "gradient_param": 0.01, "stop_split": 0.002, "del_stop": 0.001, "stop_params": 0.01,
                   "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
 
 # 'Magnitudes' are coefficients that adjust mutational impact, determined empirically to 'feel' right
@@ -110,10 +110,10 @@ def mutate(evopic):
 
     # insert new points
     # Insertion needs to interact with the database
-    num_insertions = num_mutations(mutation_rates["insert_point"], num_points)
+    num_insertions = num_mutations(mutation_rates["point_split"], num_points)
     while num_insertions > 0:
         path_id, point_id = choice(evopic.point_locations())  # using 'point_locations()' ensures proper distribution
-        evopic.insert_point(path_id, point_id)
+        evopic.point_split(path_id, point_id)
         num_insertions -= 1
 
     # delete points
@@ -237,6 +237,19 @@ def mutate(evopic):
             stop["params"][position] = move_in_range(stop["params"][position], [0., 1.], magnitudes["stop_params"])
 
         evopic.paths[stop_loc[0]].stops[stop_loc[1]] = stop
+        num_changes -= 1
+
+    # Stop deletions. Min # stops per path is 1.
+    num_changes = num_mutations(mutation_rates["del_stop"], len(stop_locations) - len(path_ids))
+    while num_changes > 0:
+        deletable_stops = []
+        for path_id in evopic.paths_order:
+            if len(evopic.paths[path_id].stops) > 1:
+                for i in range(len(evopic.paths[path_id].stops)):
+                    deletable_stops.append((path_id, i))
+
+        deleted_stop = choice(deletable_stops)
+        del evopic.paths[deleted_stop[0]].stops[deleted_stop[1]]
         num_changes -= 1
 
     evopic.reconstruct_evp()

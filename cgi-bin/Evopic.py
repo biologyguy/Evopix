@@ -104,7 +104,7 @@ class Evopic():
         index = self.paths_order.index(path_id)
         del self.paths_order[index]
 
-    def insert_point(self, path_id, point_id):
+    def point_split(self, path_id, point_id):
         x = 1
 
     def reconstruct_evp(self):
