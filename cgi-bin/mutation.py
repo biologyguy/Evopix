@@ -1,16 +1,17 @@
 #!/usr/bin/python3
 from Evopic import *
 from random import random, choice, randint
-from math import log, pi, cos, sin, radians, factorial, exp
+from math import log, cos, sin, radians, factorial
 import sys
 
-mutation_rates = {"path_split": 0.0001, "insert_point": 0.001, "del_point": 0.001, "point_move": 0.02,
-                  "gradient_param": 0.01, "gradient_split": 0.001, "stop_params": 0.1,
+# Mutation rates are the probability of an event happening per mutable character
+mutation_rates = {"path_split": 0.0001, "insert_point": 0.003, "del_point": 0.001, "point_move": 0.02,
+                  "gradient_param": 0.01, "stop_split": 0.001, "stop_params": 0.01,
                   "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
 
 # 'Magnitudes' are coefficients that adjust mutational impact, determined empirically to 'feel' right
 magnitudes = {"points": 0.03, "colors": 4, "opacity": 0.03, "max_stroke_width": 0.05, "stroke_width": 0.0005,
-              "stops": 0.05, "gradient_params": 0.015}
+              "stop_params": 0.015, "gradient_params": 0.015}
 
 
 def choose(n, k):  # n = sample size. k = number chosen. ie n choose k
@@ -230,11 +231,14 @@ def mutate(evopic):
         stop = evopic.paths[stop_loc[0]].stops[stop_loc[1]]
         position = choice((0, 1, 2))
         if position == 0:
-            stop = mutate_color("ffffff")
+            stop["params"][0] = mutate_color(stop["params"][0])
+
+        else:
+            stop["params"][position] = move_in_range(stop["params"][position], [0., 1.], magnitudes["stop_params"])
+
+        evopic.paths[stop_loc[0]].stops[stop_loc[1]] = stop
         num_changes -= 1
 
-
-    print(evopic.paths[1].stops)
     evopic.reconstruct_evp()
     return evopic
 
