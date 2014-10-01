@@ -1,9 +1,9 @@
 from django.shortcuts import render
+from django.http import HttpResponse
 from evp.models import *
 
 
 # Create your views here.
-def welcome(self, request, *args, **kwargs):
+def welcome(request):
     bob = Evopix.objects.all()[0]
-    template_name = (bob.evo_id, bob.name)
-    return render(request, template_name, context)
+    return HttpResponse("Hello, my evopix' name is %s" % bob.name)
