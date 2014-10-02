@@ -1,8 +1,9 @@
 #!/usr/bin/python3
-from Evopic import *
+from resources.Evopic import *
 from random import random, choice, randint
 from math import log, cos, sin, radians, factorial
 import sys
+from evp.models import *
 
 # Mutation rates are the probability of an event happening per mutable character
 mutation_rates = {"path_split": 0.0001, "point_split": 0.003, "del_point": 0.001, "point_move": 0.02,
@@ -262,6 +263,6 @@ if __name__ == '__main__':
         bob = Evopic(infile.read())
         bob = mutate(bob)
         baby = Evopic(breed.zero_evp(bob.evp))
-
+        print("Hello")
     with open("../genomes/test.svg", "w") as ofile:
         ofile.write(baby.svg_out())
