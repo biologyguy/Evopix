@@ -1,7 +1,10 @@
 #! /usr/bin/python
+try:
+    from Evopic import *
+except ImportError:
+    from resources.Evopic import *
+
 from argparse import (ArgumentParser, FileType)
-from Evopic import Evopic
-from Evopic import Path
 import random
 import sys
 
@@ -15,7 +18,7 @@ def parse_args():
 
     #parser.add_argument('--mother', type=str, required=False, help='Mother evopic to breed with', default='/var/www/Evopix/genomes/sue.evp')
     #parser.add_argument('--father', type=str, required=False, help='Father evopic to breed with', default='/var/www/Evopix/genomes/bob.evp')
-
+    #parser.add_argument('--out', type=str, required=False, help='new evopic svg', default='/var/www/Evopix/genomes/baby')
     return parser.parse_args()
 
 def weighting(boy_coords, girl_coords, weight):

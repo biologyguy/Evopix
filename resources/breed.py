@@ -1,6 +1,8 @@
 #! /usr/bin/python
-from Evopic import Evopic
-
+try:
+    from Evopic import *
+except ImportError:
+    from resources.Evopic import *
 
 def breed(evp1, evp2):
     """Notes:-The original evp file (i.e., not zeroed) needs to be used for breeding. Store the zeroed evp for printing.
@@ -129,3 +131,4 @@ if __name__ == '__main__':
         bob = Evopic(infile.read())
     with open("../genomes/sue.evp", "r") as infile:
         sue = Evopic(infile.read())
+    print("HELLO!")

@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, url
 
-from evp import views
+from views import farm, public
 
 urlpatterns = patterns('',
-    url(r'^$', views.welcome, name='welcome'),
+    url(r'^$', farm.welcome, name='welcome'),
+
 )

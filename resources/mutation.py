@@ -1,5 +1,9 @@
 #!/usr/bin/python3
-from resources.Evopic import *
+try:
+    from Evopic import *
+except ImportError:
+    from resources.Evopic import *
+
 from random import random, choice, randint
 from math import log, cos, sin, radians, factorial
 import sys
@@ -239,6 +243,10 @@ def mutate(evopic):
 
         evopic.paths[stop_loc[0]].stops[stop_loc[1]] = stop
         num_changes -= 1
+
+    # Stop splits, needs to interact with database
+    blahh = 1
+
 
     # Stop deletions. Min # stops per path is 1.
     num_changes = num_mutations(mutation_rates["del_stop"], len(stop_locations) - len(path_ids))
