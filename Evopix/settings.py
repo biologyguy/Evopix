@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -23,6 +23,8 @@ SECRET_KEY = 'ki)*4$h67kc8emdcz-vwm+^=#983#s=k#4-@k$n%@)h-j1xjtx'
 DEBUG = True
 
 TEMPLATE_DEBUG = True
+
+TEMPLATE_DIRS = (os.path.join(PROJECT_ROOT, '../'),)
 
 ADMINS = (
     ("Steve Bond", "biologyguy@gmail.com"), ("Jane Hawkey", "email@email.com")

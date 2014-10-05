@@ -1,0 +1,217 @@
+@charset "utf-8";
+/* CSS Document */
+#logo
+	{
+	position:relative;
+	width:800px;
+	height:400px;
+	}
+
+h1 
+	{
+	font-family:matisse itc; 
+	font-size:45pt; 
+	margin-bottom:10pt; 
+	margin-top:10pt; 
+	color:#99FF66; 
+	background:#663399;
+	}
+
+dd.highlight_empty
+	{
+	border: 1px solid #FFFFFF;
+	height:61px;
+	width:61px;
+	}
+
+dd.highlight_empty:hover
+	{
+	border: 1px solid #CCCCCC;
+	height:61px;
+	width:61px;
+	}
+	
+dd.highlight_green
+	{
+	border: 1px solid #FFFFFF;
+	height:61px;
+	width:61px;
+	}
+
+dd.highlight_green:hover
+	{
+	border: 1px solid #00FF00;
+	}
+
+input.highlight_green
+	{
+	border: 1px solid #FFFFFF;
+	height:61px;
+	width:61px;
+	}
+
+input.highlight_green:hover
+	{
+	border: 1px solid #00FF00;
+	}
+	
+dd.highlight_red
+	{
+	border: 2px solid #FFFFFF;
+	height:61px;
+	width:61px;
+	}
+
+dd.highlight_red:hover
+	{
+	border: 1px solid red;
+	}
+
+input.highlight_red
+	{
+	border: 2px solid #FFFFFF;
+	height:61px;
+	width:61px;
+	}
+
+input.highlight_red:hover
+	{
+	border: 1px solid red;
+	}
+		
+div.all_farm
+	{
+	width: 850px;
+	height: 800px;
+	}
+
+div.breeding_box1
+	{
+	position:absolute;
+	top:189;
+	left:9; 
+	border:thin solid black;
+	border-collapse:collapse;
+	width:63px;
+	height:63px;
+	}
+
+
+div.breeding_box2
+	{
+	position:absolute;
+	top:189;
+	left:94; 
+	border:thin solid black;
+	border-collapse:collapse;
+	width:63px;
+	height:63px;
+	}
+
+div.compare_box1
+	{
+	position:absolute;
+	top:591px;
+	left:15px; 
+	border:thin solid black;
+	border-collapse:collapse;
+	width:63px;
+	height:63px;
+	}
+		
+div.compare_box2
+	{
+	position:absolute;
+	top:591px;
+	left:95px; 
+	border:thin solid black;
+	border-collapse:collapse;
+	width:63px;
+	height:63px;
+	}
+
+.offspring_box
+	{
+	border-collapse:separate;
+	padding:0;
+	border:thin solid black;
+	width: 142px;
+	height: 142px;
+	position:absolute; 
+	top:335px;
+	left:13px;
+	float:left;
+	}
+
+.farm_box
+	{
+	border-collapse:separate;
+	padding:0;
+	border:thin solid black;
+	width: 443px;
+	height: 443px;
+	position:relative; 
+	left:160px;
+	float:left;
+	}
+
+div.hunting
+	{
+	width: 450px;
+	height: 450px;
+	}
+
+img.trans_93x93
+	{
+	position:absolute;
+	left:61;
+	border:1px solid black;
+	}
+	
+object
+	{
+	height:61;
+	width:61;
+	}
+
+object.active
+	{
+	outline: red solid 2px;
+	border: 2px solid red;
+	}
+
+img
+	{
+	border:4px;
+	border-color:#FF0000;
+	}
+	
+.full_evopic
+	{
+	position:absolute;
+	left:660px; 
+	top:190; 
+	width:1000px; 
+	height:1000px;
+	}
+	
+.full_evopic_screen
+	{
+	position:absolute;
+	left:660px; 
+	top:190; 
+	width:1000px; 
+	height:1000px;
+	background-color:#FFFFFF;
+	}
+	
+#transparent
+		{
+		background:url(transparent_441X441.png);
+		border:thin solid black;
+		height:441px;
+		width:441px;
+		position:absolute;
+		left:200px;
+		top:175px;
+		}	

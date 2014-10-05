@@ -8,7 +8,9 @@ urlpatterns = patterns('',
     # Examples:
     # url(r'^blog/', include('blog.urls')),
     url(r'^$', public.index, name='home'),
-    url(r'^evp/', include('evp.urls')),
+    #url(r'^evp/', include('evp.urls')),
+    url(r'^home$', farm.welcome, name='farm'),
+    url(r'^bob$', farm.bob, name='bob'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^.*', public.not_found, name='404'),
 )

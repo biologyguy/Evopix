@@ -1,3 +1,4 @@
+# - * - Coding: utf -8 - * -
 from django.shortcuts import render
 from django.http import HttpResponse
 from evp.models import *
@@ -7,7 +8,7 @@ from resources import mutation, breed
 
 # Create your views here.
 def index(request):
-    return HttpResponse("Home page")
+    return render(request, 'templates/index.html')
 
 
 def not_found(request):

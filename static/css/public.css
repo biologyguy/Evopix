@@ -1,0 +1,36 @@
+/*
+    Styles for all non-logged in pages
+*/
+
+body
+    {
+    background:#29BFEF;
+    font-family:Verdana, Geneva, sans-serif;
+    margin:0;
+    }
+
+#background_image
+    {
+    position:fixed;
+    top:0;
+    left:0;
+    }
+
+#background_hills
+    {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    }
+
+#main_content
+    {
+    margin-left: 10%;
+    margin-right:10%;
+    position:relative;
+    width:1000px;
+    background:#FFC;
+    border:medium #666 solid;
+    margin-left: 10%;
+    margin-right: 10%;
+    }

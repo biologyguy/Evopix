@@ -1,7 +1,22 @@
 <html>
-<head></head>
+<head>
+<title>EvoPix</title>
+<link rel="shortcut icon" href="/static/img/favicon.ico">
+<link rel='stylesheet' type='text/css' href='/static/css/evopix.css' media='all' />
+</head>
 <body>
-Hello there. I work.
-https://www.youtube.com/watch?v=Om85iIHoxCE
+<img src="/static/img/LOGO.jpg" id='logo'/>
+<br /><br />
+<div style="position:absolute; top:400px; left:50px;">
+<u>Welcome to EvoPix</u><br />
+Please enter your login information<br/>
+
+<form action="welcome.php" method="post">
+Login name: <input type="text" name="login" /><br/>
+Password: <input type="password" name="password" /><br/>
+<input type="submit" value="Submit"/>
+</form>
+</div>
+<a href="home">Go to farm</a>
 </body>
 </html>
