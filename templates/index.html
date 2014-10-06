@@ -1,11 +1,13 @@
+{% load staticfiles %}
 <html>
 <head>
 <title>EvoPix</title>
-<link rel="shortcut icon" href="/static/img/favicon.ico">
-<link rel='stylesheet' type='text/css' href='/static/css/evopix.css' media='all' />
+
+<link rel="shortcut icon" type="image/ico" href="{% static 'img/favicon.ico' %}" />
+<link rel='stylesheet' type='text/css' href="{% static 'css/evopix.css' %}" media='all' />
 </head>
 <body>
-<img src="/static/img/LOGO.jpg" id='logo'/>
+<img src="{% static 'img/LOGO.jpg' %}" id='logo'/>
 <br /><br />
 <div style="position:absolute; top:400px; left:50px;">
 <u>Welcome to EvoPix</u><br />

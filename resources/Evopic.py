@@ -10,6 +10,7 @@ class Evopic():
         self._parse_evp()
         self._num_points = 0
         self._point_locations = []
+        self.mutation_hooks = False
 
     def _parse_evp(self):
         """Convert evp genome file into a dictionary of lists of its component attributes"""
@@ -85,7 +86,7 @@ class Evopic():
             self.num_points()
         return self._point_locations
 
-    def delete_point(self, path_id, point_id):
+    def delete_point(self, path_id, point_id):  # I think this is deprecated, and should be deleted. delete point is implemented in Path class
         if len(self.paths[path_id].points) == 1:
             self.delete_path(path_id)
 

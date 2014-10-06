@@ -8,7 +8,9 @@ from resources import mutation, breed
 
 # Create your views here.
 def index(request):
-    return render(request, 'templates/index.html')
+    bob = Evopic(Evopix.objects.get(evo_id=1).zeroed_evp)
+    list_of_stuff = ["Juice", 23, {"name": "Joe", "age": 98}]
+    return render(request, 'templates/index.html', {"bob": bob.svg_out(), "list_of_stuff": list_of_stuff})
 
 
 def not_found(request):

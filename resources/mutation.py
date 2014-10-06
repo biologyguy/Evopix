@@ -233,8 +233,6 @@ def mutate(evopic):
         stop_locations.append(pick_stop)
         num_changes -= 1
 
-#-m "Adds stop splits mutation. I have set a hook value
-
     # Stop deletions. Min # stops per path is 1.
     num_changes = num_mutations(mutation_rates["del_stop"], len(stop_locations) - len(path_ids))
     while num_changes > 0:
