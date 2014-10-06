@@ -210,6 +210,13 @@ class Evopic():
         svg += "</svg>"
         return svg
 
+    def save(self):
+        for path_id in self.paths:
+            path = self.paths[path_id]
+            if path.type != "x":
+                for stop in path.stops:
+                    if isinstance(stop["stop_id"], dict):
+                        stop["stop_id"] = 99  # This will need to be changed to update the database
 
 class Path():
     def __init__(self):

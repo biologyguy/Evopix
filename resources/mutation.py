@@ -1,17 +1,20 @@
 #!/usr/bin/python3
 try:
     from Evopic import *
+
 except ImportError:
     from resources.Evopic import *
+    from evp.models import *
 
 from random import random, choice, randint
 from math import log, cos, sin, radians, factorial
+from copy import copy
 import sys
-from evp.models import *
 
+#"stop_split": 0.002,
 # Mutation rates are the probability of an event happening per mutable character
 mutation_rates = {"path_split": 0.0001, "point_split": 0.003, "del_point": 0.001, "point_move": 0.02,
-                  "gradient_param": 0.01, "stop_split": 0.002, "del_stop": 0.001, "stop_params": 0.01,
+                  "gradient_param": 0.01, "stop_split": 0.6, "del_stop": 0.001, "stop_params": 0.01,
                   "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
 
 # 'Magnitudes' are coefficients that adjust mutational impact, determined empirically to 'feel' right
@@ -213,6 +216,38 @@ def mutate(evopic):
             for i in range(len(evopic.paths[path_id].stops)):
                 stop_locations.append((path_id, i))
 
+     # Stop splits
+    num_changes = num_mutations(mutation_rates["stop_split"], len(stop_locations) - len(path_ids))
+    while num_changes > 0:
+        pick_stop = choice(stop_locations)
+        new_stop = copy(evopic.paths[pick_stop[0]].stops[pick_stop[1]])
+        new_stop["stop_id"] = {"parent": new_stop["stop_id"]}
+        stop_position = choice([pick_stop[1], pick_stop[1] + 1])
+        pick_stop = (pick_stop[0], stop_position)
+        evopic.paths[pick_stop[0]].stops.insert(stop_position, new_stop)
+        for i in range(len(stop_locations)):
+            stop = stop_locations[i]
+            if stop[0] == pick_stop[0]:
+                if stop[1] >= stop_position:
+                    stop_locations[i] = (stop[0], stop[1] + 1)
+        stop_locations.append(pick_stop)
+        num_changes -= 1
+
+#-m "Adds stop splits mutation. I have set a hook value
+
+    # Stop deletions. Min # stops per path is 1.
+    num_changes = num_mutations(mutation_rates["del_stop"], len(stop_locations) - len(path_ids))
+    while num_changes > 0:
+        deletable_stops = []
+        for path_id in evopic.paths_order:
+            if len(evopic.paths[path_id].stops) > 1:
+                for i in range(len(evopic.paths[path_id].stops)):
+                    deletable_stops.append((path_id, i))
+
+        deleted_stop = choice(deletable_stops)
+        del evopic.paths[deleted_stop[0]].stops[deleted_stop[1]]
+        num_changes -= 1
+
     num_changes = num_mutations(mutation_rates["gradient_param"], len(path_ids) * 2)  # Len(path_ids) is * 2 because they can be radial or linear
     while num_changes > 0:
         path_id = choice(path_ids)
@@ -244,23 +279,7 @@ def mutate(evopic):
         evopic.paths[stop_loc[0]].stops[stop_loc[1]] = stop
         num_changes -= 1
 
-    # Stop splits, needs to interact with database
-    blahh = 1
-
-
-    # Stop deletions. Min # stops per path is 1.
-    num_changes = num_mutations(mutation_rates["del_stop"], len(stop_locations) - len(path_ids))
-    while num_changes > 0:
-        deletable_stops = []
-        for path_id in evopic.paths_order:
-            if len(evopic.paths[path_id].stops) > 1:
-                for i in range(len(evopic.paths[path_id].stops)):
-                    deletable_stops.append((path_id, i))
-
-        deleted_stop = choice(deletable_stops)
-        del evopic.paths[deleted_stop[0]].stops[deleted_stop[1]]
-        num_changes -= 1
-
+    evopic.save()
     evopic.reconstruct_evp()
     return evopic
 
