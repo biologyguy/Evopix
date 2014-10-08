@@ -11,10 +11,9 @@ from math import log, cos, sin, radians, factorial
 from copy import copy
 import sys
 
-#"stop_split": 0.002,
 # Mutation rates are the probability of an event happening per mutable character
 mutation_rates = {"path_split": 0.0001, "point_split": 0.003, "del_point": 0.001, "point_move": 0.02,
-                  "gradient_param": 0.01, "stop_split": 0.6, "del_stop": 0.001, "stop_params": 0.01,
+                  "gradient_param": 0.01, "stop_split": 0.002, "del_stop": 0.001, "stop_params": 0.01,
                   "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
 
 # 'Magnitudes' are coefficients that adjust mutational impact, determined empirically to 'feel' right
@@ -116,20 +115,33 @@ def mutate_color(color):  # Colour needs to be RGB hex values
 def mutate(evopic):
     num_points = evopic.num_points()
 
-    # insert new points
-    # Insertion needs to interact with the database
-    num_insertions = num_mutations(mutation_rates["point_split"], num_points)
-    while num_insertions > 0:
+    # Insert new points. This duplicates a point wholesale, which causes the path to kink up. Maybe this behavior
+    # will need to be changed, but for now let's go with it to see how things unfold.
+    num_changes = num_mutations(mutation_rates["point_split"], num_points)
+    while num_changes > 0:
         path_id, point_id = choice(evopic.point_locations())  # using 'point_locations()' ensures proper distribution
-        evopic.point_split(path_id, point_id)
-        num_insertions -= 1
+        if point_id < 0:
+            # in the unlikely event that a new point is selected for another split, try again.
+            continue
+
+        path = evopic.paths[path_id]
+        new_point = copy(path.points[point_id])
+        order_index = path.points_order.index(point_id)
+        new_position = choice([order_index, order_index + 1])
+
+        point_id *= -1
+        path.points[point_id] = new_point
+        path.points_order.insert(new_position, point_id)
+        evopic.point_locations().append((path_id, point_id))
+
+        num_changes -= 1
 
     # delete points
-    num_deletions = num_mutations(mutation_rates["del_point"], num_points)
-    while num_deletions > 0:
+    num_changes = num_mutations(mutation_rates["del_point"], num_points)
+    while num_changes > 0:
         path_id, point_id = choice(evopic.point_locations())
         evopic.delete_point(path_id, point_id)
-        num_deletions -= 1
+        num_changes -= 1
 
     # Move points. Points can change by:
     # The point of one of the control handles move individually -> single: 70%
@@ -216,21 +228,24 @@ def mutate(evopic):
             for i in range(len(evopic.paths[path_id].stops)):
                 stop_locations.append((path_id, i))
 
-     # Stop splits
-    num_changes = num_mutations(mutation_rates["stop_split"], len(stop_locations) - len(path_ids))
+    # Stop splits
+    num_changes = num_mutations(mutation_rates["stop_split"], len(stop_locations))
     while num_changes > 0:
-        pick_stop = choice(stop_locations)
-        new_stop = copy(evopic.paths[pick_stop[0]].stops[pick_stop[1]])
-        new_stop["stop_id"] = {"parent": new_stop["stop_id"]}
-        stop_position = choice([pick_stop[1], pick_stop[1] + 1])
-        pick_stop = (pick_stop[0], stop_position)
-        evopic.paths[pick_stop[0]].stops.insert(stop_position, new_stop)
+        path_id, pick_stop = choice(stop_locations)
+        new_stop = copy(evopic.paths[path_id].stops[pick_stop])
+        if new_stop["stop_id"] < 0:
+            continue  # in the unlikely event that a new stop is selected for another split, try again.
+
+        new_stop["stop_id"] *= -1  # Set new stop ID to the negative of its parent, then I can hook onto negative IDs when it's time to save the new evopic
+        stop_position = choice([pick_stop, pick_stop + 1])
+        evopic.paths[path_id].stops.insert(stop_position, new_stop)
         for i in range(len(stop_locations)):
             stop = stop_locations[i]
-            if stop[0] == pick_stop[0]:
+            if stop[0] == path_id:
                 if stop[1] >= stop_position:
                     stop_locations[i] = (stop[0], stop[1] + 1)
-        stop_locations.append(pick_stop)
+
+        stop_locations.append((path_id, stop_position))
         num_changes -= 1
 
     # Stop deletions. Min # stops per path is 1.
@@ -287,7 +302,7 @@ if __name__ == '__main__':
     with open("../genomes/bob.evp", "r") as infile:
         bob = Evopic(infile.read())
         bob = mutate(bob)
-        baby = Evopic(breed.zero_evp(bob.evp))
+        #baby = Evopic(breed.zero_evp(bob.evp))
         print("Hello")
-    with open("../genomes/test.svg", "w") as ofile:
-        ofile.write(baby.svg_out())
+    #with open("../genomes/test.svg", "w") as ofile:
+    #    ofile.write(baby.svg_out())

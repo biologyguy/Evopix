@@ -82,6 +82,7 @@ class Evopic():
         return self._num_points
 
     def point_locations(self):
+        # note: calling point_locations().append() actually updates self._point_locations!! Very cool.
         if len(self._point_locations) == 0:
             self.num_points()
         return self._point_locations
@@ -105,8 +106,6 @@ class Evopic():
         index = self.paths_order.index(path_id)
         del self.paths_order[index]
 
-    def point_split(self, path_id, point_id):
-        x = 1
 
     def reconstruct_evp(self):
         """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
@@ -211,7 +210,7 @@ class Evopic():
         svg += "</svg>"
         return svg
 
-    def save(self):
+    def save(self):  # I think that the only place this should ever be called, is at the end of the breed() function
         for path_id in self.paths:
             path = self.paths[path_id]
             if path.type != "x":
