@@ -10,9 +10,9 @@ from random import random, choice, randint
 from math import log, cos, sin, radians, factorial
 from copy import copy
 import sys
-
+#"path_split": 0.0001
 # Mutation rates are the probability of an event happening per mutable character
-mutation_rates = {"path_split": 0.0001, "point_split": 0.003, "del_point": 0.001, "point_move": 0.02,
+mutation_rates = {"path_split": 0.2, "point_split": 0.003, "del_point": 0.001, "point_move": 0.02,
                   "gradient_param": 0.01, "stop_split": 0.002, "del_stop": 0.001, "stop_params": 0.01,
                   "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
 
@@ -291,6 +291,23 @@ def mutate(evopic):
 
         evopic.paths[stop_loc[0]].stops[stop_loc[1]] = stop
         num_changes -= 1
+
+    # Path splits. Cuts a path into two pieces, joining each exposed end to its partner if the path is closed,
+    # or just slicing it otherwise.
+    num_changes = num_mutations(mutation_rates["path_split"], len(path_ids))
+    while num_changes > 0:
+        num_changes -= 1
+        path, point_id1 = choice(evopic.point_locations())
+        if path < 0:  # In case a path has already been split, skip
+            continue
+
+        while True:
+            point_id2 = choice(evopic.paths[path].points_order)
+            if point_id1 == point_id2:
+                continue
+            else:
+                break
+
 
     evopic.save()
     evopic.reconstruct_evp()
