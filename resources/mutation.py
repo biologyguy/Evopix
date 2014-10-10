@@ -294,19 +294,73 @@ def mutate(evopic):
 
     # Path splits. Cuts a path into two pieces, joining each exposed end to its partner if the path is closed,
     # or just slicing it otherwise.
+    # Note that the larger of the two halves gets to keep the original path ID
     num_changes = num_mutations(mutation_rates["path_split"], len(path_ids))
     while num_changes > 0:
         num_changes -= 1
-        path, point_id1 = choice(evopic.point_locations())
-        if path < 0:  # In case a path has already been split, skip
+        path_id, point_id1 = choice(evopic.point_locations())
+        if path_id < 0:  # In case a path has already been split, skip
             continue
 
+        path_id, point_id1 = 4, 24  # TEMP!!
+
+        path = evopic.paths[path_id]
+        new_path = copy(path)
+        new_path.id *= -1
+        new_path.points = {}
+        point_index = path.points_order.index(point_id1)
+
+        if path.type == "x":
+            print(path.points)
+            print(path.points_order)
+            if point_index in [0, (len(path.points_order) - 1)]:
+                new_path.points_order = [point_id1]
+                new_path.points[point_id1] = path.points[point_id1]
+                del(path.points_order[point_index])
+                del(path.points[point_id1])
+
+            else:
+                new_position = choice([point_index, point_index + 1])
+                if len(path.points_order[new_position:]) < (len(path.points_order) / 2):
+                    new_path.points_order = path.points_order[new_position:]
+
+                else:
+                    new_path.points_order = path.points_order[:new_position]
+
+                for point_id in new_path.points_order:
+                    old_index = path.points_order.index(point_id)
+                    new_path.points[point_id] = path.points[point_id]
+                    del(path.points_order[old_index])
+                    del(path.points[point_id])
+
+                print(path.points_order[new_position:], "\n", path.points_order[:new_position])
+                #new_path.points = {point_id1: path.points[point_id1]}
+
+
+
+
+
+        order_index = evopic.paths_order.index(path_id)
+        new_position = choice([order_index, order_index + 1])
+        evopic.paths[new_path.id] = new_path
+        evopic.paths_order.insert(new_position, new_path.id)
+        print(new_path.points_order)
+        print(new_path.points)
+        print(path.points_order)
+        print(path.points)
+        print(evopic.paths_order)
+        print(evopic.paths)
+        break
+
+        # This next bit is for closed paths, where a second point has to be chosen for the split to cut through
         while True:
-            point_id2 = choice(evopic.paths[path].points_order)
+            point_id2 = choice(path.points_order)
             if point_id1 == point_id2:
                 continue
             else:
                 break
+
+
 
 
     evopic.save()
