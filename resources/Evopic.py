@@ -1,7 +1,6 @@
 #! /usr/bin/python3
 import sys
 
-
 class Evopic():
     def __init__(self, evp):
         self.evp = evp
@@ -87,7 +86,15 @@ class Evopic():
             self.num_points()
         return self._point_locations
 
-    def delete_point(self, path_id, point_id):  # I think this is deprecated, and should be deleted. delete point is implemented in Path class
+    def stop_locations(self):
+        stop_locations = []
+        for path_id in self.paths_order:
+            if self.paths[path_id].type != "x":
+                for i in range(len(self.paths[path_id].stops)):
+                    stop_locations.append((path_id, i))
+        return stop_locations
+
+    def delete_point(self, path_id, point_id):
         if len(self.paths[path_id].points) == 1:
             self.delete_path(path_id)
 
@@ -276,12 +283,14 @@ class Path():
         else:
             size = self.find_perimeter()
 
+        size += 1.  # When a path only has a single point, its size is 0. This just makes sure there is always some size
+
         return size
 
     def delete_point(self, point_id):
         del self.points[point_id]
-        index = self.points_order.index(point_id)
-        del self.points_order[index]
+        point_index = self.points_order.index(point_id)
+        del self.points_order[point_index]
 
 
 class LineSeg():

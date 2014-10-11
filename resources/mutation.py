@@ -16,12 +16,13 @@ mutation_rates = {"path_split": 0.0001, "point_split": 0.003, "del_point": 0.001
                   "gradient_param": 0.01, "stop_split": 0.002, "del_stop": 0.001, "stop_params": 0.01,
                   "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
 
+# test values for mutation rates.
 mutation_rates = {"path_split": 0.1, "point_split": 0.3, "del_point": 0.1, "point_move": 0.2,
-                  "gradient_param": 0.1, "stop_split": 0.2, "del_stop": 0.1, "stop_params": 0.1,
+                  "gradient_param": 0.1, "stop_split": 0.2, "del_stop": 0.1, "stop_params": 0.5,
                   "stroke_color": 0.1, "stroke_width": 0.1, "stroke_opacity": 0.1}
 
 # 'Magnitudes' are coefficients that adjust mutational impact, determined empirically to 'feel' right
-magnitudes = {"points": 0.03, "colors": 4, "opacity": 0.03, "max_stroke_width": 0.05, "stroke_width": 0.0005,
+magnitudes = {"points": 0.03, "colors": 5, "opacity": 0.03, "max_stroke_width": 0.05, "stroke_width": 0.0005,
               "stop_params": 0.015, "gradient_params": 0.015}
 
 
@@ -99,7 +100,7 @@ def move_in_range(cur_value, val_range, magnitude):
             sys.exit("Error: %s" % new_value)
 
         if safety_check < 0:
-            sys.exit("Popped safety valve on move_in_range()")
+            sys.exit("Popped safety valve on move_in_range()\n%s\n%s, %s, %s" % (traceback.print_stack(), cur_value, val_range, magnitude))
         safety_check -= 1
 
     return new_value
@@ -122,12 +123,14 @@ def mutate(evopic):
     # Insert new points. This duplicates a point wholesale, which causes the path to kink up. Maybe this behavior
     # will need to be changed, but for now let's go with it to see how things unfold.
     num_changes = num_mutations(mutation_rates["point_split"], num_points)
+    split_ids = []
     while num_changes > 0:
         path_id, point_id = choice(evopic.point_locations())  # using 'point_locations()' ensures proper distribution
-        if point_id < 0:
-            # in the unlikely event that a new point is selected for another split, try again.
+        if point_id < 0 or point_id in split_ids:
+            # in the unlikely event that a new point is selected for a split, or a point that has already been
+            # split, try again.
             continue
-
+        split_ids.append(point_id)
         path = evopic.paths[path_id]
         new_point = copy(path.points[point_id])
         order_index = path.points_order.index(point_id)
@@ -224,17 +227,16 @@ def mutate(evopic):
         num_changes -= 1
 
     # Gradient and stop parameters
-    path_ids = []
-    stop_locations = []
+    stop_locations = evopic.stop_locations()
+    closed_path_ids = []
     for path_id in evopic.paths_order:
         if evopic.paths[path_id].type != "x":
-            path_ids.append(path_id)
-            for i in range(len(evopic.paths[path_id].stops)):
-                stop_locations.append((path_id, i))
+            closed_path_ids.append(path_id)
 
     # Stop splits
     num_changes = num_mutations(mutation_rates["stop_split"], len(stop_locations))
     while num_changes > 0:
+        num_changes -= 1
         path_id, pick_stop = choice(stop_locations)
         new_stop = copy(evopic.paths[path_id].stops[pick_stop])
         if new_stop["stop_id"] < 0:
@@ -243,17 +245,11 @@ def mutate(evopic):
         new_stop["stop_id"] *= -1  # Set new stop ID to the negative of its parent, then I can hook onto negative IDs when it's time to save the new evopic
         stop_position = choice([pick_stop, pick_stop + 1])
         evopic.paths[path_id].stops.insert(stop_position, new_stop)
-        for i in range(len(stop_locations)):
-            stop = stop_locations[i]
-            if stop[0] == path_id:
-                if stop[1] >= stop_position:
-                    stop_locations[i] = (stop[0], stop[1] + 1)
 
-        stop_locations.append((path_id, stop_position))
-        num_changes -= 1
+    stop_locations = evopic.stop_locations()
 
     # Stop deletions. Min # stops per path is 1.
-    num_changes = num_mutations(mutation_rates["del_stop"], len(stop_locations) - len(path_ids))
+    num_changes = num_mutations(mutation_rates["del_stop"], len(stop_locations) - len(closed_path_ids))
     while num_changes > 0:
         deletable_stops = []
         for path_id in evopic.paths_order:
@@ -265,9 +261,11 @@ def mutate(evopic):
         del evopic.paths[deleted_stop[0]].stops[deleted_stop[1]]
         num_changes -= 1
 
-    num_changes = num_mutations(mutation_rates["gradient_param"], len(path_ids) * 2)  # Len(path_ids) is * 2 because they can be radial or linear
+    stop_locations = evopic.stop_locations()
+
+    num_changes = num_mutations(mutation_rates["gradient_param"], len(closed_path_ids) * 2)  # Len(path_ids) is * 2 because they can be radial or linear
     while num_changes > 0:
-        path_id = choice(path_ids)
+        path_id = choice(closed_path_ids)
         path = evopic.paths[path_id]
         grad_type = choice(["linear", "radial"])
 
@@ -282,10 +280,13 @@ def mutate(evopic):
         evopic.paths[path_id] = path
         num_changes -= 1
 
+    # Mutate the stop parameters
     num_changes = num_mutations(mutation_rates["stop_params"], len(stop_locations))
     while num_changes > 0:
-        stop_loc = choice(stop_locations)
-        stop = evopic.paths[stop_loc[0]].stops[stop_loc[1]]
+        path_id, stop_pos = choice(stop_locations)
+        path = evopic.paths[path_id]
+        stop = path.stops[stop_pos]
+
         position = choice((0, 1, 2))
         if position == 0:
             stop["params"][0] = mutate_color(stop["params"][0])
@@ -293,19 +294,20 @@ def mutate(evopic):
         else:
             stop["params"][position] = move_in_range(stop["params"][position], [0., 1.], magnitudes["stop_params"])
 
-        evopic.paths[stop_loc[0]].stops[stop_loc[1]] = stop
+        path.stops[stop_pos] = stop
         num_changes -= 1
 
     # Path splits. Cuts a path into two pieces, joining each exposed end to its partner if the path is closed,
     # or just slicing it otherwise.
     # Note that the larger of the two halves gets to keep the original path ID
-    num_changes = num_mutations(mutation_rates["path_split"], len(path_ids))
+    num_changes = num_mutations(mutation_rates["path_split"], len(evopic.paths_order))
     while num_changes > 0:
         num_changes -= 1  # decrement num_changes early to prevent infinite loops
         path_id, point_id1 = choice(evopic.point_locations())
 
         if path_id < 0:  # In case a path has already been split, skip
             continue
+
         path = evopic.paths[path_id]
 
         if len(path.points) == 1:  # Can't split a path with only one point.
@@ -320,8 +322,7 @@ def mutate(evopic):
             if point_index in [0, (len(path.points_order) - 1)]:
                 new_path.points_order = [point_id1]
                 new_path.points[point_id1] = path.points[point_id1]
-                del(path.points_order[point_index])
-                del(path.points[point_id1])
+                evopic.delete_point(path_id, point_id1)
 
             else:
                 new_position = choice([point_index, point_index + 1])
@@ -332,12 +333,8 @@ def mutate(evopic):
                     new_path.points_order = path.points_order[:new_position]
 
                 for point_id in new_path.points_order:
-                    old_index = path.points_order.index(point_id)
                     new_path.points[point_id] = path.points[point_id]
-                    del(path.points_order[old_index])
-                    del(path.points[point_id])
-                    point_location = evopic.point_locations().index((path_id, point_id))
-                    del(evopic.point_locations()[point_location])
+                    evopic.delete_point(path_id, point_id)
 
         else:
             # This next bit is for closed paths, where a second point has to be chosen for the split to cut through
@@ -348,29 +345,42 @@ def mutate(evopic):
                 else:
                     break
 
-            # This gets the points in order from left to right
+            # Get the points in order from left to right
             point1_index, point2_index = [path.points_order.index(point_id1), path.points_order.index(point_id2)]
             point1_index, point2_index = [min(point1_index, point2_index), max(point1_index, point2_index)]
             point_id1, point_id2 = [path.points_order[point1_index], path.points_order[point2_index]]
 
-            outer_path = path.points_order[:point1_index] + path.points_order[point2_index + 1:]
-            inner_path = path.points_order[point1_index:point2_index + 1]
+            if len(path.points_order) > 3:
+                outer_path = path.points_order[:point1_index] + path.points_order[point2_index + 1:]
+                inner_path = path.points_order[point1_index:point2_index + 1]
+
+            elif len(path.points_order) == 3:
+                outer_path = [point_id1, point_id2]
+                for point_id in path.points_order:
+                    if point_id in outer_path:
+                        continue
+                    else:
+                        inner_path = [point_id]
+
+            elif len(path.points_order) == 2:
+                outer_path = [point_id1]
+                inner_path = [point_id2]
+
+            else:
+                sys.exit("There is an error in closed path splitting")
 
             if len(outer_path) >= len(inner_path):
                 new_path.points_order = inner_path
-                path.points_order = outer_path
 
             else:
                 new_path.points_order = path.points_order[:point1_index + 1] + path.points_order[point2_index:]
-                path.points_order = path.points_order[point1_index + 1:point2_index]
 
             for point_id in new_path.points_order:
                 new_path.points[point_id] = path.points[point_id]
-                del(path.points[point_id])
-                point_location = evopic.point_locations().index((path_id, point_id))
-                del(evopic.point_locations()[point_location])
+                evopic.delete_point(path_id, point_id)
 
         order_index = evopic.paths_order.index(path_id)
+
         new_position = choice([order_index, order_index + 1])
         evopic.paths[new_path.id] = new_path
         evopic.paths_order.insert(new_position, new_path.id)
@@ -382,10 +392,11 @@ def mutate(evopic):
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
     import breed
-    with open("../genomes/bob.evp", "r") as infile:
-        bob = Evopic(infile.read())
-        bob = mutate(bob)
+    for i in range(10):
+        with open("../genomes/bob.evp", "r") as infile:
+            bob = Evopic(infile.read())
+            bob = mutate(bob)
         #baby = Evopic(breed.zero_evp(bob.evp))
-        print("Hello")
+    print("Done")
     #with open("../genomes/test.svg", "w") as ofile:
     #    ofile.write(baby.svg_out())
