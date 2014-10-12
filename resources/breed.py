@@ -4,6 +4,7 @@ try:
 except ImportError:
     from resources.Evopic import *
 
+
 def breed(evp1, evp2):
     """Notes:-The original evp file (i.e., not zeroed) needs to be used for breeding. Store the zeroed evp for printing.
              -moderate to extreme values in offset and radius totally break the fill of a gradient in some browsers
@@ -16,12 +17,13 @@ def zero_evp(evp):
     """New Evopix are able to wander around Cartesian space, which means they would start to wander off the canvas
     pretty quickly if we print the SVG true to their actual genome coords. Instead, create a separate evp file that
     finds the bounding box of the image and positions it close to 0,0. It's important to still breed from the original
-    non-zeroed evp though, because a mutation on the extreme left of top of the image will result in new values for all
+    non-zeroed evp though, because a mutation on the extreme left or top of the image will result in new values for all
     coords, making it look like much more divergence between parent and offspring than there really is."""
     evopic = Evopic(evp)
     min_x, min_y, min_x_seq, min_y_seg = [9999999999.9, 9999999999.9, [], []]  # arbitrarily set large min values
 
-    # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line segments for bezier calc
+    # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line segments
+    # for Bézier calc
     for path_id in evopic.paths_order:
         path = evopic.paths[path_id]
 
@@ -55,13 +57,13 @@ def zero_evp(evp):
 
                 path.points[point_id][coords_count] = [round(coords[0], 4), round(coords[1], 4)]
                 coords_count += 1
-        #evopic.paths[path_id] = path
+
     evopic.reconstruct_evp()
     return evopic.evp
 
 
 def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
-    """Calculates the extreme points of a cubic Bezier curve
+    """Calculates the extreme points of a cubic Bézier curve
     Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
     Original version: NISHIO Hirokazu
     Modifications: Timo

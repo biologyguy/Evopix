@@ -1,6 +1,10 @@
 #!/usr/bin/python3
-from Evopic import *
-import sys
+try:
+    from Evopic import *
+
+except ImportError:
+    from resources.Evopic import *
+    from evp.models import *
 
 
 def colour_diff(stroke_1, stroke_2):
@@ -33,9 +37,9 @@ def match_path_points(path_1, path_2):
             pt_1 = path_1.points[point_id]
             pt_2 = path_2.points[point_id]
 
-            output["matches"].append(Path.line_length(pt_1[0], pt_2[0]))
-            output["matches"].append(Path.line_length(pt_1[1], pt_2[1]))
-            output["matches"].append(Path.line_length(pt_1[2], pt_2[2]))
+            output["matches"].append(LineSeg(pt_1[0], pt_2[0]).length())
+            output["matches"].append(LineSeg(pt_1[1], pt_2[1]).length())
+            output["matches"].append(LineSeg(pt_1[2], pt_2[2]).length())
 
         else:
             output["unmatched"] += 1
@@ -130,7 +134,8 @@ def similarity_score(evo_1, evo_2):
                     stop_matches["unmatched"] += 1
 
             stop_matches["unmatched"] += len(stops_2_ids)
-            path_sim_info["stop_sim_scores"].append(sum(stop_matches["matches"])/(stop_matches["unmatched"] + len(stop_matches["matches"])))
+            path_sim_info["stop_sim_scores"].append(sum(stop_matches["matches"]) / (stop_matches["unmatched"]
+                                                                                    + len(stop_matches["matches"])))
 
         else:
             path_sim_info["gradient_sim_scores"].append(False)

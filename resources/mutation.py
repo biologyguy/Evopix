@@ -17,9 +17,9 @@ mutation_rates = {"path_split": 0.0001, "point_split": 0.003, "del_point": 0.001
                   "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
 
 # test values for mutation rates.
-mutation_rates = {"path_split": 0.1, "point_split": 0.3, "del_point": 0.1, "point_move": 0.2,
-                  "gradient_param": 0.1, "stop_split": 0.2, "del_stop": 0.1, "stop_params": 0.5,
-                  "stroke_color": 0.1, "stroke_width": 0.1, "stroke_opacity": 0.1}
+#mutation_rates = {"path_split": 0.1, "point_split": 0.3, "del_point": 0.1, "point_move": 0.2,
+#                  "gradient_param": 0.1, "stop_split": 0.2, "del_stop": 0.1, "stop_params": 0.5,
+#                  "stroke_color": 0.1, "stroke_width": 0.1, "stroke_opacity": 0.1}
 
 # 'Magnitudes' are coefficients that adjust mutational impact, determined empirically to 'feel' right
 magnitudes = {"points": 0.03, "colors": 5, "opacity": 0.03, "max_stroke_width": 0.05, "stroke_width": 0.0005,
@@ -80,8 +80,8 @@ def move_points(path_size, points):  # get path_size with path_size() function, 
     change_x = sin(radians(direction_change)) * distance_changed
     change_y = cos(radians(direction_change)) * distance_changed
 
-    for i in range(len(points)):
-        points[i] = [points[i][0] + change_x, points[i][1] + change_y]
+    for point_index in range(len(points)):
+        points[point_index] = [points[point_index][0] + change_x, points[point_index][1] + change_y]
     return points
 
 
@@ -100,7 +100,9 @@ def move_in_range(cur_value, val_range, magnitude):
             sys.exit("Error: %s" % new_value)
 
         if safety_check < 0:
-            sys.exit("Popped safety valve on move_in_range()\n%s\n%s, %s, %s" % (traceback.print_stack(), cur_value, val_range, magnitude))
+            import traceback
+            sys.exit("Popped safety valve on move_in_range()\n%s\n%s, %s, %s" % (traceback.print_stack(), cur_value,
+                                                                                 val_range, magnitude))
         safety_check -= 1
 
     return new_value
@@ -111,8 +113,8 @@ def mutate_color(color):  # Colour needs to be RGB hex values
     which_component = randint(0, 2)
     components[which_component] = round(move_in_range(components[which_component], [0., 255.], magnitudes["colors"]))
     output = ""
-    for i in range(3):
-        output += hex(components[i])[2:].zfill(2)
+    for comp_index in range(3):
+        output += hex(components[comp_index])[2:].zfill(2)
 
     return output
 
@@ -250,7 +252,8 @@ def mutate(evopic):
         if new_stop["stop_id"] < 0:
             continue  # in the unlikely event that a new stop is selected for another split, try again.
 
-        new_stop["stop_id"] *= -1  # Set new stop ID to the negative of its parent, then I can hook onto negative IDs when it's time to save the new evopic
+        # Set stop ID to negative of its parent, then I can hook onto neg IDs when it's time to save the new evopic
+        new_stop["stop_id"] *= -1
         stop_position = choice([pick_stop, pick_stop + 1])
         evopic.paths[path_id].stops.insert(stop_position, new_stop)
 
@@ -262,8 +265,8 @@ def mutate(evopic):
         deletable_stops = []
         for path_id in evopic.paths_order:
             if len(evopic.paths[path_id].stops) > 1:
-                for i in range(len(evopic.paths[path_id].stops)):
-                    deletable_stops.append((path_id, i))
+                for stop_index in range(len(evopic.paths[path_id].stops)):
+                    deletable_stops.append((path_id, stop_index))
 
         deleted_stop = choice(deletable_stops)
         del evopic.paths[deleted_stop[0]].stops[deleted_stop[1]]
@@ -271,7 +274,8 @@ def mutate(evopic):
 
     stop_locations = evopic.stop_locations()
 
-    num_changes = num_mutations(mutation_rates["gradient_param"], len(closed_path_ids) * 2)  # Len(path_ids) is * 2 because they can be radial or linear
+    # Len(path_ids) below is * 2 because they can be radial or linear
+    num_changes = num_mutations(mutation_rates["gradient_param"], len(closed_path_ids) * 2)
     while num_changes > 0:
         path_id = choice(closed_path_ids)
         path = evopic.paths[path_id]
@@ -393,14 +397,14 @@ def mutate(evopic):
         evopic.paths[new_path.id] = new_path
         evopic.paths_order.insert(new_position, new_path.id)
 
-    evopic.save()
     evopic.reconstruct_evp()
+    evopic.save()
     return evopic
 
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
     import breed
-    for i in range(10):
+    for i in range(1000):
         with open("../genomes/bob.evp", "r") as infile:
             bob = Evopic(infile.read())
             bob = mutate(bob)

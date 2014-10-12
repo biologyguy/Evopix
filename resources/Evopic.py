@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 import sys
 
+
 class Evopic():
     def __init__(self, evp):
         self.evp = evp
@@ -40,7 +41,8 @@ class Evopic():
                 for i in range(len(stops)):
                     stop = stops[i].split("~")
                     stops[i] = {"stop_id": int(stop[0][1:]), "params": stop[1].split(",")}
-                    stops[i]["params"][1], stops[i]["params"][2] = [float(stops[i]["params"][1]), float(stops[i]["params"][2])]
+                    stops[i]["params"][1], stops[i]["params"][2] = [float(stops[i]["params"][1]),
+                                                                    float(stops[i]["params"][2])]
 
                 path.stops = stops
 
@@ -113,7 +115,6 @@ class Evopic():
         index = self.paths_order.index(path_id)
         del self.paths_order[index]
 
-
     def reconstruct_evp(self):
         """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
         new_evp = ""
@@ -155,7 +156,8 @@ class Evopic():
 
             if path.type == 'l':
                 x1, y1, x2, y2 = path.linear
-                svg += "\t<linearGradient id='linearGradient%s' x1='%s' y1='%s' x2='%s' y2='%s'>\n" % (path.id, x1, y1, x2, y2)
+                svg += "\t<linearGradient id='linearGradient%s' x1='%s' y1='%s' x2='%s' y2='%s'>\n" % (path.id, x1, y1,
+                                                                                                       x2, y2)
                 for j in path.stops:
                     color, opacity, offset = j['params']
                     svg += "\t\t<stop stop-color='#%s' stop-opacity='%s' offset='%s' />\n" % (color, opacity, offset)
@@ -163,7 +165,9 @@ class Evopic():
 
             if path.type == 'r':
                 cx, cy, fx, fy, r = path.radial
-                svg += "\t<radialGradient id='radialGradient%s' cx='%s' cy='%s' fx='%s' fy='%s' r='%s'>\n" % (path.id, cx, cy, fx, fy, r)
+                svg += "\t<radialGradient id='radialGradient%s' cx='%s' cy='%s' fx='%s' fy='%s' r='%s'>\n" \
+                       % (path.id, cx, cy, fx, fy, r)
+
                 for j in path.stops:
                     color, opacity, offset = j['params']
                     svg += "\t\t<stop stop-color='#%s' stop-opacity='%s' offset='%s' />\n" % (color, opacity, offset)
@@ -190,12 +194,14 @@ class Evopic():
                         points_string += " %s %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
 
                     else:
-                        points_string += " %s %s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'), str(point[2]).strip('[]'))
+                        points_string += " %s %s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'),
+                                                          str(point[2]).strip('[]'))
 
                     count += 1
 
                 strings = (path.id, points_string, color, width, opacity)
-                svg += "<path id='path%s' d='%s' style='fill:none;stroke:#%s;stroke-width:%s;stroke-opacity:%s' />\n" % strings
+                svg += "<path id='path%s' d='%s' style='fill:none;stroke:#%s;stroke-width:%s;stroke-opacity:%s' />\n" \
+                       % strings
 
             else:
                 count = 0
@@ -207,7 +213,8 @@ class Evopic():
                         points_string += "%s C %s" % (str(point[1]).strip('[]'), str(point[2]).strip('[]'))
 
                     else:
-                        points_string += " %s %s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'), str(point[2]).strip('[]'))
+                        points_string += " %s %s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'),
+                                                          str(point[2]).strip('[]'))
 
                     count += 1
 
@@ -225,6 +232,7 @@ class Evopic():
                     if isinstance(stop["stop_id"], dict):
                         stop["stop_id"] = 99  # This will need to be changed to update the database
 
+
 class Path():
     def __init__(self):
         self.id = int()
@@ -239,8 +247,8 @@ class Path():
     def find_area(self):  # Input is an individual path from Evopic.paths
         """
         Modified from http://www.arachnoid.com/area_irregular_polygon/index.html
-        Calculates the area of an irregular polygon using the sum of the cross products of each neighboring pair of coords.
-        It's super nice, because it scales at N.
+        Calculates the area of an irregular polygon using the sum of the cross products of each neighboring pair of
+        coords. It's super nice, because it scales at N.
         """
         array = []
         for point_id in self.points_order:
@@ -273,7 +281,8 @@ class Path():
     def path_size(self):
         """
         Returns a value that is comparable between closed and open paths, and smooths out the possible issues in closed
-        paths relating to area vs perimeter measurement (ie, it's possible to have a lot of perimeter with very little area)
+        paths relating to area vs perimeter measurement (ie, it's possible to have a lot of perimeter with very little
+        area)
         """
         # For closed paths, the size of the path is average(sqrt(area) * 4, perimeter)
         if self.type in ["r", "l"]:
