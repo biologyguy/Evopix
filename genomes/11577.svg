@@ -4,7 +4,7 @@
 	 width="582" height="582" id="svg2232">
 
 <defs>
-<linearGradient id="linearGradient1" x1="0.0" y1="0.5" x2="1.0" y2="0.5">
+<linearGradient id="linearGradient1" x1="0.0" y1="0.1" x2="1.0" y2="0.5">
 	<stop stop-color="#d4e5f5" stop-opacity="1.0" offset="0.00" />
 	<stop stop-color="#f00000" stop-opacity="1.0" offset="1.0" />
 </linearGradient>
@@ -21,9 +21,9 @@
 	<stop stop-color="#0d1a00" stop-opacity="0.983358400847" offset="0.00886001742884%" />
 </linearGradient>
 
-<radialGradient id="radialGradient1" cx="0.5" cy="0.5" fx="0.5" fy="0.5" r="0.1" >
-	<stop stop-color="#d4e5f5" stop-opacity="1.0" offset="0.00" />
-	<stop stop-color="#f00000" stop-opacity="1.0" offset="1.0" />
+<radialGradient id="radialGradient1" cx="0.5" cy="0.15" fx="0.1" fy="0.2" r="0.3" >
+	<stop stop-color="#d4e5f5" stop-opacity="1.0" offset="0.20" />
+	<stop stop-color="#f00000" stop-opacity="1.0" offset="0.90" />
 </radialGradient>
 
 

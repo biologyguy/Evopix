@@ -397,7 +397,6 @@ def mutate(evopic):
         evopic.paths[new_path.id] = new_path
         evopic.paths_order.insert(new_position, new_path.id)
 
-    evopic.reconstruct_evp()
     evopic.save()
     return evopic
 

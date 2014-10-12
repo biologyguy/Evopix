@@ -5,11 +5,13 @@ import sys
 class Evopic():
     def __init__(self, evp):
         self.evp = evp
+        self.id = 0
         self.paths = {}
         self.paths_order = []
         self._parse_evp()
         self._num_points = 0
         self._point_locations = []
+        self.min_max_points = {"min_x": 0., "min_y": 0., "max_x": 0., "max_y": 0.}
         self.mutation_hooks = False
 
     def _parse_evp(self):
@@ -114,6 +116,37 @@ class Evopic():
         del self.paths[path_id]
         index = self.paths_order.index(path_id)
         del self.paths_order[index]
+
+    def find_extremes(self):
+        # arbitrarily set large min values an small max values
+        min_x, min_y, max_x, max_y, min_x_seq, min_y_seg = [9999999999., 9999999999., -9999999999., -9999999999., [], []]
+
+        # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line segments
+        # for Bézier calc
+        for path_id in self.paths_order:
+            path = self.paths[path_id]
+
+            line_segments = []
+
+            for i in range(len(path.points_order) - 1):  # Going all the way to end will give index error
+                point_1 = path.points[path.points_order[i]]
+                point_2 = path.points[path.points_order[i + 1]]
+                line_segments.append([point_1[1], point_1[2], point_2[0], point_2[1]])
+
+            if path.type in ["l", "r"]:  # For closed paths, link the first and last points
+                point_1 = path.points[path.points_order[-1]]
+                point_2 = path.points[path.points_order[0]]
+                line_segments.append([point_1[1], point_1[2], point_2[0], point_1[1]])
+
+            for seg in line_segments:
+                bezier_bounds = (get_curve_bounds(seg[0][0], seg[0][1], seg[1][0], seg[1][1], seg[2][0], seg[2][1], seg[3][0], seg[3][1]))
+
+                min_x = bezier_bounds['left'] if bezier_bounds['left'] < min_x else min_x
+                min_y = bezier_bounds['top'] if bezier_bounds['top'] < min_y else min_y
+                max_x = bezier_bounds['right'] if bezier_bounds['right'] > max_x else max_x
+                max_y = bezier_bounds['bottom'] if bezier_bounds['bottom'] > max_y else max_y
+
+        self.min_max_points = {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y}
 
     def reconstruct_evp(self):
         """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
@@ -227,10 +260,24 @@ class Evopic():
     def save(self):  # I think that the only place this should ever be called, is at the end of the breed() function
         for path_id in self.paths:
             path = self.paths[path_id]
+            if path.id < 0:
+                self.paths[path_id].id = 99
+
             if path.type != "x":
-                for stop in path.stops:
-                    if isinstance(stop["stop_id"], dict):
-                        stop["stop_id"] = 99  # This will need to be changed to update the database
+                for i in range(len(path.stops)):
+                    if path.stops[i]["stop_id"] < 0:
+                        self.paths[path_id].stops[i]["stop_id"] = 99  # This will need to be changed to update the database
+
+                for i in range(len(path.points_order)):
+                    point_id = path.points_order[i]
+                    if point_id < 0:
+                        new_id = max(path.points_order) + 1
+                        self.paths[path_id].points_order[i] = new_id
+                        self.paths[path_id].points[new_id] = self.paths[path_id].points[point_id]
+
+        self.reconstruct_evp()
+
+
 
 
 class Path():
@@ -317,6 +364,70 @@ class LineSeg():
     def intercept(self):
         return self.y2 - (self.slope() * self.x2)
 
+
+def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
+    """Calculates the extreme points of a cubic Bézier curve
+    Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
+    Original version: NISHIO Hirokazu
+    Modifications: Timo
+    Convert to Python: Steve Bond"""
+
+    tvalues = []
+    bounds = {"X": [], "Y": []}
+
+    for i in range(2):
+        if i == 0:
+            b = 6. * x0 - 12. * x1 + 6. * x2
+            a = -3. * x0 + 9. * x1 - 9. * x2 + 3. * x3
+            c = 3. * x1 - 3. * x0
+
+        else:
+            b = 6. * y0 - 12. * y1 + 6. * y2
+            a = -3. * y0 + 9. * y1 - 9. * y2 + 3. * y3
+            c = 3. * y1 - 3. * y0
+
+        if abs(a) < 0.0000000000001:  # Numerical robustness
+            if abs(b) < 0.0000000000001:  # Numerical robustness
+                continue
+
+            t = -c / b
+
+            if 0 < t < 1:
+                tvalues.append(t)
+
+            continue
+
+        b2ac = b * b - 4. * c * a
+        sqrtb2ac = b2ac ** 0.5
+        if b2ac < 0:
+            continue
+
+        t1 = (-b + sqrtb2ac) / (2. * a)
+        if 0 < t1 < 1:
+            tvalues.append(t1)
+
+        t2 = (-b - sqrtb2ac) / (2. * a)
+        if 0 < t2 < 1:
+            tvalues.append(t2)
+
+    j = len(tvalues)
+
+    while j > 0:
+        j -= 1
+        t = tvalues[j]
+        mt = 1. - t
+        x = (mt * mt * mt * x0) + (3. * mt * mt * t * x1) + (3. * mt * t * t * x2) + (t * t * t * x3)
+        bounds["X"].append(x)
+
+        y = (mt * mt * mt * y0) + (3. * mt * mt * t * y1) + (3. * mt * t * t * y2) + (t * t * t * y3)
+        bounds["Y"].append(y)
+
+    bounds["X"].append(x0)
+    bounds["Y"].append(y0)
+    bounds["X"].append(x3)
+    bounds["Y"].append(y3)
+    return {"left": round(min(bounds["X"]), 4), "top": round(min(bounds["Y"]), 4), "right": round(max(bounds["X"]), 4),
+            "bottom": round(max(bounds["Y"]), 4)}
 
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':

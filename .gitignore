@@ -10,3 +10,11 @@
 
 #Mac system stuff
 .DS_Store
+
+#Some of the test files in genome dir
+baby.evp
+baby.svg
+bob.svg
+sue.svg
+bubba.svg
+
