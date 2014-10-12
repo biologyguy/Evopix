@@ -14,8 +14,15 @@ def index(request):
 
 
 def not_found(request):
-    bob = Evopic(Evopix.objects.all()[1].evp)
-    bob = mutation.mutate(bob)
-    baby = Evopic(breed.zero_evp(bob.evp))
+    if request.method == "POST":
+        evp = request.POST.get('evp', '')
+        bob = Evopic(evp)
+        bob = mutation.mutate(bob)
+        baby = Evopic(breed.zero_evp(bob.evp))
 
-    return HttpResponse("404: Sorry, the page you have requested was not found\n%s" % baby.svg_out())
+    else:
+        bob = Evopic(Evopix.objects.all()[1].evp)
+        bob = mutation.mutate(bob)
+        baby = Evopic(breed.zero_evp(bob.evp))
+
+    return render(request, 'templates/404.html', {"svg": baby.svg_out(), "evp": baby.evp})
