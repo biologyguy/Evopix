@@ -136,6 +136,14 @@ def mutate(evopic):
         order_index = path.points_order.index(point_id)
         new_position = choice([order_index, order_index + 1])
 
+        if new_position == order_index:
+            new_point[2] = new_point[1]
+            path.points[point_id][0] = path.points[point_id][1]
+
+        else:
+            new_point[0] = new_point[1]
+            path.points[point_id][2] = path.points[point_id][1]
+
         point_id *= -1
         path.points[point_id] = new_point
         path.points_order.insert(new_position, point_id)
