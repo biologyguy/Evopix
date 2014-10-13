@@ -10,10 +10,11 @@ from random import random, choice, randint
 from math import log, cos, sin, radians, factorial
 from copy import copy
 import sys
+from scipy.stats import gamma
 
 # Mutation rates are the probability of an event happening per mutable character
 mutation_rates = {"path_split": 0.0001, "point_split": 0.003, "del_point": 0.001, "point_move": 0.02,
-                  "gradient_param": 0.01, "stop_split": 0.002, "del_stop": 0.001, "stop_params": 0.01,
+                  "gradient_param": 0.01, "stop_split": 0.002, "del_stop": 0.001, "stop_params": 0.03,
                   "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
 
 # test values for mutation rates.
@@ -26,6 +27,7 @@ magnitudes = {"points": 0.03, "colors": 5, "opacity": 0.03, "max_stroke_width": 
               "stop_params": 0.015, "gradient_params": 0.015}
 
 
+# choose() will break when k gets too big. Need to figure something else out.
 def choose(n, k):  # n = sample size. k = number chosen. ie n choose k
     if k == 0 or k == n:
         return 1
@@ -35,6 +37,22 @@ def choose(n, k):  # n = sample size. k = number chosen. ie n choose k
 
     else:
         return factorial(n) / (factorial(k) * factorial(n - k))
+
+
+def num_mutations(mu, num_items):  # mu = probability of success per item
+    mutations = 0
+    test_value = random()
+    prob_sum = 0.
+
+    for k in range(num_items):
+        prob_sum += choose(num_items, k) * (mu ** k) * ((1. - mu) ** (num_items - k))
+        if prob_sum < test_value:
+            mutations += 1
+            continue
+        else:
+            break
+
+    return mutations
 
 
 def pick(option_dict):
@@ -54,24 +72,11 @@ def pick(option_dict):
 
 
 def rand_move(coefficient):
-# this f(x) moves nicely between 0 and infinity: 80% of returned values fall between 3% and 13% of the coefficient
-    return coefficient * ((-2 * log(random(), 2)) ** 0.5)
-
-
-def num_mutations(mu, num_items):  # mu = probability of success per item
-    mutations = 0
-    test_value = random()
-    prob_sum = 0.
-
-    for k in range(num_items):
-        prob_sum += choose(num_items, k) * (mu ** k) * ((1. - mu) ** (num_items - k))
-        if prob_sum < test_value:
-            mutations += 1
-            continue
-        else:
-            break
-
-    return mutations
+# Using the SciPy package here to draw from a gamma distribution. Should try to implement this directly at some point.
+    distribution = gamma(1.15, loc=0.01, scale=0.4)  # values determined empirically
+    rand_draw = distribution.rvs()
+    output = rand_draw * coefficient
+    return output
 
 
 def move_points(path_size, points):  # get path_size with path_size() function, and points is a list
@@ -245,18 +250,21 @@ def mutate(evopic):
 
     # Stop splits
     num_changes = num_mutations(mutation_rates["stop_split"], len(stop_locations))
+    split_ids = []
     while num_changes > 0:
+        print(evopic.stop_locations())
         num_changes -= 1
         path_id, pick_stop = choice(stop_locations)
         new_stop = copy(evopic.paths[path_id].stops[pick_stop])
-        if new_stop["stop_id"] < 0:
+        if new_stop["stop_id"] < 0 or new_stop["stop_id"] in split_ids:
             continue  # in the unlikely event that a new stop is selected for another split, try again.
 
+        split_ids.append(new_stop["stop_id"])
         # Set stop ID to negative of its parent, then I can hook onto neg IDs when it's time to save the new evopic
         new_stop["stop_id"] *= -1
         stop_position = choice([pick_stop, pick_stop + 1])
         evopic.paths[path_id].stops.insert(stop_position, new_stop)
-
+        print(evopic.stop_locations())
     stop_locations = evopic.stop_locations()
 
     # Stop deletions. Min # stops per path is 1.
@@ -313,20 +321,28 @@ def mutate(evopic):
     # or just slicing it otherwise.
     # Note that the larger of the two halves gets to keep the original path ID
     num_changes = num_mutations(mutation_rates["path_split"], len(evopic.paths_order))
+    split_ids = []
     while num_changes > 0:
         num_changes -= 1  # decrement num_changes early to prevent infinite loops
         path_id, point_id1 = choice(evopic.point_locations())
 
-        if path_id < 0:  # In case a path has already been split, skip
+        if path_id < 0 or (path_id in split_ids):  # In case a path has already been split, skip
             continue
 
+        split_ids.append(path_id)
         path = evopic.paths[path_id]
+
+        if path.id < 0:
+            print(path, "\n")
+            print(path_id, point_id1)
+            sys.exit()
 
         if len(path.points) == 1:  # Can't split a path with only one point.
             continue
 
         new_path = copy(path)
         new_path.id *= -1
+
         new_path.points = {}
         point_index = path.points_order.index(point_id1)
 
@@ -398,16 +414,23 @@ def mutate(evopic):
         evopic.paths_order.insert(new_position, new_path.id)
 
     evopic.save()
+
     return evopic
 
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
     import breed
-    for i in range(1000):
-        with open("../genomes/bob.evp", "r") as infile:
-            bob = Evopic(infile.read())
-            bob = mutate(bob)
-        #baby = Evopic(breed.zero_evp(bob.evp))
+    with open("../genomes/bob.evp", "r") as infile:
+        bob = Evopic(infile.read())
+
+    for i in range(100):
+        bob = mutate(bob)
+        #print(bob.paths[1].points)
+    baby = Evopic(breed.zero_evp(bob.evp))
+    for path_id in baby.paths_order:
+        print(baby.paths[path_id].stops)
+
+    with open("../genomes/baby.svg", "w") as ofile:
+        ofile.write(baby.svg_out())
+
     print("Done")
-    #with open("../genomes/test.svg", "w") as ofile:
-    #    ofile.write(baby.svg_out())
