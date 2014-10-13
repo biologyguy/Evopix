@@ -1,5 +1,6 @@
 #! /usr/bin/python3
 import sys
+import copy
 
 
 class Evopic():
@@ -12,7 +13,6 @@ class Evopic():
         self._num_points = 0
         self._point_locations = []
         self.min_max_points = {"min_x": 0., "min_y": 0., "max_x": 0., "max_y": 0.}
-        self.mutation_hooks = False
 
     def _parse_evp(self):
         """Convert evp genome file into a dictionary of lists of its component attributes"""
@@ -72,10 +72,12 @@ class Evopic():
             count += 1
         return
 
-    def num_points(self):
-        if self._num_points != 0 and len(self._point_locations) != 0:
+    def num_points(self, force=False):
+        if self._num_points != 0 and len(self._point_locations) != 0 and not force:
             return self._num_points
 
+        self._point_locations = []
+        self._num_points = 0
         for path_id in self.paths:
             path = self.paths[path_id]
             self._num_points += len(path.points)
@@ -84,10 +86,14 @@ class Evopic():
 
         return self._num_points
 
-    def point_locations(self):
+    def point_locations(self, force=False):
         # note: calling point_locations().append() actually updates self._point_locations!! Very cool.
-        if len(self._point_locations) == 0:
+        if force:
+            self.num_points(True)
+
+        elif len(self._point_locations) == 0:
             self.num_points()
+
         return self._point_locations
 
     def stop_locations(self):
@@ -257,27 +263,48 @@ class Evopic():
         svg += "</svg>"
         return svg
 
-    def save(self):  # I think that the only place this should ever be called, is at the end of the breed() function
-        for path_id in self.paths:
-            path = self.paths[path_id]
-            if path.id < 0:
-                self.paths[path_id].id = 99
+    def save(self, location='local'):
+        if location not in ['local', 'db']:
+            sys.exit("%s is not a valid save location. Choose 'local' or 'db'" % location)
 
-            if path.type != "x":
-                for i in range(len(path.stops)):
-                    if path.stops[i]["stop_id"] < 0:
-                        self.paths[path_id].stops[i]["stop_id"] = 99  # This will need to be changed to update the database
+        if location == 'local':
+            max_stop_id = 0
+            for path_id in self.paths_order:
+                path = self.paths[path_id]
+                for stop in path.stops:
+                    if stop["stop_id"] > max_stop_id:
+                        max_stop_id = stop["stop_id"]
 
+                if path_id < 0:
+                    new_id = max(self.paths_order) + 1
+                    self.paths[new_id] = self.paths[path_id]
+                    self.paths[new_id].id = new_id
+                    del(self.paths[path_id])
+                    old_id_index = self.paths_order.index(path_id)
+                    self.paths_order[old_id_index] = new_id
+                    self.point_locations(force=True)
+
+            for path_id in self.paths_order:
+                path = self.paths[path_id]
                 for i in range(len(path.points_order)):
                     point_id = path.points_order[i]
                     if point_id < 0:
                         new_id = max(path.points_order) + 1
                         self.paths[path_id].points_order[i] = new_id
                         self.paths[path_id].points[new_id] = self.paths[path_id].points[point_id]
+                        del(self.paths[path_id].points[point_id])
+                        self.point_locations(force=True)
+
+                if path.type != "x":
+                    for i in range(len(path.stops)):
+                        if path.stops[i]["stop_id"] < 0:
+                            self.paths[path_id].stops[i]["stop_id"] = max_stop_id + 1
+                            max_stop_id += 1
+
+        else:
+            x = 1
 
         self.reconstruct_evp()
-
-
 
 
 class Path():
@@ -290,6 +317,10 @@ class Path():
         self.points = {}
         self.points_order = []
         self.stroke = []
+
+    def __str__(self):
+        return("id: %s\ntype: %s\npoints order: %s\npoints: %s\n" %
+               (self.id, self.type, self.points_order, self.points))
 
     def find_area(self):  # Input is an individual path from Evopic.paths
         """
