@@ -7,7 +7,7 @@ except ImportError:
     from evp.models import *
 
 from random import random, choice, randint
-from math import log, cos, sin, radians, factorial
+from math import cos, sin, radians, factorial
 from copy import copy
 import sys
 from scipy.stats import gamma
@@ -420,15 +420,15 @@ def mutate(evopic):
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
     import breed
-    with open("../genomes/bob.evp", "r") as infile:
+    with open("../genomes/sue.evp", "r") as infile:
         bob = Evopic(infile.read())
 
     for i in range(100):
         bob = mutate(bob)
         #print(bob.paths[1].points)
     baby = Evopic(breed.zero_evp(bob.evp))
-    for path_id in baby.paths_order:
-        print(baby.paths[path_id].stops)
+    for p_id in baby.paths_order:
+        print(baby.paths[p_id].stops)
 
     with open("../genomes/baby.svg", "w") as ofile:
         ofile.write(baby.svg_out())

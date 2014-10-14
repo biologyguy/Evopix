@@ -1,3 +1,17 @@
+**Heading**
+Contains evopic ID and some size info
+
+Attribute[0] ==> Evopic id. e.g., e1
+position 1 is a throw away character indicating 'evopic'
+position 2 is expandable, and is the evopic id #
+
+Attribute[1] ==> min and max x and y. e.g., -23.5432;12.6534;349.0;278.8347
+split on ;
+position 1 = min_x
+position 2 = min_y
+position 3 = max_x
+position 4 = max_y
+
 **Paths**
 Paths are separated by newlines, and attributes within each path are delimited by colons.
 

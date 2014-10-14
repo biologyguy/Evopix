@@ -37,6 +37,8 @@ def zero_evp(evp):
                 path.points[point_id][coords_count] = [round(coords[0], 4), round(coords[1], 4)]
                 coords_count += 1
 
+    evopic.find_extremes()  # run a second time to update min_max_points to the new values
+                            # (This could probably be updated directly without the function call)
     evopic.reconstruct_evp()
     return evopic.evp
 

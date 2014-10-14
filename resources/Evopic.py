@@ -9,15 +9,21 @@ class Evopic():
         self.id = 0
         self.paths = {}
         self.paths_order = []
-        self._parse_evp()
         self._num_points = 0
         self._point_locations = []
         self.min_max_points = {"min_x": 0., "min_y": 0., "max_x": 0., "max_y": 0.}
 
+        self._parse_evp()
+
     def _parse_evp(self):
         """Convert evp genome file into a dictionary of lists of its component attributes"""
         count = 1
-        paths = self.evp.split("\n")[:-1]
+        evp_split = self.evp.split("\n")[:-1]
+        heading, paths = evp_split[0].split(":"), evp_split[1:-1]
+
+        self.id = heading[0][1:]
+        self.min_max_points["min_x"], self.min_max_points["min_y"], self.min_max_points["max_x"], self.min_max_points["max_y"] = heading[1].split(";")
+
         for path in paths:
             attributes = path.split(":")
             path = Path()
@@ -125,10 +131,11 @@ class Evopic():
 
     def find_extremes(self):
         # arbitrarily set large min values an small max values
-        min_x, min_y, max_x, max_y, min_x_seq, min_y_seg = [9999999999., 9999999999., -9999999999., -9999999999., [], []]
+        min_x, min_y, max_x, max_y, min_x_seq, min_y_seg = [9999999999., 9999999999., -9999999999.,
+                                                            -9999999999., [], []]
 
-        # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line segments
-        # for Bézier calc
+        # convert the 'control-point-control' points format of the paths into 'point-control-control-point' line
+        # segments for Bézier calc
         for path_id in self.paths_order:
             path = self.paths[path_id]
 
@@ -156,7 +163,8 @@ class Evopic():
 
     def reconstruct_evp(self):
         """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
-        new_evp = ""
+        new_evp = "e%s:%s;%s;%s;%s\n" % (self.id, self.min_max_points["min_x"], self.min_max_points["min_y"],
+                                         self.min_max_points["max_x"], self.min_max_points["max_y"])
         for path_id in self.paths_order:
             path = self.paths[path_id]
             new_evp += "p%s%s:" % (path.id, path.type)
@@ -466,7 +474,11 @@ if __name__ == '__main__':
     with open("%s.evp" % evo_path, "r") as infile:
         bob = Evopic(infile.read())
     #bob.reconstruct_evp()
-    print(bob.num_points())
+    import breed
+    bob.find_extremes()
+    print(bob.min_max_points)
+    print(breed.zero_evp(bob.evp))
+
     #with open("../genomes/test.svg", "w") as ofile:
     #    ofile.write(bob.svg_out())
     sys.exit()
