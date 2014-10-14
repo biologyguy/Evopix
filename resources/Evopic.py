@@ -19,10 +19,15 @@ class Evopic():
         """Convert evp genome file into a dictionary of lists of its component attributes"""
         count = 1
         evp_split = self.evp.split("\n")[:-1]
-        heading, paths = evp_split[0].split(":"), evp_split[1:-1]
+        heading, paths = evp_split[0].split(":"), evp_split[1:]
 
         self.id = heading[0][1:]
-        self.min_max_points["min_x"], self.min_max_points["min_y"], self.min_max_points["max_x"], self.min_max_points["max_y"] = heading[1].split(";")
+
+        min_max = heading[1].split(";")
+        self.min_max_points["min_x"] = float(min_max[0])
+        self.min_max_points["min_y"] = float(min_max[1])
+        self.min_max_points["max_x"] = float(min_max[2])
+        self.min_max_points["max_y"] = float(min_max[3])
 
         for path in paths:
             attributes = path.split(":")
@@ -185,14 +190,16 @@ class Evopic():
         self.evp = new_evp
         return
 
-    def svg_out(self, scale=100):  # need to implement a scaling factor, so full sized vs. thumbnail versions can be made
+    # need to implement a scaling factor, so full sized vs. thumbnail versions can be made
+    def svg_out(self, scale=1, bounding_box=False):
         """Uses the info in self.paths to create an SVG file. Returned as a string."""
 
         #header info
         svg = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>\n"
 
         svg += "<svg xmlns:svg='http://www.w3.org/2000/svg' xmlns='http://www.w3.org/2000/svg' " \
-               "xmlns:xlink='http://www.w3.org/1999/xlink' version='1.0' width='582' height='582' id='svg2232'>\n"
+               "xmlns:xlink='http://www.w3.org/1999/xlink' version='1.0' width='%s' height='%s' id='svg%s'>\n" % \
+               (self.min_max_points["max_x"] * scale + 3, self.min_max_points["max_y"] * scale + 3, self.id)
 
         #gradient/color info
         svg += "<defs>\n"
@@ -227,6 +234,7 @@ class Evopic():
             path = self.paths[i]
             grad_type = "linear" if path.type == "l" else "radial"
             color, width, opacity = path.stroke
+            width *= scale
 
             points_string = "M "
 
@@ -234,6 +242,11 @@ class Evopic():
                 count = 0
                 for point_id in path.points_order:
                     point = path.points[point_id]
+                    # apply scaling factor
+                    for j in range(3):
+                        point[j][0] *= scale
+                        point[j][1] *= scale
+
                     if count == 0:
                         points_string += "%s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
 
@@ -255,6 +268,10 @@ class Evopic():
                 start_point = ("", "")
                 for point_id in path.points_order:
                     point = path.points[point_id]
+                    for j in range(3):
+                        point[j][0] *= scale
+                        point[j][1] *= scale
+
                     if count == 0:  # This is always true on the first pass through the loop, then always false
                         start_point = (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
                         points_string += "%s C %s" % (str(point[1]).strip('[]'), str(point[2]).strip('[]'))
