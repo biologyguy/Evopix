@@ -4,7 +4,7 @@ import copy
 
 
 class Evopic():
-    def __init__(self, evp):
+    def __init__(self, evp=False):
         self.evp = evp
         self.id = 0
         self.paths = {}
@@ -12,8 +12,8 @@ class Evopic():
         self._num_points = 0
         self._point_locations = []
         self.min_max_points = {"min_x": 0., "min_y": 0., "max_x": 0., "max_y": 0.}
-
-        self._parse_evp()
+        if evp:
+            self._parse_evp()
 
     def _parse_evp(self):
         """Convert evp genome file into a dictionary of lists of its component attributes"""
@@ -190,16 +190,26 @@ class Evopic():
         self.evp = new_evp
         return
 
-    # need to implement a scaling factor, so full sized vs. thumbnail versions can be made
-    def svg_out(self, scale=1, bounding_box=False):
+    def svg_out(self, scale=1, bounding_box=False):  # Bbox is square with side x pixels
         """Uses the info in self.paths to create an SVG file. Returned as a string."""
+
+        # A number of small scaling factors are included so the edges of the evopic are not clipped off
+        if bounding_box:
+            long_side = max(self.min_max_points["max_x"] - self.min_max_points["min_x"], self.min_max_points["max_y"] - self.min_max_points["min_y"])
+            scale = float(bounding_box) / float(long_side) * 0.98
+            width = bounding_box
+            height = bounding_box
+
+        else:
+            width = self.min_max_points["max_x"] * scale * 1.01
+            height = self.min_max_points["max_y"] * scale * 1.01
 
         #header info
         svg = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>\n"
 
         svg += "<svg xmlns:svg='http://www.w3.org/2000/svg' xmlns='http://www.w3.org/2000/svg' " \
-               "xmlns:xlink='http://www.w3.org/1999/xlink' version='1.0' width='%s' height='%s' id='svg%s'>\n" % \
-               (self.min_max_points["max_x"] * scale + 3, self.min_max_points["max_y"] * scale + 3, self.id)
+               "xmlns:xlink='http://www.w3.org/1999/xlink' version='1.0' width='%spx' height='%spx' id='svg%s'>\n" % \
+               (width, height, self.id)
 
         #gradient/color info
         svg += "<defs>\n"
@@ -487,7 +497,7 @@ def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
 
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
-    evo_path = "../genomes/bubba"
+    evo_path = "../genomes/bob"
     with open("%s.evp" % evo_path, "r") as infile:
         bob = Evopic(infile.read())
     #bob.reconstruct_evp()
