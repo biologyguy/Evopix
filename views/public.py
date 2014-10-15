@@ -17,12 +17,15 @@ def not_found(request):
     if request.method == "POST":
         evp = request.POST.get('evp', '')
         bob = Evopic(evp)
-        bob = mutation.mutate(bob)
-        baby = Evopic(breed.zero_evp(bob.evp))
+        output = {"svg": bob.svg_out(bounding_box=325), "evp": bob.evp}
+        for i in range(1, 9):
+            baby = mutation.mutate(Evopic(evp))
+            baby = Evopic(breed.zero_evp(baby.evp))
+            output["svg%s" % i] = baby.svg_out(bounding_box=180)
+            output["evp%s" % i] = baby.evp
+
+        return render(request, 'templates/404.html', output)
 
     else:
-        bob = Evopic(Evopix.objects.all()[1].evp)
-        bob = mutation.mutate(bob)
-        baby = Evopic(breed.zero_evp(bob.evp))
-
-    return render(request, 'templates/404.html', {"svg": baby.svg_out(), "evp": baby.evp})
+        bob = Evopic(Evopix.objects.all()[1].zeroed_evp)
+        return render(request, 'templates/404.html', {"svg": bob.svg_out(), "evp": bob.evp})

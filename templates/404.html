@@ -15,16 +15,88 @@
     </style>
 </head>
 <body>
-404: Sorry, the page you have requested was not found, but while you're here, you might as well mutate Bob a bit!
+404: Sorry, the page you have requested was not found, but while you're here you might as well Select! Bob a bit!
 <br />
 <br />
-<span id="bob">
-    {{svg|safe}}
-    <form method="post" action="{% url '404' %}">
-        {% csrf_token %}
-        <input type="hidden" id="evp" name="evp" value="{{evp}}" />
-        <input type="submit" value="Mutate!" />
-    </form>
-</span>
+<table>
+    <tr>
+        <td align="center">
+            {{svg1|safe}}
+            <form method="post" action="{% url '404' %}">
+                {% csrf_token %}
+                <input type="hidden" id="evp1" name="evp" value="{{evp1}}" />
+                <input type="submit" value="Select!!" />
+            </form>
+        </td>
+        <td align="center">
+            {{svg2|safe}}
+            <form method="post" action="{% url '404' %}">
+                {% csrf_token %}
+                <input type="hidden" id="evp2" name="evp" value="{{evp2}}" />
+                <input type="submit" value="Select!!" />
+            </form>
+        </td>
+        <td align="center">
+            {{svg3|safe}}
+            <form method="post" action="{% url '404' %}">
+                {% csrf_token %}
+                <input type="hidden" id="evp3" name="evp" value="{{evp3}}" />
+                <input type="submit" value="Select!!" />
+            </form>
+        </td>
+    </tr>
+    <tr>
+         <td align="center">
+            {{svg4|safe}}
+            <form method="post" action="{% url '404' %}">
+                {% csrf_token %}
+                <input type="hidden" id="evp4" name="evp" value="{{evp4}}" />
+                <input type="submit" value="Select!!" />
+            </form>
+        </td>
+        <td align="center">
+            {{svg|safe}}
+            <form method="post" action="{% url '404' %}">
+                {% csrf_token %}
+                <input type="hidden" id="evp" name="evp" value="{{evp}}" />
+                <input type="submit" value="Select!!" />
+            </form>
+        </td>
+         <td align="center">
+            {{svg5|safe}}
+            <form method="post" action="{% url '404' %}">
+                {% csrf_token %}
+                <input type="hidden" id="evp5" name="evp" value="{{evp5}}" />
+                <input type="submit" value="Select!!" />
+            </form>
+        </td>
+    </tr>
+    <tr>
+        <td align="center">
+            {{svg6|safe}}
+            <form method="post" action="{% url '404' %}">
+                {% csrf_token %}
+                <input type="hidden" id="evp6" name="evp" value="{{evp6}}" />
+                <input type="submit" value="Select!!" />
+            </form>
+        </td>
+        <td align="center">
+            {{svg7|safe}}
+            <form method="post" action="{% url '404' %}">
+                {% csrf_token %}
+                <input type="hidden" id="evp7" name="evp" value="{{evp7}}" />
+                <input type="submit" value="Select!!" />
+            </form>
+        </td>
+        <td align="center">
+            {{svg8|safe}}
+            <form method="post" action="{% url '404' %}">
+                {% csrf_token %}
+                <input type="hidden" id="evp8" name="evp" value="{{evp8}}" />
+                <input type="submit" value="Select!!" />
+            </form>
+        </td>
+    </tr>
+</table>
 </body>
 </html>
