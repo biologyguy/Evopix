@@ -13,3 +13,7 @@ def welcome(request):
 def bob(request):
     bob_db = Evopic(Evopix.objects.get(evo_id=1).zeroed_evp)
     return HttpResponse(bob_db.svg_out())
+
+
+def farm(request):
+    return render(request, 'templates/farm.html')

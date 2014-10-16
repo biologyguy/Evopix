@@ -29,7 +29,7 @@
             </form>
         </td>
         <td align="center">
-            {{svg2|safe}}
+            {{svg2|safe}}<dl id='transparent'>
             <form method="post" action="{% url '404' %}">
                 {% csrf_token %}
                 <input type="hidden" id="evp2" name="evp" value="{{evp2}}" />
