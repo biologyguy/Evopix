@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% load staticfiles %}
 <html>
 <head lang="en">
     <meta charset="UTF-8">
@@ -11,10 +11,43 @@
         width:      600px;
         height:     600px;
         border:     solid thin black;
+        }
 
     </style>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="{% static 'js/jquery-cookie/jquery.cookie.js' %}"></script>
+    <script>
+        $(document).ready(function(){
+            var csrftoken = $.cookie('csrftoken');
+
+            function csrfSafeMethod(method) {
+                    // these HTTP methods do not require CSRF protection
+                    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+            }
+
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+
+            $("#move_evos").click(function(){
+
+                $.post("{% url 'mutate' %}",function(data,status){
+
+                    $("#farm_box").html(data);
+                });
+
+            })
+        });
+    </script>
+
+
 </head>
 <body>
 <div id="farm_box"></div>
+<input type="button" id="move_evos" value="Click!" />
 </body>
 </html>

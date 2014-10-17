@@ -29,3 +29,14 @@ def not_found(request):
     else:
         bob = Evopic(Evopix.objects.all()[1].zeroed_evp)
         return render(request, 'templates/404.html', {"svg": bob.svg_out(), "evp": bob.evp})
+
+
+def mutate(request):
+    if request.method == "POST":
+        evp = request.POST.get('evp', '')
+        bob = mutation.mutate(Evopic(evp))
+        return HttpResponse(bob.svg_out())
+
+    else:
+
+        return HttpResponse("Dead...")
