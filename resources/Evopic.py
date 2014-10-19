@@ -205,7 +205,7 @@ class Evopic():
             height = self.min_max_points["max_y"] * scale * 1.01
 
         #header info
-        svg = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>\n"
+        svg = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
 
         svg += "<svg xmlns:svg='http://www.w3.org/2000/svg' xmlns='http://www.w3.org/2000/svg' " \
                "xmlns:xlink='http://www.w3.org/1999/xlink' version='1.0' width='%spx' height='%spx' id='svg%s'>\n" % \

@@ -13,6 +13,11 @@
         border:     solid thin black;
         }
 
+        .evopic {
+            margin-left: auto;
+            margin-right: auto;
+            position: absolute;
+        }
     </style>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="{% static 'js/jquery-cookie/jquery.cookie.js' %}"></script>
@@ -22,8 +27,18 @@
             $("#move_evos").click(function(){
 
                 $.post("{% url 'mutate' %}", function(data,status){
+                    data = JSON.parse(data);
+                    var farm_output = "";
+                    for (i=0; i < data.length; i++){
+                        var width = (data[i].max_x - data[i].min_x + 1) * 60;
+                        var height = (data[i].max_y - data[i].min_y + 1) * 60;
+                        var x = (data[i].min_x - 1)  / 10 * 100;
+                        var y = (data[i].min_y - 1) / 10 * 100;
 
-                    $("#farm_box").html(data);
+                        farm_output += "<span class='evopic' width=" + width + " height=" + height + " style='left: " + x + "%; bottom: " + y + "%'>" + data[i].svg + "</span>";
+                    }
+                    $("#farm_box").html(farm_output);
+
                 });
 
             })
