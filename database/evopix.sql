@@ -69,3 +69,132 @@ INSERT INTO `evp_stops` (`stop_id`, `parent_stop`, `parent_path_id`, `parent_evo
 (3, 0, 2, 1, '2014-09-19 01:35:38'),
 (4, 0, 3, 1, '2014-09-19 01:35:38');
 
+-- --------------------------------------------------------
+
+--
+-- Dumping data for table `world_fencetypes`
+--
+
+INSERT INTO `world_fencetypes` (`fence_id`, `name`, `description`) VALUES
+(1, 'none', 'No fence at all'),
+(2, 'basic', 'Just your standard, run-of-the-mill, wooden fence. Gets the job done.');
+
+-- --------------------------------------------------------
+
+--
+-- Dumping data for table `world_landtypes`
+--
+
+INSERT INTO `world_landtypes` (`type_id`, `type`, `base_color`) VALUES
+(1, 'basic', 'FFFFFF'),
+(2, 'grass', '00CC03');
+
+-- --------------------------------------------------------
+
+--
+-- Dumping data for table `world_landunit`
+--
+
+INSERT INTO `world_landunit` (`land_id`, `x`, `y`, `b_fence_id`, `evopic_id`, `l_fence_id`, `r_fence_id`, `t_fence_id`, `type_id`) VALUES
+(1, 1, 1, NULL, 1, NULL, NULL, NULL, 1),
+(2, 1, 2, NULL, 1, NULL, NULL, NULL, 1),
+(3, 1, 3, NULL, NULL, NULL, NULL, NULL, 1),
+(4, 1, 4, NULL, NULL, NULL, NULL, NULL, 1),
+(5, 1, 5, NULL, NULL, NULL, NULL, NULL, 1),
+(6, 1, 6, NULL, NULL, NULL, NULL, NULL, 1),
+(7, 1, 7, NULL, NULL, NULL, NULL, NULL, 1),
+(8, 1, 8, NULL, NULL, NULL, NULL, NULL, 1),
+(9, 1, 9, NULL, NULL, NULL, NULL, NULL, 1),
+(10, 1, 10, NULL, NULL, NULL, NULL, NULL, 1),
+(11, 2, 1, NULL, 1, NULL, NULL, NULL, 1),
+(12, 2, 2, NULL, 1, NULL, NULL, NULL, 1),
+(13, 2, 3, NULL, NULL, NULL, NULL, NULL, 1),
+(14, 2, 4, NULL, NULL, NULL, NULL, NULL, 1),
+(15, 2, 5, NULL, NULL, NULL, NULL, NULL, 1),
+(16, 2, 6, NULL, NULL, NULL, NULL, NULL, 1),
+(17, 2, 7, NULL, NULL, NULL, NULL, NULL, 1),
+(18, 2, 8, NULL, NULL, NULL, NULL, NU-- --------------------------------------------------------LL, 1),
+(19, 2, 9, NULL, NULL, NULL, NULL, NULL, 1),
+(20, 2, 10, NULL, NULL, NULL, NULL, NULL, 1),
+(21, 3, 1, NULL, NULL, NULL, NULL, NULL, 1),
+(22, 3, 2, NULL, NULL, NULL, NULL, NULL, 1),
+(23, 3, 3, NULL, NULL, NULL, NULL, NULL, 1),
+(24, 3, 4, NULL, NULL, NULL, NULL, NULL, 1),
+(25, 3, 5, NULL, NULL, NULL, NULL, NULL, 1),
+(26, 3, 6, NULL, NULL, NULL, NULL, NULL, 1),
+(27, 3, 7, NULL, NULL, NULL, NULL, NULL, 1),
+(28, 3, 8, NULL, NULL, NULL, NULL, NULL, 1),
+(29, 3, 9, NULL, NULL, NULL, NULL, NULL, 1),
+(30, 3, 10, NULL, NULL, NULL, NULL, NULL, 1),
+(31, 4, 1, NULL, NULL, NULL, NULL, NULL, 1),
+(32, 4, 2, NULL, NULL, NULL, NULL, NULL, 1),
+(33, 4, 3, NULL, NULL, NULL, NULL, NULL, 1),
+(34, 4, 4, NULL, NULL, NULL, NULL, NULL, 1),
+(35, 4, 5, NULL, 2, NULL, NULL, NULL, 1),
+(36, 4, 6, NULL, 2, NULL, NULL, NULL, 1),
+(37, 4, 7, NULL, NULL, NULL, NULL, NULL, 1),
+(38, 4, 8, NULL, NULL, NULL, NULL, NULL, 1),
+(39, 4, 9, NULL, NULL, NULL, NULL, NULL, 1),
+(40, 4, 10, NULL, NULL, NULL, NULL, NULL, 1),
+(41, 5, 1, NULL, NULL, NULL, NULL, NULL, 1),
+(42, 5, 2, NULL, NULL, NULL, NULL, NULL, 1),
+(43, 5, 3, NULL, NULL, NULL, NULL, NULL, 1),
+(44, 5, 4, NULL, NULL, NULL, NULL, NULL, 1),
+(45, 5, 5, NULL, 2, NULL, NULL, NULL, 1),
+(46, 5, 6, NULL, 2, NULL, NULL, NULL, 1),
+(47, 5, 7, NULL, NULL, NULL, NULL, NULL, 1),
+(48, 5, 8, NULL, NULL, NULL, NULL, NULL, 1),
+(49, 5, 9, NULL, NULL, NULL, NULL, NULL, 1),
+(50, 5, 10, NULL, NULL, NULL, NULL, NULL, 1),
+(51, 6, 1, NULL, NULL, NULL, NULL, NULL, 1),
+(52, 6, 2, NULL, NULL, NULL, NULL, NULL, 1),
+(53, 6, 3, NULL, NULL, NULL, NULL, NULL, 1),
+(54, 6, 4, NULL, NULL, NULL, NULL, NULL, 1),
+(55, 6, 5, NULL, NULL, NULL, NULL, NULL, 1),
+(56, 6, 6, NULL, NULL, NULL, NULL, NULL, 1),
+(57, 6, 7, NULL, NULL, NULL, NULL, NULL, 1),
+(58, 6, 8, NULL, NULL, NULL, NULL, NULL, 1),
+(59, 6, 9, NULL, NULL, NULL, NULL, NULL, 1),
+(60, 6, 10, NULL, NULL, NULL, NULL, NULL, 1),
+(61, 7, 1, NULL, NULL, NULL, NULL, NULL, 1),
+(62, 7, 2, NULL, NULL, NULL, NULL, NULL, 1),
+(63, 7, 3, NULL, NULL, NULL, NULL, NULL, 1),
+(64, 7, 4, NULL, NULL, NULL, NULL, NULL, 1),
+(65, 7, 5, NULL, NULL, NULL, NULL, NULL, 1),
+(66, 7, 6, NULL, NULL, NULL, NULL, NULL, 1),
+(67, 7, 7, NULL, NULL, NULL, NULL, NULL, 1),
+(68, 7, 8, NULL, NULL, NULL, NULL, NULL, 1),
+(69, 7, 9, NULL, NULL, NULL, NULL, NULL, 1),
+(70, 7, 10, NULL, NULL, NULL, NULL, NULL, 1),
+(71, 8, 1, NULL, NULL, NULL, NULL, NULL, 1),
+(72, 8, 2, NULL, NULL, NULL, NULL, NULL, 1),
+(73, 8, 3, NULL, NULL, NULL, NULL, NULL, 1),
+(74, 8, 4, NULL, NULL, NULL, NULL, NULL, 1),
+(75, 8, 5, NULL, NULL, NULL, NULL, NULL, 1),
+(76, 8, 6, NULL, NULL, NULL, NULL, NULL, 1),
+(77, 8, 7, NULL, NULL, NULL, NULL, NULL, 1),
+(78, 8, 8, NULL, NULL, NULL, NULL, NULL, 1),
+(79, 8, 9, NULL, NULL, NULL, NULL, NULL, 1),
+(80, 8, 10, NULL, NULL, NULL, NULL, NULL, 1),
+(81, 9, 1, NULL, NULL, NULL, NULL, NULL, 1),
+(82, 9, 2, NULL, NULL, NULL, NULL, NULL, 1),
+(83, 9, 3, NULL, NULL, NULL, NULL, NULL, 1),
+(84, 9, 4, NULL, NULL, NULL, NULL, NULL, 1),
+(85, 9, 5, NULL, NULL, NULL, NULL, NULL, 1),
+(86, 9, 6, NULL, NULL, NULL, NULL, NULL, 1),
+(87, 9, 7, NULL, NULL, NULL, NULL, NULL, 1),
+(88, 9, 8, NULL, NULL, NULL, NULL, NULL, 1),
+(89, 9, 9, NULL, NULL, NULL, NULL, NULL, 1),
+(90, 9, 10, NULL, NULL, NULL, NULL, NULL, 1),
+(91, 10, 1, NULL, NULL, NULL, NULL, NULL, 1),
+(92, 10, 2, NULL, NULL, NULL, NULL, NULL, 1),
+(93, 10, 3, NULL, NULL, NULL, NULL, NULL, 1),
+(94, 10, 4, NULL, NULL, NULL, NULL, NULL, 1),
+(95, 10, 5, NULL, NULL, NULL, NULL, NULL, 1),
+(96, 10, 6, NULL, NULL, NULL, NULL, NULL, 1),
+(97, 10, 7, NULL, NULL, NULL, NULL, NULL, 1),
+(98, 10, 8, NULL, NULL, NULL, NULL, NULL, 1),
+(99, 10, 9, NULL, NULL, NULL, NULL, NULL, 1),
+(100, 10, 10, NULL, NULL, NULL, NULL, NULL, 1);
+
+-- --------------------------------------------------------

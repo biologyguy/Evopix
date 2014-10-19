@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     # Evopix specific apps from here down
     'evp',
+    'world',
 )
 
 MIDDLEWARE_CLASSES = (
