@@ -190,15 +190,26 @@ class Evopic():
         self.evp = new_evp
         return
 
-    def svg_out(self, scale=1, bounding_box=False):  # Bbox is square with side x pixels
-        """Uses the info in self.paths to create an SVG file. Returned as a string."""
+    def svg_out(self, scale=1, bounding_box=False):  # Bbox is tupel (width, height)
+        """
+        Uses the info in self.paths to create an SVG file. Returned as a string.
+        If bounding box is used, the svg will be centered, and compressed if too big.
+        """
 
         # A number of small scaling factors are included so the edges of the evopic are not clipped off
         if bounding_box:
-            long_side = max(self.min_max_points["max_x"] - self.min_max_points["min_x"], self.min_max_points["max_y"] - self.min_max_points["min_y"])
-            scale = float(bounding_box) / float(long_side) * 0.98
-            width = bounding_box
-            height = bounding_box
+            box_width, box_height = bounding_box
+            evo_width = (self.min_max_points["max_x"] - self.min_max_points["min_x"]) * scale
+            evo_height = (self.min_max_points["max_y"] - self.min_max_points["min_y"]) * scale
+
+            if evo_width > box_width and box_width - evo_width < box_height - evo_height:
+                x = 1
+
+            elif evo_height > box_height:
+                x = 1
+
+            else:
+                x = 1
 
         else:
             width = self.min_max_points["max_x"] * scale * 1.01

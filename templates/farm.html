@@ -13,10 +13,14 @@
         border:     solid thin black;
         }
 
-        .evopic {
-            margin-left: auto;
-            margin-right: auto;
+        .evopic_bounding_box {
+            text-align: center;
             position: absolute;
+            border: solid thin black;
+        }
+
+        .evopic {
+            position: relative;
         }
     </style>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
@@ -35,7 +39,9 @@
                         var x = (data[i].min_x - 1)  / 10 * 100;
                         var y = (data[i].min_y - 1) / 10 * 100;
 
-                        farm_output += "<span class='evopic' width=" + width + " height=" + height + " style='left: " + x + "%; bottom: " + y + "%'>" + data[i].svg + "</span>";
+                        farm_output += "<span class='evopic_bounding_box' style='width:" + width + "px; height:" +
+                                height + "px; left: " + x + "%; bottom: " + y + "%'><span class='evopic'>" +
+                                data[i].svg + "</span></span>";
                     }
                     $("#farm_box").html(farm_output);
 

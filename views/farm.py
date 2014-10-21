@@ -31,6 +31,7 @@ def mutate(request):
             output = []
             for evopic in living_evopix:
                 evo = Evopic(evopic.zeroed_evp)
+
                 output.append({"id": evopic.evo_id, "svg": evo.svg_out(scale=0.1)})
                 landunits = LandUnit.objects.filter(evopic_id=evopic.evo_id)
                 min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
