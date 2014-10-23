@@ -196,24 +196,27 @@ class Evopic():
         If bounding box is used, the svg will be centered, and compressed if too big.
         """
 
-        # A number of small scaling factors are included so the edges of the evopic are not clipped off
         if bounding_box:
             box_width, box_height = bounding_box
             evo_width = (self.min_max_points["max_x"] - self.min_max_points["min_x"]) * scale
             evo_height = (self.min_max_points["max_y"] - self.min_max_points["min_y"]) * scale
 
+            # Executes when the evopic is wider than bounding box and by a greater extent than height
             if evo_width > box_width and box_width - evo_width < box_height - evo_height:
-                x = 1
+                scale = 1. - (evo_width - box_width) / evo_width
 
+            # Execute if evopic height is greater than bounding box
             elif evo_height > box_height:
-                x = 1
+                scale = 1. - (evo_width - box_width) / evo_width
 
+            # Ideally, this is where things will usually shake out. It's better if we don't make a habit of scaling
+            # to a bounding box.
             else:
                 x = 1
 
         else:
-            width = self.min_max_points["max_x"] * scale * 1.01
-            height = self.min_max_points["max_y"] * scale * 1.01
+            width = self.min_max_points["max_x"] * scale
+            height = self.min_max_points["max_y"] * scale
 
         #header info
         svg = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
@@ -263,10 +266,10 @@ class Evopic():
                 count = 0
                 for point_id in path.points_order:
                     point = path.points[point_id]
-                    # apply scaling factor
+                    # zero out and apply scaling factor
                     for j in range(3):
-                        point[j][0] *= scale
-                        point[j][1] *= scale
+                        point[j][0] = (point[j][0] - self.min_max_points["min_x"]) * scale
+                        point[j][1] = (point[j][1] - self.min_max_points["min_y"]) * scale
 
                     if count == 0:
                         points_string += "%s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
@@ -290,8 +293,8 @@ class Evopic():
                 for point_id in path.points_order:
                     point = path.points[point_id]
                     for j in range(3):
-                        point[j][0] *= scale
-                        point[j][1] *= scale
+                        point[j][0] = (point[j][0] - self.min_max_points["min_x"]) * scale
+                        point[j][1] = (point[j][1] - self.min_max_points["min_y"]) * scale
 
                     if count == 0:  # This is always true on the first pass through the loop, then always false
                         start_point = (str(point[0]).strip('[]'), str(point[1]).strip('[]'))

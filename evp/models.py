@@ -8,7 +8,6 @@ class Evopix(models.Model):
     parent1 = models.BigIntegerField()
     parent2 = models.BigIntegerField()
     evp = models.TextField()
-    zeroed_evp = models.TextField()
     hype_score = models.IntegerField()
     health = models.IntegerField()
     birthday = models.DateTimeField(auto_now_add=True)
