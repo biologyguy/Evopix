@@ -124,7 +124,7 @@ def mutate_color(color):  # Colour needs to be RGB hex values
     return output
 
 
-def mutate(evopic):
+def mutate(evopic, location='local'):
     num_points = evopic.num_points()
 
     # Insert new points. This duplicates a point wholesale, which causes the path to kink up. Maybe this behavior
@@ -413,20 +413,19 @@ def mutate(evopic):
         evopic.paths[new_path.id] = new_path
         evopic.paths_order.insert(new_position, new_path.id)
 
-    evopic.save()
+    evopic.save(location=location)
 
     return evopic
 
 #-------------------------Sandbox-------------------------------#
 if __name__ == '__main__':
-    import breed
     with open("../genomes/sue.evp", "r") as infile:
         bob = Evopic(infile.read())
 
     for i in range(100):
         bob = mutate(bob)
         #print(bob.paths[1].points)
-    baby = Evopic(breed.zero_evp(bob.evp))
+
     for p_id in baby.paths_order:
         print(baby.paths[p_id].stops)
 

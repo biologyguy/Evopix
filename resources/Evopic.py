@@ -4,7 +4,7 @@ import copy
 
 
 class Evopic():
-    def __init__(self, evp=False):
+    def __init__(self, evp=""):
         self.evp = evp
         self.id = 0
         self.paths = {}
@@ -12,7 +12,7 @@ class Evopic():
         self._num_points = 0
         self._point_locations = []
         self.min_max_points = {"min_x": 0., "min_y": 0., "max_x": 0., "max_y": 0.}
-        if evp:
+        if evp != "":
             self._parse_evp()
 
     def _parse_evp(self):
@@ -214,9 +214,8 @@ class Evopic():
             else:
                 x = 1
 
-        else:
-            width = self.min_max_points["max_x"] * scale
-            height = self.min_max_points["max_y"] * scale
+        width = self.min_max_points["max_x"] * scale
+        height = self.min_max_points["max_y"] * scale
 
         #header info
         svg = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
@@ -350,7 +349,7 @@ class Evopic():
                             self.paths[path_id].stops[i]["stop_id"] = max_stop_id + 1
                             max_stop_id += 1
 
-        else:
+        else:  # send to database
             x = 1
 
         self.reconstruct_evp()
@@ -515,16 +514,9 @@ if __name__ == '__main__':
     with open("%s.evp" % evo_path, "r") as infile:
         bob = Evopic(infile.read())
     #bob.reconstruct_evp()
-    import breed
     bob.find_extremes()
     print(bob.min_max_points)
-    print(breed.zero_evp(bob.evp))
 
-    #with open("../genomes/test.svg", "w") as ofile:
-    #    ofile.write(bob.svg_out())
-    sys.exit()
-    print("Attribute\tValue(s)")
-    for attrib in bob.paths[1]:
-        print("%s:\t%s" % (attrib, bob.paths[1][attrib]))
+
 
 

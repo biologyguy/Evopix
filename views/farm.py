@@ -14,12 +14,12 @@ def welcome(request):
 
 
 def bob(request):
-    bob_db = Evopic(Evopix.objects.get(evo_id=1).zeroed_evp)
+    bob_db = Evopic(Evopix.objects.get(evo_id=1).evp)
     return HttpResponse(bob_db.svg_out())
 
 
 def farm(request):
-    bob = Evopic(Evopix.objects.all()[1].zeroed_evp)
+    bob = Evopic(Evopix.objects.all()[1].evp)
     return render(request, 'templates/farm.html', {"svg": bob.svg_out(), "evp": bob.evp})
 
 
@@ -30,9 +30,7 @@ def mutate(request):
             living_evopix = Evopix.objects.filter(health__gt=0)
             output = []
             for evopic in living_evopix:
-                evo = Evopic(evopic.zeroed_evp)
-
-                output.append({"id": evopic.evo_id, "svg": evo.svg_out(scale=0.1)})
+                output.append({"id": evopic.evo_id, "svg": evopic.svg_out(scale=0.1)})
                 landunits = LandUnit.objects.filter(evopic_id=evopic.evo_id)
                 min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
                 for landunit in landunits:
