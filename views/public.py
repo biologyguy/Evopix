@@ -29,3 +29,8 @@ def not_found(request):
     else:
         bob = Evopic(Evopix.objects.all()[1].evp)
         return render(request, 'templates/404.html', {"svg": bob.svg_out(bounding_box=(325, 325)), "evp": bob.evp})
+
+
+#-------------------------Sandbox-------------------------------#
+def run():
+    print("Hello there")

@@ -195,7 +195,7 @@ class Evopic():
         Uses the info in self.paths to create an SVG file. Returned as a string.
         If bounding box is used, the svg will be centered, and compressed if too big.
         """
-
+        shift_x, shift_y = 0., 0.
         if bounding_box:
             box_width, box_height = bounding_box
             evo_width = (self.min_max_points["max_x"] - self.min_max_points["min_x"]) * scale
@@ -204,25 +204,28 @@ class Evopic():
             # Executes when the evopic is wider than bounding box and by a greater extent than height
             if evo_width > box_width and box_width - evo_width < box_height - evo_height:
                 scale = 1. - (evo_width - box_width) / evo_width
+                shift_y -= round((box_height - evo_height) / 2, 6)
 
             # Execute if evopic height is greater than bounding box
             elif evo_height > box_height:
                 scale = 1. - (evo_width - box_width) / evo_width
+                shift_x -= round((box_width - evo_width) / 2, 6)
 
             # Ideally, this is where things will usually shake out. It's better if we don't make a habit of scaling
             # to a bounding box.
             else:
-                x = 1
-
-        width = self.min_max_points["max_x"] * scale
-        height = self.min_max_points["max_y"] * scale
+                shift_y -= round((box_height - evo_height) / 2, 6)
+                shift_x -= round((box_width - evo_width) / 2, 6)
+        else:
+            box_width = round(self.min_max_points["max_x"] * scale, 6)
+            box_height = round(self.min_max_points["max_y"] * scale, 6)
 
         #header info
         svg = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
 
         svg += "<svg xmlns:svg='http://www.w3.org/2000/svg' xmlns='http://www.w3.org/2000/svg' " \
                "xmlns:xlink='http://www.w3.org/1999/xlink' version='1.0' width='%spx' height='%spx' id='svg%s'>\n" % \
-               (width, height, self.id)
+               (box_width, box_height, self.id)
 
         #gradient/color info
         svg += "<defs>\n"
@@ -257,7 +260,7 @@ class Evopic():
             path = self.paths[i]
             grad_type = "linear" if path.type == "l" else "radial"
             color, width, opacity = path.stroke
-            width *= scale
+            width = round(width * scale, 6)
 
             points_string = "M "
 
@@ -267,8 +270,8 @@ class Evopic():
                     point = path.points[point_id]
                     # zero out and apply scaling factor
                     for j in range(3):
-                        point[j][0] = (point[j][0] - self.min_max_points["min_x"]) * scale
-                        point[j][1] = (point[j][1] - self.min_max_points["min_y"]) * scale
+                        point[j][0] = round((point[j][0] - self.min_max_points["min_x"]) * scale, 6) - shift_x
+                        point[j][1] = round((point[j][1] - self.min_max_points["min_y"]) * scale, 6) - shift_y
 
                     if count == 0:
                         points_string += "%s C %s" % (str(point[0]).strip('[]'), str(point[1]).strip('[]'))
@@ -292,8 +295,8 @@ class Evopic():
                 for point_id in path.points_order:
                     point = path.points[point_id]
                     for j in range(3):
-                        point[j][0] = (point[j][0] - self.min_max_points["min_x"]) * scale
-                        point[j][1] = (point[j][1] - self.min_max_points["min_y"]) * scale
+                        point[j][0] = round((point[j][0] - self.min_max_points["min_x"]) * scale, 6) - shift_x
+                        point[j][1] = round((point[j][1] - self.min_max_points["min_y"]) * scale, 6) - shift_y
 
                     if count == 0:  # This is always true on the first pass through the loop, then always false
                         start_point = (str(point[0]).strip('[]'), str(point[1]).strip('[]'))

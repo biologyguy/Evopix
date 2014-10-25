@@ -30,7 +30,8 @@ def mutate(request):
             living_evopix = Evopix.objects.filter(health__gt=0)
             output = []
             for evopic in living_evopix:
-                output.append({"id": evopic.evo_id, "svg": evopic.svg_out(scale=0.1)})
+                bob = Evopic(evopic.evp)
+                output.append({"id": evopic.evo_id})
                 landunits = LandUnit.objects.filter(evopic_id=evopic.evo_id)
                 min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
                 for landunit in landunits:
@@ -39,6 +40,9 @@ def mutate(request):
                     max_x = landunit.x if landunit.x > max_x else max_x
                     max_y = landunit.y if landunit.y > max_y else max_y
 
+                size_x = (max_x - min_x + 1) * 50
+                size_y = (max_y - min_y + 1) * 50
+                output[-1]["svg"] = bob.svg_out(scale=0.1, bounding_box=(size_x, size_y))
                 output[-1]["min_x"] = min_x
                 output[-1]["min_y"] = min_y
                 output[-1]["max_x"] = max_x
@@ -55,3 +59,25 @@ def mutate(request):
 
         return HttpResponse(db_evopix[0])
 
+
+#-------------------------Sandbox-------------------------------#
+def run():
+    living_evopix = Evopix.objects.filter(health__gt=0)
+    output = []
+    for evopic in living_evopix:
+        bob = Evopic(evopic.evp)
+        output.append({"id": evopic.evo_id, "svg": bob.svg_out(scale=0.1)})
+        landunits = LandUnit.objects.filter(evopic_id=evopic.evo_id)
+        min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
+        for landunit in landunits:
+            min_x = landunit.x if landunit.x < min_x else min_x
+            min_y = landunit.y if landunit.y < min_y else min_y
+            max_x = landunit.x if landunit.x > max_x else max_x
+            max_y = landunit.y if landunit.y > max_y else max_y
+
+        output[-1]["min_x"] = min_x
+        output[-1]["min_y"] = min_y
+        output[-1]["max_x"] = max_x
+        output[-1]["max_y"] = max_y
+
+    print(output)

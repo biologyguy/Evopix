@@ -33,9 +33,9 @@
                 $.post("{% url 'mutate' %}", function(data,status){
                     data = JSON.parse(data);
                     var farm_output = "";
-                    for (i=0; i < data.length; i++){
-                        var width = (data[i].max_x - data[i].min_x + 1) * 60;
-                        var height = (data[i].max_y - data[i].min_y + 1) * 60;
+                    for (var i=0; i < data.length; i++){
+                        var width = (data[i].max_x - data[i].min_x + 1) * 50;
+                        var height = (data[i].max_y - data[i].min_y + 1) * 50;
                         var x = (data[i].min_x - 1)  / 10 * 100;
                         var y = (data[i].min_y - 1) / 10 * 100;
 
