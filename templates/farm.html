@@ -30,7 +30,7 @@
         $(document).ready(function(){
             $("#move_evos").click(function(){
 
-                $.post("{% url 'mutate' %}", function(data,status){
+                $.post("{% url 'populate_map' %}", function(data,status){
                     data = JSON.parse(data);
                     var farm_output = "";
                     for (var i=0; i < data.length; i++){

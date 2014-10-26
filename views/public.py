@@ -15,7 +15,7 @@ def index(request):
 
 def not_found(request):
     if request.method == "POST":
-        evp = re.sub("[\[\]]", "", request.POST.get('evp', ''))
+        evp = request.POST.get('evp', '')
         bob = Evopic(evp)
         output = {"svg": bob.svg_out(bounding_box=(325, 325)), "evp": bob.evp}
         for i in range(1, 9):

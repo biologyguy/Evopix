@@ -20,11 +20,12 @@ class LandUnit(models.Model):
     x = models.IntegerField()
     y = models.IntegerField()
     type = models.ForeignKey(LandTypes)
-    l_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesL', null=True)
-    r_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesR', null=True)
-    t_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesT', null=True)
-    b_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesB', null=True)
     evopic = models.ForeignKey(Evopix, null=True)
+    l_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesL', default=1)
+    r_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesR', default=1)
+    t_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesT', default=1)
+    b_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesB', default=1)
+
 
     class Meta:
         unique_together = ('x', 'y',)
