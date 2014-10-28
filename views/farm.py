@@ -85,7 +85,7 @@ def move(live_evopic_ids):
     if direction == "up":
         new_landunits = LandUnit.objects.filter(y=max_y, x__gte=min_x, x__lte=max_x)
         for landunit in new_landunits:
-            if landunit.t_fence_id > 1:
+            if landunit.t_fence_id:
                 return False
 
         new_landunits = LandUnit.objects.filter(y=max_y + 1, x__gte=min_x, x__lte=max_x)
@@ -97,7 +97,7 @@ def move(live_evopic_ids):
     elif direction == "down":
         new_landunits = LandUnit.objects.filter(y=min_y, x__gte=min_x, x__lte=max_x)
         for landunit in new_landunits:
-            if landunit.b_fence_id > 1:
+            if landunit.b_fence_id:
                 return False
 
         new_landunits = LandUnit.objects.filter(y=min_y - 1, x__gte=min_x, x__lte=max_x)
@@ -109,7 +109,7 @@ def move(live_evopic_ids):
     elif direction == "right":
         new_landunits = LandUnit.objects.filter(x=max_x, y__gte=min_y, y__lte=max_y)
         for landunit in new_landunits:
-            if landunit.r_fence_id > 1:
+            if landunit.r_fence_id:
                 return False
 
         new_landunits = LandUnit.objects.filter(x=max_x + 1, y__gte=min_y, y__lte=max_y)
@@ -121,7 +121,7 @@ def move(live_evopic_ids):
     elif direction == "left":
         new_landunits = LandUnit.objects.filter(x=min_x, y__gte=min_y, y__lte=max_y)
         for landunit in new_landunits:
-            if landunit.l_fence_id > 1:
+            if landunit.l_fence_id:
                 return False
         new_landunits = LandUnit.objects.filter(x=min_x - 1, y__gte=min_y, y__lte=max_y)
         check = check_land_occupied(new_landunits)
