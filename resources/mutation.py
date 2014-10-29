@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 try:
-    from Evopic import *
+    from Evo import *
 
 except ImportError:
-    from resources.Evopic import *
+    from resources.Evo import *
+    from resources.LineSeg import *
     from evp.models import *
 
 from random import random, choice, randint
@@ -13,14 +14,14 @@ import sys
 from scipy.stats import gamma
 
 # Mutation rates are the probability of an event happening per mutable character
-mutation_rates = {"path_split": 0.0001, "point_split": 0.003, "del_point": 0.001, "point_move": 0.02,
-                  "gradient_param": 0.01, "stop_split": 0.002, "del_stop": 0.001, "stop_params": 0.03,
-                  "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
+#mutation_rates = {"path_split": 0.0001, "point_split": 0.003, "del_point": 0.001, "point_move": 0.02,
+#                  "gradient_param": 0.01, "stop_split": 0.002, "del_stop": 0.001, "stop_params": 0.03,
+#                  "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
 
 # test values for mutation rates.
-#mutation_rates = {"path_split": 0.1, "point_split": 0.3, "del_point": 0.1, "point_move": 0.2,
-#                  "gradient_param": 0.1, "stop_split": 0.2, "del_stop": 0.1, "stop_params": 0.5,
-#                  "stroke_color": 0.1, "stroke_width": 0.1, "stroke_opacity": 0.1}
+mutation_rates = {"path_split": 0.1, "point_split": 0.3, "del_point": 0.1, "point_move": 0.2,
+                  "gradient_param": 0.1, "stop_split": 0.2, "del_stop": 0.1, "stop_params": 0.5,
+                  "stroke_color": 0.1, "stroke_width": 0.1, "stroke_opacity": 0.1}
 
 # 'Magnitudes' are coefficients that adjust mutational impact, determined empirically to 'feel' right
 magnitudes = {"points": 0.03, "colors": 5, "opacity": 0.03, "max_stroke_width": 0.05, "stroke_width": 0.0005,
@@ -124,7 +125,7 @@ def mutate_color(color):  # Colour needs to be RGB hex values
     return output
 
 
-def mutate(evopic, location='local'):
+def mutate(evopic):
     num_points = evopic.num_points()
 
     # Insert new points. This duplicates a point wholesale, which causes the path to kink up. Maybe this behavior
@@ -252,7 +253,6 @@ def mutate(evopic, location='local'):
     num_changes = num_mutations(mutation_rates["stop_split"], len(stop_locations))
     split_ids = []
     while num_changes > 0:
-        print(evopic.stop_locations())
         num_changes -= 1
         path_id, pick_stop = choice(stop_locations)
         new_stop = copy(evopic.paths[path_id].stops[pick_stop])
@@ -264,7 +264,7 @@ def mutate(evopic, location='local'):
         new_stop["stop_id"] *= -1
         stop_position = choice([pick_stop, pick_stop + 1])
         evopic.paths[path_id].stops.insert(stop_position, new_stop)
-        print(evopic.stop_locations())
+
     stop_locations = evopic.stop_locations()
 
     # Stop deletions. Min # stops per path is 1.
@@ -412,8 +412,6 @@ def mutate(evopic, location='local'):
         new_position = choice([order_index, order_index + 1])
         evopic.paths[new_path.id] = new_path
         evopic.paths_order.insert(new_position, new_path.id)
-
-    evopic.save(location=location)
 
     return evopic
 

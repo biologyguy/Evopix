@@ -1,8 +1,8 @@
 #! /usr/bin/python
 try:
-    from Evopic import *
+    from Evo import *
 except ImportError:
-    from resources.Evopic import *
+    from resources.Evo import *
 
 from argparse import (ArgumentParser, FileType)
 import random

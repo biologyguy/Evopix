@@ -1,6 +1,8 @@
 #! /usr/bin/python3
 import sys
-import copy
+from evp.models import *
+from resources import mutation
+from resources.LineSeg import *
 
 
 class Evopic():
@@ -314,7 +316,7 @@ class Evopic():
         svg += "</svg>"
         return svg
 
-    def save(self, location='local'):
+    def save(self, location='local', parents=(0, 0)):
         if location not in ['local', 'db']:
             sys.exit("%s is not a valid save location. Choose 'local' or 'db'" % location)
 
@@ -351,11 +353,52 @@ class Evopic():
                         if path.stops[i]["stop_id"] < 0:
                             self.paths[path_id].stops[i]["stop_id"] = max_stop_id + 1
                             max_stop_id += 1
+            self.reconstruct_evp()
 
         else:  # send to database
-            x = 1
+            if not parents or 0 in parents:
+                sys.exit("Error: you need to provide parent IDs if you want to save to database")
 
-        self.reconstruct_evp()
+            new_evopic = Evopix(parent1=parents[0], parent2=parents[1], hype_score=0, health=1)
+            new_evopic.save()
+            self.id = new_evopic.evo_id
+            for path_id in self.paths_order:
+                if path_id < 0:
+                    new_path = Paths(parent_path=path_id*-1, parent_evopic_id=new_evopic.evo_id)
+                    new_path.save()
+                    new_id = new_path.path_id
+                    self.paths[new_id] = self.paths[path_id]
+                    self.paths[new_id].id = new_id
+                    del(self.paths[path_id])
+                    old_id_index = self.paths_order.index(path_id)
+                    self.paths_order[old_id_index] = new_id
+                    self.point_locations(force=True)
+
+            for path_id in self.paths_order:
+                path = self.paths[path_id]
+                for i in range(len(path.points_order)):
+                    point_id = path.points_order[i]
+                    if point_id < 0:
+                        new_point = Points(parent_point=point_id * -1, parent_path_id=path_id,
+                                           parent_evopic_id=new_evopic.evo_id)
+                        new_point.save()
+                        new_id = new_point.point_id
+                        self.paths[path_id].points_order[i] = new_id
+                        self.paths[path_id].points[new_id] = self.paths[path_id].points[point_id]
+                        del(self.paths[path_id].points[point_id])
+                        self.point_locations(force=True)
+
+                if path.type != "x":
+                    for i in range(len(path.stops)):
+                        if path.stops[i]["stop_id"] < 0:
+                            new_stop = Stops(parent_stop=path.stops[i]["stop_id"] * -1, parent_path_id=path_id,
+                                             parent_evopic_id=new_evopic.evo_id)
+                            new_stop.save()
+                            self.paths[path_id].stops[i]["stop_id"] = new_stop.stop_id
+
+            self.reconstruct_evp()
+            new_evopic.evp = self.evp
+            new_evopic.save()
 
 
 class Path():
@@ -431,22 +474,6 @@ class Path():
         del self.points_order[point_index]
 
 
-class LineSeg():
-    def __init__(self, point_a, point_b):
-        self.x1, self.y1, self.x2, self.y2 = float(point_a[0]), float(point_a[1]), float(point_b[0]), float(point_b[1])
-
-    def length(self):
-        return (abs(self.x1 - self.x2) ** 2 + abs(self.y1 - self.y2) ** 2) ** 0.5
-
-    def slope(self):
-        if self.x2 == self.x1:  # this prevents divide-by-zero error when slope is infinity
-            return sys.maxsize
-        return (self.y2 - self.y1) / (self.x2 - self.x1)
-
-    def intercept(self):
-        return self.y2 - (self.slope() * self.x2)
-
-
 def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
     """Calculates the extreme points of a cubic Bézier curve
     Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
@@ -511,14 +538,15 @@ def get_curve_bounds(x0, y0, x1, y1, x2, y2, x3, y3):
     return {"left": round(min(bounds["X"]), 4), "top": round(min(bounds["Y"]), 4), "right": round(max(bounds["X"]), 4),
             "bottom": round(max(bounds["Y"]), 4)}
 
+
 #-------------------------Sandbox-------------------------------#
-if __name__ == '__main__':
-    evo_path = "../genomes/bob"
-    with open("%s.evp" % evo_path, "r") as infile:
-        bob = Evopic(infile.read())
+def run():
+    from resources.Evo import LineSeg
+    bob = Evopic(Evopix.objects.filter(evo_id=1).get().evp)
     #bob.reconstruct_evp()
-    bob.find_extremes()
-    print(bob.min_max_points)
+    bob = mutation.mutate(bob)
+    bob.save(location='db', parents=(1, 2))
+    print(bob.id)
 
 
 

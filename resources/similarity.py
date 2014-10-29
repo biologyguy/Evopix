@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 try:
-    from Evopic import *
+    from Evo import *
 
 except ImportError:
-    from resources.Evopic import *
+    from resources.Evo import *
     from evp.models import *
 
 

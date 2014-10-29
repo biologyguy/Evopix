@@ -2,7 +2,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from evp.models import *
-from resources.Evopic import Evopic
+from resources.Evo import Evopic
 from resources import mutation, breed
 import re
 
