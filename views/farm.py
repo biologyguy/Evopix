@@ -3,8 +3,9 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from evp.models import *
 from world.models import *
-from resources.Evopic import Evopic
-from resources import mutation, breed
+from resources.Evo import Evopic
+from resources import mutation
+from resources.breed import *
 import json
 from random import choice
 
@@ -90,9 +91,8 @@ def move(live_evopic_ids):
 
         new_landunits = LandUnit.objects.filter(y=max_y + 1, x__gte=min_x, x__lte=max_x)
         check = check_land_occupied(new_landunits)
-        if check:
-            return False
-        old_landunits = LandUnit.objects.filter(y=min_y, x__gte=min_x, x__lte=max_x)
+        if not check:
+            old_landunits = LandUnit.objects.filter(y=min_y, x__gte=min_x, x__lte=max_x)
 
     elif direction == "down":
         new_landunits = LandUnit.objects.filter(y=min_y, x__gte=min_x, x__lte=max_x)
@@ -102,9 +102,8 @@ def move(live_evopic_ids):
 
         new_landunits = LandUnit.objects.filter(y=min_y - 1, x__gte=min_x, x__lte=max_x)
         check = check_land_occupied(new_landunits)
-        if check:
-            return False
-        old_landunits = LandUnit.objects.filter(y=max_y, x__gte=min_x, x__lte=max_x)
+        if not check:
+            old_landunits = LandUnit.objects.filter(y=max_y, x__gte=min_x, x__lte=max_x)
 
     elif direction == "right":
         new_landunits = LandUnit.objects.filter(x=max_x, y__gte=min_y, y__lte=max_y)
@@ -114,9 +113,8 @@ def move(live_evopic_ids):
 
         new_landunits = LandUnit.objects.filter(x=max_x + 1, y__gte=min_y, y__lte=max_y)
         check = check_land_occupied(new_landunits)
-        if check:
-            return False
-        old_landunits = LandUnit.objects.filter(x=min_x, y__gte=min_y, y__lte=max_y)
+        if not check:
+            old_landunits = LandUnit.objects.filter(x=min_x, y__gte=min_y, y__lte=max_y)
 
     elif direction == "left":
         new_landunits = LandUnit.objects.filter(x=min_x, y__gte=min_y, y__lte=max_y)
@@ -125,14 +123,19 @@ def move(live_evopic_ids):
                 return False
         new_landunits = LandUnit.objects.filter(x=min_x - 1, y__gte=min_y, y__lte=max_y)
         check = check_land_occupied(new_landunits)
-        if check:
-            return False
-        old_landunits = LandUnit.objects.filter(x=max_x, y__gte=min_y, y__lte=max_y)
+        if not check:
+            old_landunits = LandUnit.objects.filter(x=max_x, y__gte=min_y, y__lte=max_y)
 
-    new_landunits.update(evopic_id=evo_id)
-    old_landunits.update(evopic_id=None)
+    if check:
+        mom = Evopic(Evopix.objects.filter(evp_id=evo_id).get())
+        dad = Evopic(Evopix.objects.filter(evp_id=check).get())
+        breed(mom, dad)
+        return False
 
-    return True
+    else:
+        new_landunits.update(evopic_id=evo_id)
+        old_landunits.update(evopic_id=None)
+        return True
 
 
 #-------------------------Sandbox-------------------------------#
