@@ -29,11 +29,6 @@ def populate_map(request):
     if request.method == "POST":
         if not request.POST.get('evp', ''):
             living_evopix = Evopix.objects.filter(health__gt=0)
-            live_evopic_ids = []
-            for evopic in living_evopix:
-                live_evopic_ids.append(evopic.evo_id)
-
-            move(live_evopic_ids)
             output = []
             for evopic in living_evopix:
                 bob = Evopic(evopic.evp)
@@ -65,14 +60,30 @@ def populate_map(request):
 
         return HttpResponse(db_evopix[0])
 
-def move(live_evopic_ids):
-    def check_land_occupied(land_units):
-        for landunit in land_units:
-            if landunit.evopic_id:
-                return landunit.evopic_id
-        return False
 
-    evo_id = choice(live_evopic_ids)
+def move():
+    def look(x_depth, y_depth):
+        output = {"fences": {"top": [], "bottom": [], "left": [], "right": []}, "evopix": []}
+
+        ##### BROKEN!!!!!!!!!!!! Need to catch all the possible values of x and y depths... ############
+        for i in range(0, x_depth, int(x_depth / abs(x_depth))):
+            for j in range(0, y_depth, int(y_depth / abs(y_depth))):
+                new_landunits = LandUnit.objects.filter(y__gte=(min_y - min([0, j])), y__lte=(max_y + max([0, j])),
+                                                        x__gte=(min_x - min([0, i])), x__lte=(max_x + max([0, i])))
+                for landunit in new_landunits:
+                    if landunit.t_fence_id:
+                        output["fences"]["top"].append(landunit.land_id)
+                    if landunit.b_fence_id:
+                        output["fences"]["bottom"].append(landunit.land_id)
+                    if landunit.l_fence_id:
+                        output["fences"]["left"].append(landunit.land_id)
+                    if landunit.r_fence_id:
+                        output["fences"]["right"].append(landunit.land_id)
+                    if landunit.evopic:
+                        output["evopix"].append(landunit.evopic_id)
+        return output
+    living_evopix = Evopix.objects.filter(health__gt=0)
+    evo_id = choice(living_evopix).evo_id
     landunits = LandUnit.objects.filter(evopic_id=evo_id)
     min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
     for landunit in landunits:
@@ -82,6 +93,18 @@ def move(live_evopic_ids):
         max_y = landunit.y if landunit.y > max_y else max_y
 
     direction = choice(["up", "down", "left", "right"])
+    direction = "left"
+    if direction == "up":
+        neighborhood = look(0, 1)
+    if direction == "down":
+        neighborhood = look(0, -1)
+    if direction == "right":
+        neighborhood = look(1, 0)
+    if direction == "left":
+        neighborhood = look(-1, 0)
+
+    print(neighborhood)
+    return
 
     if direction == "up":
         new_landunits = LandUnit.objects.filter(y=max_y, x__gte=min_x, x__lte=max_x)
@@ -140,4 +163,4 @@ def move(live_evopic_ids):
 
 #-------------------------Sandbox-------------------------------#
 def run():
-    print(move())
+    move()
