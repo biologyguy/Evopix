@@ -8,6 +8,7 @@ from resources import mutation
 from resources.breed import *
 import json
 from random import choice
+import MyFuncs
 
 # Create your views here.
 def welcome(request):
@@ -61,27 +62,35 @@ def populate_map(request):
         return HttpResponse(db_evopix[0])
 
 
-def move():
+def _move():
     def look(x_depth, y_depth):
         output = {"fences": {"top": [], "bottom": [], "left": [], "right": []}, "evopix": []}
 
-        ##### BROKEN!!!!!!!!!!!! Need to catch all the possible values of x and y depths... ############
-        for i in range(0, x_depth, int(x_depth / abs(x_depth))):
-            for j in range(0, y_depth, int(y_depth / abs(y_depth))):
-                new_landunits = LandUnit.objects.filter(y__gte=(min_y - min([0, j])), y__lte=(max_y + max([0, j])),
-                                                        x__gte=(min_x - min([0, i])), x__lte=(max_x + max([0, i])))
-                for landunit in new_landunits:
-                    if landunit.t_fence_id:
-                        output["fences"]["top"].append(landunit.land_id)
-                    if landunit.b_fence_id:
-                        output["fences"]["bottom"].append(landunit.land_id)
-                    if landunit.l_fence_id:
-                        output["fences"]["left"].append(landunit.land_id)
-                    if landunit.r_fence_id:
-                        output["fences"]["right"].append(landunit.land_id)
-                    if landunit.evopic:
-                        output["evopix"].append(landunit.evopic_id)
+        # Get info on the land units within depth field
+        new_landunits = LandUnit.objects.filter(y__gte=(min_y + min([0, y_depth])),
+                                                y__lte=(max_y + max([0, y_depth])),
+                                                x__gte=(min_x + min([0, x_depth])),
+                                                x__lte=(max_x + max([0, x_depth])))
+        for landunit in new_landunits:
+            if landunit.t_fence_id:
+                output["fences"]["top"].append(landunit.land_id)
+            if landunit.b_fence_id:
+                output["fences"]["bottom"].append(landunit.land_id)
+            if landunit.l_fence_id:
+                output["fences"]["left"].append(landunit.land_id)
+            if landunit.r_fence_id:
+                output["fences"]["right"].append(landunit.land_id)
+            if landunit.evopic and \
+                    (min_x > landunit.x or max_x < landunit.x) and (min_y > landunit.y or max_y < landunit.y):
+                output["evopix"].append(landunit.evopic_id)
+
+        output["fences"]["top"] = False if len(output["fences"]["top"]) != 0 else output["fences"]["top"]
+        output["fences"]["bottom"] = False if len(output["fences"]["bottom"]) != 0 else output["fences"]["bottom"]
+        output["fences"]["right"] = False if len(output["fences"]["right"]) != 0 else output["fences"]["right"]
+        output["fences"]["left"] = False if len(output["fences"]["left"]) != 0 else output["fences"]["left"]
+        output["evopix"] = False if len(output["evopix"]) != 0 else output["evopix"]
         return output
+
     living_evopix = Evopix.objects.filter(health__gt=0)
     evo_id = choice(living_evopix).evo_id
     landunits = LandUnit.objects.filter(evopic_id=evo_id)
@@ -93,67 +102,43 @@ def move():
         max_y = landunit.y if landunit.y > max_y else max_y
 
     direction = choice(["up", "down", "left", "right"])
-    direction = "left"
     if direction == "up":
         neighborhood = look(0, 1)
-    if direction == "down":
-        neighborhood = look(0, -1)
-    if direction == "right":
-        neighborhood = look(1, 0)
-    if direction == "left":
-        neighborhood = look(-1, 0)
-
-    print(neighborhood)
-    return
-
-    if direction == "up":
-        new_landunits = LandUnit.objects.filter(y=max_y, x__gte=min_x, x__lte=max_x)
-        for landunit in new_landunits:
-            if landunit.t_fence_id:
-                return False
-
-        new_landunits = LandUnit.objects.filter(y=max_y + 1, x__gte=min_x, x__lte=max_x)
-        check = check_land_occupied(new_landunits)
-        if not check:
+        if neighborhood["fences"]["left"] or neighborhood["fences"]["right"] or neighborhood["fences"]["bottom"]:
+            return False
+        else:
+            new_landunits = LandUnit.objects.filter(y=max_y + 1, x__gte=min_x, x__lte=max_x)
             old_landunits = LandUnit.objects.filter(y=min_y, x__gte=min_x, x__lte=max_x)
 
     elif direction == "down":
-        new_landunits = LandUnit.objects.filter(y=min_y, x__gte=min_x, x__lte=max_x)
-        for landunit in new_landunits:
-            if landunit.b_fence_id:
-                return False
-
-        new_landunits = LandUnit.objects.filter(y=min_y - 1, x__gte=min_x, x__lte=max_x)
-        check = check_land_occupied(new_landunits)
-        if not check:
+        neighborhood = look(0, -1)
+        if neighborhood["fences"]["left"] or neighborhood["fences"]["right"] or neighborhood["fences"]["top"]:
+            return False
+        else:
+            new_landunits = LandUnit.objects.filter(y=min_y - 1, x__gte=min_x, x__lte=max_x)
             old_landunits = LandUnit.objects.filter(y=max_y, x__gte=min_x, x__lte=max_x)
 
     elif direction == "right":
-        new_landunits = LandUnit.objects.filter(x=max_x, y__gte=min_y, y__lte=max_y)
-        for landunit in new_landunits:
-            if landunit.r_fence_id:
-                return False
-
-        new_landunits = LandUnit.objects.filter(x=max_x + 1, y__gte=min_y, y__lte=max_y)
-        check = check_land_occupied(new_landunits)
-        if not check:
+        neighborhood = look(1, 0)
+        if neighborhood["fences"]["left"] or neighborhood["fences"]["top"] or neighborhood["fences"]["bottom"]:
+            return False
+        else:
+            new_landunits = LandUnit.objects.filter(x=max_x + 1, y__gte=min_y, y__lte=max_y)
             old_landunits = LandUnit.objects.filter(x=min_x, y__gte=min_y, y__lte=max_y)
 
-    elif direction == "left":
-        new_landunits = LandUnit.objects.filter(x=min_x, y__gte=min_y, y__lte=max_y)
-        for landunit in new_landunits:
-            if landunit.l_fence_id:
-                return False
-        new_landunits = LandUnit.objects.filter(x=min_x - 1, y__gte=min_y, y__lte=max_y)
-        check = check_land_occupied(new_landunits)
-        if not check:
+    else:  # direction == 'left'
+        neighborhood = look(-1, 0)
+        if neighborhood["fences"]["right"] or neighborhood["fences"]["top"] or neighborhood["fences"]["bottom"]:
+            return False
+        else:
+            new_landunits = LandUnit.objects.filter(x=min_x - 1, y__gte=min_y, y__lte=max_y)
             old_landunits = LandUnit.objects.filter(x=max_x, y__gte=min_y, y__lte=max_y)
 
-    if check:
-        mom = Evopic(Evopix.objects.filter(evp_id=evo_id).get())
-        dad = Evopic(Evopix.objects.filter(evp_id=check).get())
-        breed(mom, dad)
-        return False
+    if neighborhood["evopix"]:
+        evopic = Evopix.objects.filter(evp_id=evo_id).get().evp
+        mate = Evopix.objects.filter(land_id=choice(neighborhood["evopix"])).get().evp
+        breed(evopic, mate)
+        return True
 
     else:
         new_landunits.update(evopic_id=evo_id)
@@ -161,6 +146,8 @@ def move():
         return True
 
 
+def move(request):
+    return HttpResponse(_move())
 #-------------------------Sandbox-------------------------------#
 def run():
-    move()
+    _move()

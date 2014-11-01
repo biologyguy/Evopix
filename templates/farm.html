@@ -50,8 +50,12 @@
             });
 
             $("#move_evos").click(function(){
-                $.post("{% url 'move' %}", function(data,status){
-                    populate_map(data);
+                $.post("{% url 'move' %}", function(test,status){
+                    if(test) {
+                        $.post("{% url 'populate_map' %}", function(data,status) {
+                            populate_map(data);
+                        });
+                    }
                 });
             });
         });
