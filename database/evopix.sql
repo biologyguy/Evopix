@@ -93,42 +93,65 @@ INSERT INTO `world_landtypes` (`type_id`, `type`, `base_color`) VALUES
 --
 -- Populate `world_landunit` table
 -- Eventually will want to increase table size to 1000 x 1000
+-- NOTE!! Must update max_size in two different places below!!!
 
 delimiter $$
 DROP PROCEDURE IF EXISTS `myFunction` $$
 
 CREATE PROCEDURE `myFunction`()
     BEGIN
-        DECLARE x INT DEFAULT 1;
-        DECLARE y INT DEFAULT 1;
-        WHILE (x<=20) DO
-            WHILE (y<=20) DO
+       DECLARE x INT DEFAULT 1;
+       DECLARE y INT DEFAULT 1;
+       DECLARE max_size INT DEFAULT 20;  -- This needs to be manually set
+
+       WHILE (x<=max_size) DO
+            WHILE (y<=max_size) DO
                 INSERT INTO `world_landunit`(`x`, `y`,`type_id`) VALUES (x, y, 1);
                 SET y=y+1;
             END WHILE;
             SET y=1;
         SET x=x+1;
         END WHILE;
-    END$$
+	UPDATE `world_landunit` SET `evopic_id`=1   WHERE (`x` IN (2, 3)) AND (`y` IN (2, 3));
+    UPDATE `world_landunit` SET `evopic_id`=2   WHERE (`x` IN (4, 5)) AND (`y` IN (4, 5));
+    UPDATE `world_landunit` SET `b_fence_id`=1  WHERE (`y` = 2  AND `x` >= 2 AND `x` <= (max_size - 1)) OR (`y` = max_size AND `x` >= 2 AND `x` <= (max_size - 1));
+    UPDATE `world_landunit` SET `t_fence_id`=1  WHERE (`y` = (max_size - 1) AND `x` >= 2 AND `x` <= (max_size - 1)) OR (`y` = 1  AND `x` >= 2 AND `x` <= (max_size - 1));
+    UPDATE `world_landunit` SET `l_fence_id`=1  WHERE (`x` = 2  AND `y` >= 2 AND `y` <= (max_size - 1)) OR (`x` = max_size AND `y` >= 2 AND `y` <= (max_size - 1));
+    UPDATE `world_landunit` SET `r_fence_id`=1  WHERE (`x` = (max_size - 1) AND `y` >= 2 AND `y` <= (max_size - 1)) OR (`x` = 1  AND `y` >= 2 AND `y` <= (max_size - 1));
+	END$$
 
 delimiter ;
 CALL `myFunction`;
 
+delimiter $$
+DROP PROCEDURE IF EXISTS `myFunction` $$
+
+CREATE PROCEDURE `myFunction`()
+    BEGIN
+      DECLARE max_size INT DEFAULT 20;  -- This needs to be manually set
+
+      UPDATE `world_landunit` SET `evopic_id`=1   WHERE (`x` IN (2, 3)) AND (`y` IN (2, 3));
+      UPDATE `world_landunit` SET `evopic_id`=2   WHERE (`x` IN (4, 5)) AND (`y` IN (4, 5));
+      UPDATE `world_landunit` SET `b_fence_id`=1  WHERE (`y` = 2  AND `x` >= 2 AND `x` <= (max_size - 1)) OR (`y` = max_size AND `x` >= 2 AND `x` <= (max_size - 1));
+      UPDATE `world_landunit` SET `t_fence_id`=1  WHERE (`y` = (max_size - 1) AND `x` >= 2 AND `x` <= (max_size - 1)) OR (`y` = 1  AND `x` >= 2 AND `x` <= (max_size - 1));
+      UPDATE `world_landunit` SET `l_fence_id`=1  WHERE (`x` = 2  AND `y` >= 2 AND `y` <= (max_size - 1)) OR (`x` = max_size AND `y` >= 2 AND `y` <= (max_size - 1));
+      UPDATE `world_landunit` SET `r_fence_id`=1  WHERE (`x` = (max_size - 1) AND `y` >= 2 AND `y` <= (max_size - 1)) OR (`x` = 1  AND `y` >= 2 AND `y` <= (max_size - 1));
+
+      -- TEMP: Testing farm fence --
+      UPDATE `world_landunit` SET `b_fence_id`=1  WHERE `y` = 12  AND `x` >= 2 AND `x` <= 11;
+      UPDATE `world_landunit` SET `t_fence_id`=1  WHERE `y` = 11 AND `x` >= 2 AND `x` <= 11;
+      UPDATE `world_landunit` SET `l_fence_id`=1  WHERE `x` = 12  AND `y` >= 2 AND `y` <= 11;
+      UPDATE `world_landunit` SET `r_fence_id`=1  WHERE `x` = 11 AND `y` >= 2 AND `y` <= 11;
+      -- End temp
+	END$$
+
+delimiter ;
+CALL `myFunction`;
+
+
 DELETE FROM `mysql`.`proc` WHERE `proc`.`db` = 'evopix' AND `proc`.`name` = 'myFunction' AND `proc`.`type` = 'PROCEDURE';
 
-UPDATE `world_landunit` SET `evopic_id`=1   WHERE (`x` IN (2, 3)) AND (`y` IN (2, 3));
-UPDATE `world_landunit` SET `evopic_id`=2   WHERE (`x` IN (9, 10)) AND (`y` IN (5, 6));
-UPDATE `world_landunit` SET `b_fence_id`=1  WHERE (`y` = 2  AND `x` >= 2 AND `x` <= 11)
-                                            OR    (`y` = 12 AND `x` >= 2 AND `x` <= 11);
 
-UPDATE `world_landunit` SET `t_fence_id`=1  WHERE (`y` = 11 AND `x` >= 2 AND `x` <= 11)
-                                            OR    (`y` = 1  AND `x` >= 2 AND `x` <= 11);
-
-UPDATE `world_landunit` SET `l_fence_id`=1  WHERE (`x` = 2  AND `y` >= 2 AND `y` <= 11)
-                                            OR    (`x` = 12 AND `y` >= 2 AND `y` <= 11);
-
-UPDATE `world_landunit` SET `r_fence_id`=1  WHERE (`x` = 11 AND `y` >= 2 AND `y` <= 11)
-                                            OR    (`x` = 1  AND `y` >= 2 AND `y` <= 11);
 
 
 -- --------------------------------------------------------

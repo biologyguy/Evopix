@@ -64,14 +64,19 @@ def populate_map(request):
 
 def _move():
     def look(x_depth, y_depth):
-        output = {"fences": {"top": [], "bottom": [], "left": [], "right": []}, "evopix": []}
+        output = {"fences": {"top": [], "bottom": [], "left": [], "right": []}, "evopix": [], "land_ids": []}
 
         # Get info on the land units within depth field
         new_landunits = LandUnit.objects.filter(y__gte=(min_y + min([0, y_depth])),
                                                 y__lte=(max_y + max([0, y_depth])),
                                                 x__gte=(min_x + min([0, x_depth])),
                                                 x__lte=(max_x + max([0, x_depth])))
+        #print("y__gte=(%s + min([0, %s])), y__lte=(%s + max([0, %s])), "
+        #      "x__gte=(%s + min([0, %s])), x__lte=(%s + max([0, %s]))"
+        #      % (min_y, y_depth, max_y, y_depth, min_x, x_depth, max_x, x_depth))
+
         for landunit in new_landunits:
+            output["land_ids"].append((landunit.x, landunit.y))
             if landunit.t_fence_id:
                 output["fences"]["top"].append(landunit.land_id)
             if landunit.b_fence_id:
@@ -84,11 +89,11 @@ def _move():
                     (min_x > landunit.x or max_x < landunit.x) and (min_y > landunit.y or max_y < landunit.y):
                 output["evopix"].append(landunit.evopic_id)
 
-        output["fences"]["top"] = False if len(output["fences"]["top"]) != 0 else output["fences"]["top"]
-        output["fences"]["bottom"] = False if len(output["fences"]["bottom"]) != 0 else output["fences"]["bottom"]
-        output["fences"]["right"] = False if len(output["fences"]["right"]) != 0 else output["fences"]["right"]
-        output["fences"]["left"] = False if len(output["fences"]["left"]) != 0 else output["fences"]["left"]
-        output["evopix"] = False if len(output["evopix"]) != 0 else output["evopix"]
+        output["fences"]["top"] = False if len(output["fences"]["top"]) == 0 else output["fences"]["top"]
+        output["fences"]["bottom"] = False if len(output["fences"]["bottom"]) == 0 else output["fences"]["bottom"]
+        output["fences"]["right"] = False if len(output["fences"]["right"]) == 0 else output["fences"]["right"]
+        output["fences"]["left"] = False if len(output["fences"]["left"]) == 0 else output["fences"]["left"]
+        output["evopix"] = False if len(output["evopix"]) == 0 else output["evopix"]
         return output
 
     living_evopix = Evopix.objects.filter(health__gt=0)
