@@ -64,36 +64,31 @@ def populate_map(request):
 
 def _move():
     def look(x_depth, y_depth):
-        output = {"fences": {"top": [], "bottom": [], "left": [], "right": []}, "evopix": [], "land_ids": []}
+        output = {"fences": {"top": [], "bottom": [], "left": [], "right": []}, "evopix": [], "self": []}
 
         # Get info on the land units within depth field
         new_landunits = LandUnit.objects.filter(y__gte=(min_y + min([0, y_depth])),
                                                 y__lte=(max_y + max([0, y_depth])),
                                                 x__gte=(min_x + min([0, x_depth])),
                                                 x__lte=(max_x + max([0, x_depth])))
-        #print("y__gte=(%s + min([0, %s])), y__lte=(%s + max([0, %s])), "
-        #      "x__gte=(%s + min([0, %s])), x__lte=(%s + max([0, %s]))"
-        #      % (min_y, y_depth, max_y, y_depth, min_x, x_depth, max_x, x_depth))
 
         for landunit in new_landunits:
-            output["land_ids"].append((landunit.x, landunit.y))
-            if landunit.t_fence_id:
-                output["fences"]["top"].append(landunit.land_id)
-            if landunit.b_fence_id:
-                output["fences"]["bottom"].append(landunit.land_id)
-            if landunit.l_fence_id:
-                output["fences"]["left"].append(landunit.land_id)
-            if landunit.r_fence_id:
-                output["fences"]["right"].append(landunit.land_id)
             if landunit.evopic and \
                     (min_x > landunit.x or max_x < landunit.x) and (min_y > landunit.y or max_y < landunit.y):
-                output["evopix"].append(landunit.evopic_id)
+                output["evopix"].append((landunit.evopic_id, landunit.x, landunit.y))
+            elif landunit.evopic:
+                output["self"].append((landunit.x, landunit.y))
 
-        output["fences"]["top"] = False if len(output["fences"]["top"]) == 0 else output["fences"]["top"]
-        output["fences"]["bottom"] = False if len(output["fences"]["bottom"]) == 0 else output["fences"]["bottom"]
-        output["fences"]["right"] = False if len(output["fences"]["right"]) == 0 else output["fences"]["right"]
-        output["fences"]["left"] = False if len(output["fences"]["left"]) == 0 else output["fences"]["left"]
-        output["evopix"] = False if len(output["evopix"]) == 0 else output["evopix"]
+            if landunit.t_fence_id:
+                output["fences"]["top"].append((landunit.x, landunit.y))
+            if landunit.b_fence_id:
+                output["fences"]["bottom"].append((landunit.x, landunit.y))
+            if landunit.l_fence_id:
+                output["fences"]["left"].append((landunit.x, landunit.y))
+            if landunit.r_fence_id:
+                output["fences"]["right"].append((landunit.x, landunit.y))
+
+        print(output)
         return output
 
     living_evopix = Evopix.objects.filter(health__gt=0)
@@ -106,53 +101,90 @@ def _move():
         max_x = landunit.x if landunit.x > max_x else max_x
         max_y = landunit.y if landunit.y > max_y else max_y
 
+    # List of all possible fences that would prevent the selected evopic from moving
+    blocking_fences = {"bottom": [], "right": [], "left": [], "top": []}
+    # Fences directly adjacent to the evopic, above or below
+    for x in range(min_x, max_x):
+        blocking_fences["top"].append((x, max_y))
+        blocking_fences["bottom"].append((x, min_y))
+    # Edge-on fences in the space above or below the evopic
+    for i in range(max_x - min_x):  # Don't need to include 'left' fences because they are contained in 'right'
+        blocking_fences["right"].append((min_x + i, max_y + 1))
+        blocking_fences["right"].append((min_x + i, max_y - 1))
+    # Fences directly adjacent to the evopic, on either side
+    for y in range(min_y, max_y):
+        blocking_fences["right"].append((max_x, y))
+        blocking_fences["left"].append((min_x, y))
+    # Edge-on fences in the space left or right of the evopic
+    for i in range(max_y - min_y):  # Don't need to include 'bottom' fences because they are contained in 'top'
+        blocking_fences["top"].append((max_x + 1, min_y + i))
+        blocking_fences["top"].append((max_x - 1, min_y + i))
+
     direction = choice(["up", "down", "left", "right"])
     if direction == "up":
         neighborhood = look(0, 1)
-        if neighborhood["fences"]["left"] or neighborhood["fences"]["right"] or neighborhood["fences"]["bottom"]:
-            return False
-        else:
-            new_landunits = LandUnit.objects.filter(y=max_y + 1, x__gte=min_x, x__lte=max_x)
-            old_landunits = LandUnit.objects.filter(y=min_y, x__gte=min_x, x__lte=max_x)
+        for unit in neighborhood["fences"]["top"]:
+            if unit in blocking_fences["top"]:
+                return "Fences above"
+        for unit in neighborhood["fences"]["right"]:
+            if unit in blocking_fences["right"]:
+                return "Fence in adjacent cells above"
+
+        new_landunits = LandUnit.objects.filter(y=max_y + 1, x__gte=min_x, x__lte=max_x)
+        old_landunits = LandUnit.objects.filter(y=min_y, x__gte=min_x, x__lte=max_x)
 
     elif direction == "down":
         neighborhood = look(0, -1)
-        if neighborhood["fences"]["left"] or neighborhood["fences"]["right"] or neighborhood["fences"]["top"]:
-            return False
-        else:
-            new_landunits = LandUnit.objects.filter(y=min_y - 1, x__gte=min_x, x__lte=max_x)
-            old_landunits = LandUnit.objects.filter(y=max_y, x__gte=min_x, x__lte=max_x)
+        for unit in neighborhood["fences"]["bottom"]:
+            if unit in blocking_fences["bottom"]:
+                return "Fences below"
+        for unit in neighborhood["fences"]["right"]:
+            if unit in blocking_fences["right"]:
+                return "Fence in adjacent cells below"
+
+        new_landunits = LandUnit.objects.filter(y=min_y - 1, x__gte=min_x, x__lte=max_x)
+        old_landunits = LandUnit.objects.filter(y=max_y, x__gte=min_x, x__lte=max_x)
 
     elif direction == "right":
         neighborhood = look(1, 0)
-        if neighborhood["fences"]["left"] or neighborhood["fences"]["top"] or neighborhood["fences"]["bottom"]:
-            return False
-        else:
-            new_landunits = LandUnit.objects.filter(x=max_x + 1, y__gte=min_y, y__lte=max_y)
-            old_landunits = LandUnit.objects.filter(x=min_x, y__gte=min_y, y__lte=max_y)
+        for unit in neighborhood["fences"]["right"]:
+            if unit in blocking_fences["right"]:
+                return "Fence to right"
+        for unit in neighborhood["fences"]["top"]:
+            if unit in blocking_fences["top"]:
+                return "Fence in adjacent cells to right"
+
+        new_landunits = LandUnit.objects.filter(x=max_x + 1, y__gte=min_y, y__lte=max_y)
+        old_landunits = LandUnit.objects.filter(x=min_x, y__gte=min_y, y__lte=max_y)
 
     else:  # direction == 'left'
         neighborhood = look(-1, 0)
-        if neighborhood["fences"]["right"] or neighborhood["fences"]["top"] or neighborhood["fences"]["bottom"]:
-            return False
-        else:
-            new_landunits = LandUnit.objects.filter(x=min_x - 1, y__gte=min_y, y__lte=max_y)
-            old_landunits = LandUnit.objects.filter(x=max_x, y__gte=min_y, y__lte=max_y)
+        for unit in neighborhood["fences"]["left"]:
+            if unit in blocking_fences["left"]:
+                return "Fence to left"
+        for unit in neighborhood["fences"]["top"]:
+            if unit in blocking_fences["top"]:
+                return "Fence in adjacent cells to left"
 
-    if neighborhood["evopix"]:
+        new_landunits = LandUnit.objects.filter(x=min_x - 1, y__gte=min_y, y__lte=max_y)
+        old_landunits = LandUnit.objects.filter(x=max_x, y__gte=min_y, y__lte=max_y)
+
+    if len(neighborhood["evopix"]) > 0:
         evopic = Evopix.objects.filter(evp_id=evo_id).get().evp
         mate = Evopix.objects.filter(land_id=choice(neighborhood["evopix"])).get().evp
         breed(evopic, mate)
-        return True
+        return "Breeding"
 
     else:
         new_landunits.update(evopic_id=evo_id)
         old_landunits.update(evopic_id=None)
-        return True
+        return "Moving"
 
 
 def move(request):
+    try_move = _move()
+    print(try_move)
     return HttpResponse(_move())
 #-------------------------Sandbox-------------------------------#
 def run():
-    _move()
+    print(_move())
