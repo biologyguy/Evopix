@@ -130,7 +130,7 @@ CREATE PROCEDURE `myFunction`()
     BEGIN
       DECLARE max_size INT DEFAULT 20;  -- This needs to be manually set
 
-      UPDATE `world_landunit` SET `evopic_id`=1   WHERE (`x` IN (2, 3)) AND (`y` IN (2, 3));
+      UPDATE `world_landunit` SET `evopic_id`=1   WHERE (`x` IN (4, 5)) AND (`y` IN (2, 3));
       UPDATE `world_landunit` SET `evopic_id`=2   WHERE (`x` IN (4, 5)) AND (`y` IN (4, 5));
       UPDATE `world_landunit` SET `b_fence_id`=1  WHERE (`y` = 2  AND `x` >= 2 AND `x` <= (max_size - 1)) OR (`y` = max_size AND `x` >= 2 AND `x` <= (max_size - 1));
       UPDATE `world_landunit` SET `t_fence_id`=1  WHERE (`y` = (max_size - 1) AND `x` >= 2 AND `x` <= (max_size - 1)) OR (`y` = 1  AND `x` >= 2 AND `x` <= (max_size - 1));

@@ -73,8 +73,8 @@ def _move():
                                                 x__lte=(max_x + max([0, x_depth])))
 
         for landunit in new_landunits:
-            if landunit.evopic and \
-                    (min_x > landunit.x or max_x < landunit.x) and (min_y > landunit.y or max_y < landunit.y):
+            if landunit.evopic_id and \
+                    (min_x > landunit.x or max_x < landunit.x or min_y > landunit.y or max_y < landunit.y):
                 output["evopix"].append((landunit.evopic_id, landunit.x, landunit.y))
             elif landunit.evopic:
                 output["self"].append((landunit.x, landunit.y))
@@ -88,7 +88,6 @@ def _move():
             if landunit.r_fence_id:
                 output["fences"]["right"].append((landunit.x, landunit.y))
 
-        print(output)
         return output
 
     living_evopix = Evopix.objects.filter(health__gt=0)
@@ -170,21 +169,20 @@ def _move():
         old_landunits = LandUnit.objects.filter(x=max_x, y__gte=min_y, y__lte=max_y)
 
     if len(neighborhood["evopix"]) > 0:
-        evopic = Evopix.objects.filter(evp_id=evo_id).get().evp
-        mate = Evopix.objects.filter(land_id=choice(neighborhood["evopix"])).get().evp
+        evopic = Evopix.objects.filter(evo_id=evo_id).get().evp
+        mate = Evopix.objects.filter(evo_id=choice(neighborhood["evopix"])[0]).get().evp
         breed(evopic, mate)
         return "Breeding"
 
     else:
         new_landunits.update(evopic_id=evo_id)
         old_landunits.update(evopic_id=None)
-        return "Moving"
+        return "Evo %s moving %s" % (evo_id, direction)
 
 
 def move(request):
     try_move = _move()
-    print(try_move)
-    return HttpResponse(_move())
+    return HttpResponse(try_move)
 #-------------------------Sandbox-------------------------------#
 def run():
     print(_move())
