@@ -28,31 +28,35 @@
     <script src="{% static 'js/ajax.js' %}"></script>
     <script>
         $(document).ready(function(){
-            function populate_map(data) {
-                data = JSON.parse(data);
+            var farm_bounds = {min_x: 1, min_y: 1, max_x: 12, max_y: 12};
+
+            function populate_map(server_reply) {
+                $("#farm_box").html(server_reply);
+                return;
+                server_reply = JSON.parse(server_reply);
                 var farm_output = "";
-                for (var i = 0; i < data.length; i++) {
-                    var width = (data[i].max_x - data[i].min_x + 1) * 50;
-                    var height = (data[i].max_y - data[i].min_y + 1) * 50;
-                    var x = (data[i].min_x - 1) / 10 * 100;
-                    var y = (data[i].min_y - 1) / 10 * 100;
+                for (var i = 0; i < server_reply.length; i++) {
+                    var width = (server_reply[i].max_x - server_reply[i].min_x + 1) * 50;
+                    var height = (server_reply[i].max_y - server_reply[i].min_y + 1) * 50;
+                    var x = (server_reply[i].min_x - 1) / 10 * 100;
+                    var y = (server_reply[i].min_y - 1) / 10 * 100;
 
                     farm_output += "<span class='evopic_bounding_box' style='width:" + width + "px; height:" +
                             height + "px; left: " + x + "%; bottom: " + y + "%'><span class='evopic'>" +
-                            data[i].svg + "</span></span>";
+                            server_reply[i].svg + "</span></span>";
 
                     $("#farm_box").html(farm_output);
                 }
             }
 
-            $.post("{% url 'populate_map' %}", function(data,status) {
+            $.post("{% url 'populate_map' %}",  farm_bounds, function(data, status) {
                 populate_map(data);
             });
 
             $("#move_evos").click(function(){
                 $.post("{% url 'move' %}", function(test,status){
                     if(test) {
-                        $.post("{% url 'populate_map' %}", function(data,status) {
+                        $.post("{% url 'populate_map' %}", farm_bounds, function(data, status) {
                             populate_map(data);
                         });
                     }

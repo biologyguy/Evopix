@@ -28,38 +28,36 @@ def farm(request):
 # AJAX called functions below here.
 def populate_map(request):
     if request.method == "POST":
-        if not request.POST.get('evp', ''):
-            living_evopix = Evopix.objects.filter(health__gt=0)
-            output = []
-            for evopic in living_evopix:
-                bob = Evopic(evopic.evp)
-                output.append({"id": evopic.evo_id})
-                landunits = LandUnit.objects.filter(evopic_id=evopic.evo_id)
-                min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
-                for landunit in landunits:
-                    min_x = landunit.x if landunit.x < min_x else min_x
-                    min_y = landunit.y if landunit.y < min_y else min_y
-                    max_x = landunit.x if landunit.x > max_x else max_x
-                    max_y = landunit.y if landunit.y > max_y else max_y
+        min_x = int(request.POST.get("min_x", ""))
+        min_y = int(request.POST.get("min_y", ""))
+        max_x = int(request.POST.get("max_x", ""))
+        max_y = int(request.POST.get("max_y", ""))
+        evopix = LandUnit.objects.filter(evopic_id=1, x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
+        Evopix.objects.filter(health__gt=0)
+        output = []
+        for evopic in evopix:
+            bob = Evopic(evopic.evp)
+            output.append({"id": evopic.evo_id})
+            landunits = LandUnit.objects.filter(evopic_id=evopic.evo_id)
+            min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
+            for landunit in landunits:
+                min_x = landunit.x if landunit.x < min_x else min_x
+                min_y = landunit.y if landunit.y < min_y else min_y
+                max_x = landunit.x if landunit.x > max_x else max_x
+                max_y = landunit.y if landunit.y > max_y else max_y
 
-                size_x = (max_x - min_x + 1) * 50
-                size_y = (max_y - min_y + 1) * 50
-                output[-1]["svg"] = bob.svg_out(scale=0.1, bounding_box=(size_x, size_y))
-                output[-1]["min_x"] = min_x
-                output[-1]["min_y"] = min_y
-                output[-1]["max_x"] = max_x
-                output[-1]["max_y"] = max_y
+            size_x = (max_x - min_x + 1) * 50
+            size_y = (max_y - min_y + 1) * 50
+            output[-1]["svg"] = bob.svg_out(scale=0.1, bounding_box=(size_x, size_y))
+            output[-1]["min_x"] = min_x
+            output[-1]["min_y"] = min_y
+            output[-1]["max_x"] = max_x
+            output[-1]["max_y"] = max_y
 
-            return HttpResponse(json.dumps(output))
-
-        evp = request.POST.get('evp', '')
-        bob = mutation.mutate(Evopic(evp))
-        return HttpResponse("Blahh")
+        return HttpResponse(json.dumps(output))
 
     else:
-        db_evopix = LandUnit.objects.filter(evopic_id="1")
-
-        return HttpResponse(db_evopix[0])
+        return HttpResponse("Fail")
 
 
 def _move():
