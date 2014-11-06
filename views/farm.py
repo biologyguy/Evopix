@@ -32,9 +32,25 @@ def populate_map(request):
         min_y = int(request.POST.get("min_y", ""))
         max_x = int(request.POST.get("max_x", ""))
         max_y = int(request.POST.get("max_y", ""))
-        evopix = LandUnit.objects.filter(evopic_id=1, x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
-        Evopix.objects.filter(health__gt=0)
+        landunits = LandUnit.objects.filter(evopic_id__gte=1, x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y).order_by('evopic_id')
         output = []
+        cur_evo_id = 0
+
+        #Still broken, but making progress
+
+        for landunit in landunits:
+            if landunit.evopic_id > cur_evo_id:
+                cur_evo_id = landunit.evopic_id
+                bob = Evopix.objects.filter(evo_id=cur_evo_id)
+                output.append({"id": cur_evo_id})
+                min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
+
+            min_x = landunit.x if landunit.x < min_x else min_x
+            min_y = landunit.y if landunit.y < min_y else min_y
+            max_x = landunit.x if landunit.x > max_x else max_x
+            max_y = landunit.y if landunit.y > max_y else max_y
+
+
         for evopic in evopix:
             bob = Evopic(evopic.evp)
             output.append({"id": evopic.evo_id})
@@ -53,6 +69,7 @@ def populate_map(request):
             output[-1]["min_y"] = min_y
             output[-1]["max_x"] = max_x
             output[-1]["max_y"] = max_y
+
 
         return HttpResponse(json.dumps(output))
 
