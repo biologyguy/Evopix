@@ -9,6 +9,7 @@ from resources.breed import *
 import json
 from random import choice
 import MyFuncs
+import traceback
 
 # Create your views here.
 def welcome(request):
@@ -27,55 +28,49 @@ def farm(request):
 
 # AJAX called functions below here.
 def populate_map(request):
-    if request.method == "POST":
-        min_x = int(request.POST.get("min_x", ""))
-        min_y = int(request.POST.get("min_y", ""))
-        max_x = int(request.POST.get("max_x", ""))
-        max_y = int(request.POST.get("max_y", ""))
-        landunits = LandUnit.objects.filter(evopic_id__gte=1, x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y).order_by('evopic_id')
-        output = []
-        cur_evo_id = 0
+    try:
+        if request.method == "POST":
+            min_x = int(request.POST.get("min_x", ""))
+            min_y = int(request.POST.get("min_y", ""))
+            max_x = int(request.POST.get("max_x", ""))
+            max_y = int(request.POST.get("max_y", ""))
+            landunits = LandUnit.objects.filter(evopic_id__gte=1, x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
 
-        #Still broken, but making progress
-
-        for landunit in landunits:
-            if landunit.evopic_id > cur_evo_id:
-                cur_evo_id = landunit.evopic_id
-                bob = Evopix.objects.filter(evo_id=cur_evo_id)
-                output.append({"id": cur_evo_id})
-                min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
-
-            min_x = landunit.x if landunit.x < min_x else min_x
-            min_y = landunit.y if landunit.y < min_y else min_y
-            max_x = landunit.x if landunit.x > max_x else max_x
-            max_y = landunit.y if landunit.y > max_y else max_y
-
-
-        for evopic in evopix:
-            bob = Evopic(evopic.evp)
-            output.append({"id": evopic.evo_id})
-            landunits = LandUnit.objects.filter(evopic_id=evopic.evo_id)
-            min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
+            evo_ids = []
             for landunit in landunits:
-                min_x = landunit.x if landunit.x < min_x else min_x
-                min_y = landunit.y if landunit.y < min_y else min_y
-                max_x = landunit.x if landunit.x > max_x else max_x
-                max_y = landunit.y if landunit.y > max_y else max_y
+                if landunit.evopic_id in evo_ids:
+                    continue
+                else:
+                    evo_ids.append(landunit.evopic_id)
 
-            size_x = (max_x - min_x + 1) * 50
-            size_y = (max_y - min_y + 1) * 50
-            output[-1]["svg"] = bob.svg_out(scale=0.1, bounding_box=(size_x, size_y))
-            output[-1]["min_x"] = min_x
-            output[-1]["min_y"] = min_y
-            output[-1]["max_x"] = max_x
-            output[-1]["max_y"] = max_y
+            output = []
+            for evo_id in evo_ids:
+                bob = Evopic(Evopix.objects.filter(evo_id=evo_id).get().evp)
+                output.append({"id": evo_id})
+                min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
+                landunits = LandUnit.objects.filter(evopic_id=evo_id)
+                for landunit in landunits:
+                    min_x = landunit.x if landunit.x < min_x else min_x
+                    min_y = landunit.y if landunit.y < min_y else min_y
+                    max_x = landunit.x if landunit.x > max_x else max_x
+                    max_y = landunit.y if landunit.y > max_y else max_y
 
+                size_x = (max_x - min_x + 1) * 50
+                size_y = (max_y - min_y + 1) * 50
+                output[-1]["svg"] = bob.svg_out(scale=0.1, bounding_box=(size_x, size_y))
+                output[-1]["min_x"] = min_x
+                output[-1]["min_y"] = min_y
+                output[-1]["max_x"] = max_x
+                output[-1]["max_y"] = max_y
 
-        return HttpResponse(json.dumps(output))
+            return HttpResponse(json.dumps(output))
 
-    else:
+        else:
+            return HttpResponse("Fail")
+    except:
+        typ, value, tback = sys.exc_info()
+        print("Error caught! %s" % traceback.print_tb(tback))
         return HttpResponse("Fail")
-
 
 def _move():
     def look(x_depth, y_depth):

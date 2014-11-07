@@ -31,8 +31,6 @@
             var farm_bounds = {min_x: 1, min_y: 1, max_x: 12, max_y: 12};
 
             function populate_map(server_reply) {
-                $("#farm_box").html(server_reply);
-                return;
                 server_reply = JSON.parse(server_reply);
                 var farm_output = "";
                 for (var i = 0; i < server_reply.length; i++) {
