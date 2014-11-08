@@ -110,33 +110,63 @@ def _move():
         max_x = landunit.x if landunit.x > max_x else max_x
         max_y = landunit.y if landunit.y > max_y else max_y
 
-    # List of all possible fences that would prevent the selected evopic from moving
-    blocking_fences = {"bottom": [], "right": [], "left": [], "top": []}
-    # Fences directly adjacent to the evopic, above or below
-    for x in range(min_x, max_x):
-        blocking_fences["top"].append((x, max_y))
-        blocking_fences["bottom"].append((x, min_y))
-    # Edge-on fences in the space above or below the evopic
-    for i in range(max_x - min_x):  # Don't need to include 'left' fences because they are contained in 'right'
-        blocking_fences["right"].append((min_x + i, max_y + 1))
-        blocking_fences["right"].append((min_x + i, max_y - 1))
-    # Fences directly adjacent to the evopic, on either side
-    for y in range(min_y, max_y):
-        blocking_fences["right"].append((max_x, y))
-        blocking_fences["left"].append((min_x, y))
-    # Edge-on fences in the space left or right of the evopic
-    for i in range(max_y - min_y):  # Don't need to include 'bottom' fences because they are contained in 'top'
-        blocking_fences["top"].append((max_x + 1, min_y + i))
-        blocking_fences["top"].append((max_x - 1, min_y + i))
+    # Fences directly adjacent to the evopic
+    def adjacent_top():
+        output = []
+        for x in range(min_x, max_x + 1):
+            output.append((x, max_y))
+        return output
+
+    def adjacent_bottom():
+        output = []
+        for x in range(min_x, max_x + 1):
+            output.append((x, min_y))
+        return output
+
+    def adjacent_right():
+        output = []
+        for y in range(min_y, max_y + 1):
+            output.append((max_x, y))
+        return output
+
+    def adjacent_left():
+        output = []
+        for y in range(min_y, max_y + 1):
+            output.append((min_x, y))
+        return output
+
+    def edge_top():
+        output = []
+        for i in range(max_x - min_x):
+           output.append((min_x + i, max_y + 1))
+        return output
+
+    def edge_bottom():
+        output = []
+        for i in range(max_x - min_x):
+           output.append((min_x + i, min_y - 1))
+        return output
+
+    def edge_right():
+        output = []
+        for i in range(max_y - min_y):
+           output.append((max_x + 1, min_y + i))
+        return output
+
+    def edge_left():
+        output = []
+        for i in range(max_y - min_y):
+           output.append((min_x - 1, min_y + i))
+        return output
 
     direction = choice(["up", "down", "left", "right"])
     if direction == "up":
         neighborhood = look(0, 1)
         for unit in neighborhood["fences"]["top"]:
-            if unit in blocking_fences["top"]:
+            if unit in adjacent_top():
                 return "Fences above"
         for unit in neighborhood["fences"]["right"]:
-            if unit in blocking_fences["right"]:
+            if unit in edge_top():
                 return "Fence in adjacent cells above"
 
         new_landunits = LandUnit.objects.filter(y=max_y + 1, x__gte=min_x, x__lte=max_x)
@@ -145,10 +175,10 @@ def _move():
     elif direction == "down":
         neighborhood = look(0, -1)
         for unit in neighborhood["fences"]["bottom"]:
-            if unit in blocking_fences["bottom"]:
+            if unit in adjacent_bottom():
                 return "Fences below"
         for unit in neighborhood["fences"]["right"]:
-            if unit in blocking_fences["right"]:
+            if unit in edge_bottom():
                 return "Fence in adjacent cells below"
 
         new_landunits = LandUnit.objects.filter(y=min_y - 1, x__gte=min_x, x__lte=max_x)
@@ -157,10 +187,10 @@ def _move():
     elif direction == "right":
         neighborhood = look(1, 0)
         for unit in neighborhood["fences"]["right"]:
-            if unit in blocking_fences["right"]:
+            if unit in adjacent_right():
                 return "Fence to right"
         for unit in neighborhood["fences"]["top"]:
-            if unit in blocking_fences["top"]:
+            if unit in edge_right():
                 return "Fence in adjacent cells to right"
 
         new_landunits = LandUnit.objects.filter(x=max_x + 1, y__gte=min_y, y__lte=max_y)
@@ -169,10 +199,10 @@ def _move():
     else:  # direction == 'left'
         neighborhood = look(-1, 0)
         for unit in neighborhood["fences"]["left"]:
-            if unit in blocking_fences["left"]:
+            if unit in adjacent_left():
                 return "Fence to left"
         for unit in neighborhood["fences"]["top"]:
-            if unit in blocking_fences["top"]:
+            if unit in edge_left():
                 return "Fence in adjacent cells to left"
 
         new_landunits = LandUnit.objects.filter(x=min_x - 1, y__gte=min_y, y__lte=max_y)

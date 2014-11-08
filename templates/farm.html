@@ -28,7 +28,7 @@
     <script src="{% static 'js/ajax.js' %}"></script>
     <script>
         $(document).ready(function(){
-            var farm_bounds = {min_x: 1, min_y: 1, max_x: 12, max_y: 12};
+            var farm_bounds = {min_x: 2, min_y: 2, max_x: 11, max_y: 11};
 
             function populate_map(server_reply) {
                 server_reply = JSON.parse(server_reply);
@@ -36,8 +36,8 @@
                 for (var i = 0; i < server_reply.length; i++) {
                     var width = (server_reply[i].max_x - server_reply[i].min_x + 1) * 50;
                     var height = (server_reply[i].max_y - server_reply[i].min_y + 1) * 50;
-                    var x = (server_reply[i].min_x - 1) / 10 * 100;
-                    var y = (server_reply[i].min_y - 1) / 10 * 100;
+                    var x = (server_reply[i].min_x - farm_bounds["min_x"]) / 10 * 100;
+                    var y = (server_reply[i].min_y - farm_bounds["min_y"]) / 10 * 100;
 
                     farm_output += "<span class='evopic_bounding_box' style='width:" + width + "px; height:" +
                             height + "px; left: " + x + "%; bottom: " + y + "%'><span class='evopic'>" +
