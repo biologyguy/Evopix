@@ -169,7 +169,7 @@ class Evopic():
         self.min_max_points = {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y}
 
     def reconstruct_evp(self):
-        """Reconstruct evp genome from self.paths attribs. Used by zero_evp() in breeding.py."""
+        """Reconstruct evp genome from self.paths attribs"""
         new_evp = "e%s:%s;%s;%s;%s\n" % (self.id, self.min_max_points["min_x"], self.min_max_points["min_y"],
                                          self.min_max_points["max_x"], self.min_max_points["max_y"])
         for path_id in self.paths_order:

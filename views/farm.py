@@ -211,7 +211,9 @@ def _move():
     if len(neighborhood["evopix"]) > 0:
         evopic = Evopix.objects.filter(evo_id=evo_id).get().evp
         mate = Evopix.objects.filter(evo_id=choice(neighborhood["evopix"])[0]).get().evp
-        breed(evopic, mate)
+        baby = breed(evopic, mate)
+        print(baby.min_max_points)
+
         return "Breeding"
 
     else:
