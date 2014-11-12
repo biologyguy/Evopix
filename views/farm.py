@@ -10,6 +10,17 @@ import traceback
 from django.contrib.auth.decorators import login_required
 
 
+# Support functions
+def find_min_max(landunits):
+    min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
+    for landunit in landunits:
+        min_x = landunit.x if landunit.x < min_x else min_x
+        min_y = landunit.y if landunit.y < min_y else min_y
+        max_x = landunit.x if landunit.x > max_x else max_x
+        max_y = landunit.y if landunit.y > max_y else max_y
+    return [min_x, min_y, max_x, max_y]
+
+
 # Create your views here.
 def welcome(request):
     return render(request, 'templates/welcome.html')
@@ -22,8 +33,15 @@ def bob(request):
 
 @login_required
 def farm(request):
-    bob = Evopic(Evopix.objects.all()[1].evp)
-    return render(request, 'templates/farm.html', {"svg": bob.svg_out(), "evp": bob.evp})
+    if request.user.is_authenticated():
+        user_id = request.user.id
+    else:
+        return HttpResponse("Something has gone wrong... Can't find your user name in farm view.")
+
+    landunits = LandUnit.objects.filter(user_id=user_id)
+    min_x, min_y, max_x, max_y = find_min_max(landunits)
+
+    return render(request, 'templates/farm.html', {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y})
 
 
 # AJAX called functions below here.
@@ -47,13 +65,9 @@ def populate_map(request):
             for evo_id in evo_ids:
                 bob = Evopic(Evopix.objects.filter(evo_id=evo_id).get().evp)
                 output.append({"id": evo_id})
-                min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
+
                 landunits = LandUnit.objects.filter(evopic_id=evo_id)
-                for landunit in landunits:
-                    min_x = landunit.x if landunit.x < min_x else min_x
-                    min_y = landunit.y if landunit.y < min_y else min_y
-                    max_x = landunit.x if landunit.x > max_x else max_x
-                    max_y = landunit.y if landunit.y > max_y else max_y
+                min_x, min_y, max_x, max_y = find_min_max(landunits)
 
                 size_x = (max_x - min_x + 1) * 50
                 size_y = (max_y - min_y + 1) * 50

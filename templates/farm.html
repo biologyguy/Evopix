@@ -5,12 +5,18 @@
     <title></title>
     <style>
         #farm_box {
-        position:   fixed;
-        top:        100px;
-        left:       100px;
-        width:      500px;
-        height:     500px;
-        border:     solid thin black;
+            position: fixed;
+            top:      100px;
+            left:     100px;
+            width:    500px;
+            height:   500px;
+        }
+
+        #dev_box {
+            position: fixed;
+            top:    610px;
+            left:   100px;
+            border: solid thin black;
         }
 
         .evopic_bounding_box {
@@ -28,7 +34,7 @@
     <script src="{% static 'js/ajax.js' %}"></script>
     <script>
         $(document).ready(function(){
-            var farm_bounds = {min_x: 2, min_y: 2, max_x: 11, max_y: 11};
+            var farm_bounds = {min_x: {{min_x}}, min_y: {{min_y}}, max_x: {{max_x}}, max_y: {{max_y}}};
 
             function populate_map(server_reply) {
                 server_reply = JSON.parse(server_reply);

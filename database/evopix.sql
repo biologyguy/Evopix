@@ -136,6 +136,7 @@ CREATE PROCEDURE `myFunction`()
       UPDATE `world_landunit` SET `t_fence_id`=1  WHERE (`y` = (max_size - 1) AND `x` >= 2 AND `x` <= (max_size - 1)) OR (`y` = 1  AND `x` >= 2 AND `x` <= (max_size - 1));
       UPDATE `world_landunit` SET `l_fence_id`=1  WHERE (`x` = 2  AND `y` >= 2 AND `y` <= (max_size - 1)) OR (`x` = max_size AND `y` >= 2 AND `y` <= (max_size - 1));
       UPDATE `world_landunit` SET `r_fence_id`=1  WHERE (`x` = (max_size - 1) AND `y` >= 2 AND `y` <= (max_size - 1)) OR (`x` = 1  AND `y` >= 2 AND `y` <= (max_size - 1));
+      UPDATE `world_landunit` SET `user_id`=1 WHERE `x`>=2 AND `x`<=11 AND `y`>=2 AND `y`<=11;
 
       -- TEMP: Testing farm fence --
       UPDATE `world_landunit` SET `b_fence_id`=1  WHERE `y` = 12  AND `x` >= 2 AND `x` <= 11;

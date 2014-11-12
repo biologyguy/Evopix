@@ -1,5 +1,6 @@
 from evp.models import Evopix
 from django.db import models
+from django.contrib.auth.models import User
 
 
 # Create your models here.
@@ -25,6 +26,7 @@ class LandUnit(models.Model):
     r_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesR', null=True)
     t_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesT', null=True)
     b_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesB', null=True)
+    user = models.ForeignKey(User, null=True)
 
     class Meta:
         unique_together = ('x', 'y',)
