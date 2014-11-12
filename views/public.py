@@ -1,16 +1,46 @@
 # - * - Coding: utf -8 - * -
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
+
 from evp.models import *
 from resources.Evo import Evopic
 from resources import mutation, breed
 import re
 
+
 # Create your views here.
 def index(request):
-    bob = Evopic(Evopix.objects.get(evo_id=1).evp)
-    list_of_stuff = ["Juice", 23, {"name": "Joe", "age": 98}]
-    return render(request, 'templates/index.html', {"bob": bob.svg_out(), "list_of_stuff": list_of_stuff})
+    return render(request, 'templates/index.html')
+
+
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+
+        user = authenticate(username=username, password=password)
+
+        if user:  # `NONE` is returned if a user isn't found
+            if user.is_active:
+                login(request, user)
+                return HttpResponseRedirect('/farm')
+            else:  # Account is inactive
+                return HttpResponse("Your Evopix account is disabled.")
+        else:
+            print("Invalid login details: {0}, {1}".format(username, password))
+            return HttpResponse("Invalid login details supplied.")
+
+    # The request is not a HTTP POST, so display the login form.
+    else:
+        print("Why not POST?")
+        return render(request, 'templates/index.html')
+
+
+def user_logout(request):
+    #Handle the user's desire to log out
+    x = 1
 
 
 def not_found(request):

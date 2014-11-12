@@ -7,6 +7,7 @@ from world.models import *
 from resources.breed import *
 import json
 import traceback
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
@@ -19,6 +20,7 @@ def bob(request):
     return HttpResponse(bob_db.svg_out())
 
 
+@login_required
 def farm(request):
     bob = Evopic(Evopix.objects.all()[1].evp)
     return render(request, 'templates/farm.html', {"svg": bob.svg_out(), "evp": bob.evp})

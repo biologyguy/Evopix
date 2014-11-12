@@ -51,7 +51,7 @@
                 populate_map(data);
             });
 
-            $("#move_evos").click(function(){
+            {% comment %}$("#move_evos").click(function(){
                 $.post("{% url 'move' %}", function(test,status){
                     if(test) {
                         $.post("{% url 'populate_map' %}", farm_bounds, function(data, status) {
@@ -59,7 +59,7 @@
                         });
                     }
                 });
-            });
+            });{% endcomment %}
         });
     </script>
 
@@ -67,6 +67,6 @@
 </head>
 <body>
 <div id="farm_box"></div>
-<input type="button" id="move_evos" value="Click!" />
+{#<input type="button" id="move_evos" value="Click!" />#}
 </body>
 </html>
