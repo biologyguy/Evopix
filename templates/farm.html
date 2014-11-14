@@ -10,12 +10,14 @@
             left:     100px;
             width:    500px;
             height:   500px;
+            background-color: #cbfbb0;
         }
 
         #dev_box {
             position: fixed;
             top:    610px;
             left:   100px;
+            width:  350px;
             border: solid thin black;
         }
 
@@ -28,6 +30,60 @@
         .evopic {
             position: relative;
         }
+
+        #nav_buttons{
+            position: fixed;
+            top:      610px;
+            left:     500px;
+            border: solid thin black;
+        }
+
+        #right_button {
+            background: url({% static 'img/arrowhead_right_button.png' %}) no-repeat transparent;
+            width:14px;
+            height:19px;
+
+        }
+
+        #right_button:hover {
+            background-image: url({% static 'img/arrowhead_right_button_hover.png' %});
+        }
+
+        #right_button:active {
+            background-image: url({% static 'img/arrowhead_right_button_click.png' %});
+        }
+
+        #left_button {
+            background: url({% static 'img/arrowhead_left_button.png' %}) no-repeat transparent;
+            width:14px;
+            height:19px;
+
+        }
+
+        #left_button:hover {
+            background-image: url({% static 'img/arrowhead_left_button_hover.png' %});
+        }
+
+        #left_button:active {
+            background-image: url({% static 'img/arrowhead_left_button_click.png' %});
+        }
+
+
+        #down_button {
+            background: url({% static 'img/arrowhead_down_simp.png' %}) no-repeat transparent;
+            width:14px;
+            height:19px;
+
+        }
+
+        #down_button:hover {
+            background-image: url({% static 'img/arrowhead_down_simp.png' %});
+        }
+
+        #down_button:active {
+            background-image: url({% static 'img/arrowhead_down_simp.png' %});
+        }
+
     </style>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="{% static 'js/jquery-cookie/jquery.cookie.js' %}"></script>
@@ -74,5 +130,26 @@
 <body>
 <div id="farm_box"></div>
 {#<input type="button" id="move_evos" value="Click!" />#}
+<div id="dev_box"></div>
+<div id="nav_buttons">
+    <table>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td style="width: 15px;"><div id='left_button'></div></td>
+            <td></td>
+            <td style="width: 15px;"><div id='right_button'></div></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><div id='down_button'></div></td>
+            <td></td>
+        </tr>
+    </table>
+
+</div>
 </body>
 </html>
