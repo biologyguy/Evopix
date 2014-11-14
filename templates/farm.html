@@ -84,6 +84,21 @@
             background-image: url({% static 'img/arrowhead_down_simp.png' %});
         }
 
+        #up_button {
+            background: url({% static 'img/arrowhead_down_simp.png' %}) no-repeat transparent;
+            width:14px;
+            height:19px;
+
+        }
+
+        #up_button:hover {
+            background-image: url({% static 'img/arrowhead_down_simp.png' %});
+        }
+
+        #up_button:active {
+            background-image: url({% static 'img/arrowhead_down_simp.png' %});
+        }
+
     </style>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="{% static 'js/jquery-cookie/jquery.cookie.js' %}"></script>
@@ -91,6 +106,14 @@
     <script>
         $(document).ready(function(){
             var farm_bounds = {min_x: {{min_x}}, min_y: {{min_y}}, max_x: {{max_x}}, max_y: {{max_y}}};
+
+            function post_populate_map()
+                {
+                $.post ("{% url 'populate_map' %}",  farm_bounds, function(data, status)
+                    {
+                    populate_map(data);
+                    }  );
+                }
 
             function populate_map(server_reply) {
                 server_reply = JSON.parse(server_reply);
@@ -109,9 +132,33 @@
                 }
             }
 
-            $.post("{% url 'populate_map' %}",  farm_bounds, function(data, status) {
-                populate_map(data);
+            $("#left_button").click(function(){
+                farm_bounds["min_x"] - 2 >= 1 ? farm_bounds["min_x"] -= 2 : farm_bounds["min_x"] = 1;
+                farm_bounds["max_x"] = farm_bounds["min_x"] + 10;
+                $("#dev_box").html(farm_bounds["min_x"] + " " + farm_bounds["max_x"]);
+                post_populate_map();
             });
+
+            $("#right_button").click(function(){
+                farm_bounds["max_x"] + 2 <= 20 ? farm_bounds["max_x"] += 2 : farm_bounds["max_x"] = 20;
+                farm_bounds["min_x"] = farm_bounds["max_x"] - 10;
+                $("#dev_box").html(farm_bounds["min_x"] + " " + farm_bounds["max_x"]);
+                post_populate_map();
+            });
+
+            $("#down_button").click(function(){
+                farm_bounds["min_y"] - 2 >= 1 ? farm_bounds["min_y"] -= 2 : farm_bounds["min_y"] = 1;
+                farm_bounds["max_y"] = farm_bounds["min_y"] + 10;
+                post_populate_map();
+            });
+
+            $("#up_button").click(function(){
+                farm_bounds["max_y"] + 2 <= 20 ? farm_bounds["max_y"] += 2 : farm_bounds["max_y"] = 20;
+                farm_bounds["min_y"] = farm_bounds["max_y"] - 10;
+                post_populate_map();
+            });
+
+            post_populate_map();
 
             {% comment %}$("#move_evos").click(function(){
                 $.post("{% url 'move' %}", function(test,status){
@@ -135,7 +182,7 @@
     <table>
         <tr>
             <td></td>
-            <td></td>
+            <td><div id='up_button'></div></td>
             <td></td>
         </tr>
         <tr>
