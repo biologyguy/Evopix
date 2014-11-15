@@ -32,3 +32,7 @@ class LandUnit(models.Model):
         unique_together = ('x', 'y',)
 
 
+class UserInfo(models.Model):
+    user = models.ForeignKey(User)
+    farm_midpoint = models.ForeignKey(LandUnit)
+    virtual_cash = models.IntegerField(default=0)

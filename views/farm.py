@@ -37,9 +37,10 @@ def farm(request):
         user_id = request.user.id
     else:
         return HttpResponse("Something has gone wrong... Can't find your user name in farm view.")
+    midpoint = UserInfo.objects.filter(user_id=user_id)[0].farm_midpoint_id
+    midpoint = LandUnit.objects.filter(land_id=midpoint)[0]
 
-    landunits = LandUnit.objects.filter(user_id=user_id)
-    min_x, min_y, max_x, max_y = find_min_max(landunits)
+    min_x, min_y, max_x, max_y = midpoint.x - 5, midpoint.y - 5, midpoint.x + 5, midpoint.y + 5
 
     return render(request, 'templates/farm.html', {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y})
 
