@@ -46,12 +46,19 @@ def farm(request):
 
 # AJAX called functions below here.
 def populate_map(request):
+    max_allowable_data = 40
+
     try:
         if request.method == "POST":
             min_x = int(request.POST.get("min_x", ""))
             min_y = int(request.POST.get("min_y", ""))
             max_x = int(request.POST.get("max_x", ""))
             max_y = int(request.POST.get("max_y", ""))
+
+            # fail if someone trys to get more data than I want them to get...
+            if max_x - min_x > max_allowable_data or max_y - min_y > max_allowable_data:
+                return HttpResponse("Nope, not going to give you that much of the world... Sorry.")
+
             landunits = LandUnit.objects.filter(evopic_id__gte=1, x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
 
             evo_ids = []

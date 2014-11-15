@@ -93,7 +93,7 @@ DATE_FORMAT = "Y-m-d"
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
-STATIC_URL = '/static/'
-STATICFILES_DIRS = (os.path.join(PROJECT_ROOT, '../static/'), )
+STATIC_URL = "/static/"
+STATICFILES_DIRS = ("static", os.path.join(PROJECT_ROOT, "../static/"), )
 
 LOGIN_URL = "/"
