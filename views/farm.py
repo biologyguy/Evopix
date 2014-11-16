@@ -9,6 +9,8 @@ import json
 import traceback
 from django.contrib.auth.decorators import login_required
 
+# magic numbers... need to keep track manually for now
+world_size = {"x": 20, "y": 20}
 
 # Support functions
 def find_min_max(landunits):
@@ -52,19 +54,43 @@ def populate_map(request):
             zoom = int(request.POST.get("zoom", ""))  # Currently only 1 zoom level (10) implemented
 
             midpoint = LandUnit.objects.filter(land_id=midpoint)[0]
-            print(midpoint.land_id)
+            update_midpoint = False
+
             if zoom == 10:
-                min_x = midpoint.x - 6
-                min_y = midpoint.y - 6
-                max_x = midpoint.x + 6
-                max_y = midpoint.y + 6
+                # Handel all the edge-of-world cases
+                if not midpoint.x - 6 >= 1:
+                    update_midpoint = True
+                    min_x = 1
+                    max_x = 13
+                else:
+                    if not midpoint.x + 6 <= world_size["x"]:
+                        update_midpoint = True
+                        min_x = world_size["x"] - 12
+                        max_x = world_size["x"]
+                    else:
+                        min_x = midpoint.x - 6
+                        max_x = midpoint.x + 6
+
+                if not midpoint.y - 6 >= 1:
+                    update_midpoint = True
+                    min_y = 1
+                    max_y = 13
+                else:
+                    if not midpoint.y + 6 <= world_size["y"]:
+                        update_midpoint = True
+                        min_y = world_size["y"] - 12
+                        max_y = world_size["y"]
+                    else:
+                        min_y = midpoint.y - 6
+                        max_y = midpoint.y + 6
+
                 b_box_siz = 50
                 svg_scale_factor = 0.1
+                if update_midpoint:
+                    midpoint = LandUnit.objects.filter(x=min_x + 6, y=min_y + 6)[0]
 
             else:
                 return HttpResponse("Don't know what to do with that zoom level... Sorry.")
-
-            print(min_x, min_y, max_x, max_y)
 
             # Store land type colors so as not to query the database over and over
             land_types = {}
@@ -73,6 +99,7 @@ def populate_map(request):
                 land_types[land_type.type_id] = land_type.base_color
 
             evo_ids = []
+            print(min_x, min_y, max_x, max_y)
             landunits_q = LandUnit.objects.filter(x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
             for landunit in landunits_q:
                 output["land"].append({"x": landunit.x, "y": landunit.y, "land_id": landunit.land_id,
@@ -98,6 +125,7 @@ def populate_map(request):
                 output["evopix"][-1]["max_x"] = max_x
                 output["evopix"][-1]["max_y"] = max_y
 
+            output["midpoint"] = midpoint.land_id
             output = json.dumps(output)
             return HttpResponse(output)
 

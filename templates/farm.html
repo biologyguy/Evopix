@@ -156,8 +156,10 @@
     <script src="{%static 'js/ajax.js' %}"></script>
     <script>
         $(document).ready(function(){
-            var farm_bounds = {min_x: 9999999999, min_y: 9999999999, max_x: 0, max_y: 0, width: 0, height: 0};
+            var farm_bounds;
+            var visible_land;  // [x, y] index ids
             var midpoint = {{ midpoint }};
+            var midcoords;  // [x, y]
 
             function post_populate_map()
                 {
@@ -169,14 +171,22 @@
 
             function populate_map(server_reply) {
                 server_reply = JSON.parse(server_reply);
-                var farm_output = "";
+
+                $("#farm_box").empty();
+                visible_land = {};
+                farm_bounds = {min_x: 9999999999, min_y: 9999999999, max_x: 0, max_y: 0, width: 0, height: 0};
+                midpoint = server_reply.midpoint;
 
                 for (var i = 0; i < server_reply.land.length; i++) {
                     var land_unit = server_reply.land[i];
                     land_unit.x < farm_bounds["min_x"] ? farm_bounds["min_x"] = land_unit.x : farm_bounds["min_x"] = farm_bounds["min_x"];
-                    land_unit.y < farm_bounds["min_y"] ? farm_bounds["min_y"] = land_unit.x : farm_bounds["min_y"] = farm_bounds["min_y"];
+                    land_unit.y < farm_bounds["min_y"] ? farm_bounds["min_y"] = land_unit.y : farm_bounds["min_y"] = farm_bounds["min_y"];
                     land_unit.x > farm_bounds["max_x"] ? farm_bounds["max_x"] = land_unit.x : farm_bounds["max_x"] = farm_bounds["max_x"];
-                    land_unit.y > farm_bounds["max_y"] ? farm_bounds["max_y"] = land_unit.x : farm_bounds["max_y"] = farm_bounds["max_y"];
+                    land_unit.y > farm_bounds["max_y"] ? farm_bounds["max_y"] = land_unit.y : farm_bounds["max_y"] = farm_bounds["max_y"];
+                    visible_land[[land_unit.x, land_unit.y]] = land_unit.land_id;
+                    if (land_unit.land_id == midpoint) {
+                        midcoords = [land_unit.x, land_unit.y]
+                    }
                 }
 
                 farm_bounds["width"] = farm_bounds["max_x"] - farm_bounds["min_x"] + 1;
@@ -186,10 +196,8 @@
                     land_unit = server_reply.land[i];
                     var left = (land_unit.x - farm_bounds["min_x"]) / farm_bounds["width"] * 100;
                     var top = (land_unit.y - farm_bounds["min_y"]) / farm_bounds["height"] * 100;
-                    farm_output += "<div class='landunit' style='background-color:#" + land_unit.color + "; left:" + left + "%; top:" + top + "%;'></div>";
+                    $("#farm_box").append("<div class='landunit' style='background-color:#" + land_unit.color + "; left:" + left + "%; bottom:" + top + "%;'></div>")
                 }
-
-                $("#dev_box").html(farm_bounds["min_y"]);
 
                 for (var i = 0; i < server_reply.evopix.length; i++) {
                     var evopic = server_reply.evopix[i];
@@ -198,35 +206,41 @@
                     var x = (evopic.min_x - farm_bounds["min_x"]) / farm_bounds["width"] * 100;
                     var y = (evopic.min_y - farm_bounds["min_y"]) / farm_bounds["height"] * 100;
 
-                    farm_output += "<div class='evopic_bounding_box' style='width:" + width + "px; height:" + height + "px; left: " + x + "%; bottom: " + y + "%'><div class='evopic'>" + evopic.svg + "</div></div>";
-
+                    $("#farm_box").append("<div class='evopic_bounding_box' style='width:" + width + "px; height:" + height + "px; left: " + x + "%; bottom: " + y + "%'><div class='evopic'>" + evopic.svg + "</div></div>");
                 }
-                $("#farm_box").html(farm_output);
+                $("#dev_box").html(JSON.stringify(farm_bounds));
+
             }
 
             $("#left_button").click(function(){
-                farm_bounds["min_x"] - 2 >= 1 ? farm_bounds["min_x"] -= 2 : farm_bounds["min_x"] = 1;
-                farm_bounds["max_x"] = farm_bounds["min_x"] + 10;
-                $("#dev_box").html(farm_bounds["min_x"] + " " + farm_bounds["max_x"]);
+                var x, y;
+                x = midcoords[0] - 2;
+                y = midcoords[1];
+                midpoint = visible_land[[x, y]];
                 post_populate_map();
             });
 
             $("#right_button").click(function(){
-                farm_bounds["max_x"] + 2 <= 20 ? farm_bounds["max_x"] += 2 : farm_bounds["max_x"] = 20;
-                farm_bounds["min_x"] = farm_bounds["max_x"] - 10;
-                $("#dev_box").html(farm_bounds["min_x"] + " " + farm_bounds["max_x"]);
+                var x, y;
+                x = midcoords[0] + 2;
+                y = midcoords[1];
+                midpoint = visible_land[[x, y]];
                 post_populate_map();
             });
 
             $("#down_button").click(function(){
-                farm_bounds["min_y"] - 2 >= 1 ? farm_bounds["min_y"] -= 2 : farm_bounds["min_y"] = 1;
-                farm_bounds["max_y"] = farm_bounds["min_y"] + 10;
+                var x, y;
+                x = midcoords[0];
+                y = midcoords[1] - 2;
+                midpoint = visible_land[[x, y]];
                 post_populate_map();
             });
 
             $("#up_button").click(function(){
-                farm_bounds["max_y"] + 2 <= 20 ? farm_bounds["max_y"] += 2 : farm_bounds["max_y"] = 20;
-                farm_bounds["min_y"] = farm_bounds["max_y"] - 10;
+                var x, y;
+                x = midcoords[0];
+                y = midcoords[1] + 2;
+                midpoint = visible_land[[x, y]];
                 post_populate_map();
             });
 
