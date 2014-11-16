@@ -14,6 +14,7 @@ class FenceTypes(models.Model):
     fence_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=40)
     description = models.TextField()
+    img_location = models.TextField()
 
 
 class LandUnit(models.Model):

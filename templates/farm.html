@@ -6,18 +6,18 @@
     <style>
         #farm_box {
             position: fixed;
-            top:      100px;
-            left:     100px;
-            width:    500px;
-            height:   500px;
-            background-color: #cbfbb0;
+            top:      0px;
+            left:     0px;
+            width:    650px;
+            height:   650px;
+{#            background-color: #cbfbb0;#}
         }
 
         #visible_top {
             position: fixed;
-            top:     50px;
-            left:    50px;
-            width:  600px;
+            top:     0px;
+            left:    0px;
+            width:  650px;
             height:  50px;
             border: solid thin red;
             background: repeat-x url({% static 'img/fade_up.png' %});
@@ -26,8 +26,8 @@
         #visible_bottom {
             position: fixed;
             top:   600px;
-            left:   50px;
-            width: 600px;
+            left:   0px;
+            width: 650px;
             height: 50px;
             border: solid thin red;
             background: repeat-x url({% static 'img/fade_down.png' %});
@@ -35,28 +35,28 @@
 
         #visible_left {
             position: fixed;
-            top:    50px;
-            left:   50px;
+            top:    0px;
+            left:   0px;
             width:  50px;
-            height: 600px;
+            height: 650px;
             border: solid thin red;
             background: repeat-y url({% static 'img/fade_left.png' %});
         }
 
         #visible_right {
             position: fixed;
-            top:    50px;
+            top:    0px;
             left:  600px;
             width:  50px;
-            height:600px;
+            height:650px;
             border: solid thin red;
             background: repeat-y url({% static 'img/fade_right.png' %});
         }
 
         #dev_box {
             position: fixed;
-            top:    660px;
-            left:   100px;
+            top:    100px;
+            left:   700px;
             width:  350px;
             border: solid thin black;
         }
@@ -72,8 +72,8 @@
 
         #nav_buttons{
             position: fixed;
-            top:      660px;
-            left:     500px;
+            top:      20px;
+            left:     700px;
             border: solid thin black;
         }
 
@@ -138,17 +138,30 @@
             background-image: url({% static 'img/arrowhead_down_simp.png' %});
         }
 
+        .landunit {
+            position: absolute;
+            width: 50px;
+            height: 50px;;
+            border: solid thin black;
+        }
+
+        .landunit:hover {
+            background-image: url({% static 'img/land_unit_hover.png' %});
+            border: solid thin red;
+        }
+
     </style>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="{%static 'js/jquery-cookie/jquery.cookie.js' %}"></script>
     <script src="{%static 'js/ajax.js' %}"></script>
     <script>
         $(document).ready(function(){
-            var farm_bounds = {min_x: {{min_x}}, min_y: {{min_y}}, max_x: {{max_x}}, max_y: {{max_y}}};
+            var farm_bounds = {min_x: 9999999999, min_y: 9999999999, max_x: 0, max_y: 0, width: 0, height: 0};
+            var midpoint = {{ midpoint }};
 
             function post_populate_map()
                 {
-                $.post ("{% url 'populate_map' %}",  farm_bounds, function(data, status)
+                $.post ("{% url 'populate_map' %}",  {"midpoint": midpoint, "zoom": 10}, function(data, status)
                     {
                     populate_map(data);
                     }  );
@@ -158,15 +171,34 @@
                 server_reply = JSON.parse(server_reply);
                 var farm_output = "";
 
-                for (var i = 0; i < server_reply.length; i++) {
-                    var width = (server_reply[i].max_x - server_reply[i].min_x + 1) * 50;
-                    var height = (server_reply[i].max_y - server_reply[i].min_y + 1) * 50;
-                    var x = (server_reply[i].min_x - farm_bounds["min_x"]) / 10 * 100;
-                    var y = (server_reply[i].min_y - farm_bounds["min_y"]) / 10 * 100;
+                for (var i = 0; i < server_reply.land.length; i++) {
+                    var land_unit = server_reply.land[i];
+                    land_unit.x < farm_bounds["min_x"] ? farm_bounds["min_x"] = land_unit.x : farm_bounds["min_x"] = farm_bounds["min_x"];
+                    land_unit.y < farm_bounds["min_y"] ? farm_bounds["min_y"] = land_unit.x : farm_bounds["min_y"] = farm_bounds["min_y"];
+                    land_unit.x > farm_bounds["max_x"] ? farm_bounds["max_x"] = land_unit.x : farm_bounds["max_x"] = farm_bounds["max_x"];
+                    land_unit.y > farm_bounds["max_y"] ? farm_bounds["max_y"] = land_unit.x : farm_bounds["max_y"] = farm_bounds["max_y"];
+                }
 
-                    farm_output += "<span class='evopic_bounding_box' style='width:" + width + "px; height:" +
-                            height + "px; left: " + x + "%; bottom: " + y + "%'><span class='evopic'>" +
-                            server_reply[i].svg + "</span></span>";
+                farm_bounds["width"] = farm_bounds["max_x"] - farm_bounds["min_x"] + 1;
+                farm_bounds["height"] = farm_bounds["max_y"] - farm_bounds["min_y"] + 1;
+
+                for (var i = 0; i < server_reply.land.length; i++) {
+                    land_unit = server_reply.land[i];
+                    var left = (land_unit.x - farm_bounds["min_x"]) / farm_bounds["width"] * 100;
+                    var top = (land_unit.y - farm_bounds["min_y"]) / farm_bounds["height"] * 100;
+                    farm_output += "<div class='landunit' style='background-color:#" + land_unit.color + "; left:" + left + "%; top:" + top + "%;'></div>";
+                }
+
+                $("#dev_box").html(farm_bounds["min_y"]);
+
+                for (var i = 0; i < server_reply.evopix.length; i++) {
+                    var evopic = server_reply.evopix[i];
+                    var width = (evopic.max_x - evopic.min_x + 1) * 50;
+                    var height = (evopic.max_y - evopic.min_y + 1) * 50;
+                    var x = (evopic.min_x - farm_bounds["min_x"]) / farm_bounds["width"] * 100;
+                    var y = (evopic.min_y - farm_bounds["min_y"]) / farm_bounds["height"] * 100;
+
+                    farm_output += "<div class='evopic_bounding_box' style='width:" + width + "px; height:" + height + "px; left: " + x + "%; bottom: " + y + "%'><div class='evopic'>" + evopic.svg + "</div></div>";
 
                 }
                 $("#farm_box").html(farm_output);
@@ -239,7 +271,6 @@
             <td></td>
         </tr>
     </table>
-
 </div>
 </body>
 </html>

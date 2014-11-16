@@ -40,54 +40,69 @@ def farm(request):
     midpoint = UserInfo.objects.filter(user_id=user_id)[0].farm_midpoint_id
     midpoint = LandUnit.objects.filter(land_id=midpoint)[0]
 
-    min_x, min_y, max_x, max_y = midpoint.x - 5, midpoint.y - 5, midpoint.x + 5, midpoint.y + 5
-
-    return render(request, 'templates/farm.html', {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y})
+    return render(request, 'templates/farm.html', {"midpoint": midpoint.land_id})
 
 
 # AJAX called functions below here.
 def populate_map(request):
-    max_allowable_data = 40
-
     try:
         if request.method == "POST":
-            min_x = int(request.POST.get("min_x", ""))
-            min_y = int(request.POST.get("min_y", ""))
-            max_x = int(request.POST.get("max_x", ""))
-            max_y = int(request.POST.get("max_y", ""))
+            output = {"land": [], "evopix": []}
+            midpoint = int(request.POST.get("midpoint", ""))
+            zoom = int(request.POST.get("zoom", ""))  # Currently only 1 zoom level (10) implemented
 
-            # fail if someone trys to get more data than I want them to get...
-            if max_x - min_x > max_allowable_data or max_y - min_y > max_allowable_data:
-                return HttpResponse("Nope, not going to give you that much of the world... Sorry.")
+            midpoint = LandUnit.objects.filter(land_id=midpoint)[0]
+            print(midpoint.land_id)
+            if zoom == 10:
+                min_x = midpoint.x - 6
+                min_y = midpoint.y - 6
+                max_x = midpoint.x + 6
+                max_y = midpoint.y + 6
+                b_box_siz = 50
+                svg_scale_factor = 0.1
 
-            landunits = LandUnit.objects.filter(evopic_id__gte=1, x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
+            else:
+                return HttpResponse("Don't know what to do with that zoom level... Sorry.")
+
+            print(min_x, min_y, max_x, max_y)
+
+            # Store land type colors so as not to query the database over and over
+            land_types = {}
+            land_types_q = LandTypes.objects.all()
+            for land_type in land_types_q:
+                land_types[land_type.type_id] = land_type.base_color
 
             evo_ids = []
-            for landunit in landunits:
-                if landunit.evopic_id in evo_ids:
-                    continue
-                else:
-                    evo_ids.append(landunit.evopic_id)
+            landunits_q = LandUnit.objects.filter(x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
+            for landunit in landunits_q:
+                output["land"].append({"x": landunit.x, "y": landunit.y, "land_id": landunit.land_id,
+                                       "color": land_types[landunit.type_id], "t_fence": landunit.t_fence_id,
+                                       "r_fence": landunit.r_fence_id})
 
-            output = []
+                if landunit.evopic_id:
+                    if landunit.evopic_id not in evo_ids:
+                        evo_ids.append(landunit.evopic_id)
+
             for evo_id in evo_ids:
-                bob = Evopic(Evopix.objects.filter(evo_id=evo_id).get().evp)
-                output.append({"id": evo_id})
+                evopic = Evopic(Evopix.objects.filter(evo_id=evo_id).get().evp)
+                output["evopix"].append({"id": evo_id})
 
-                landunits = LandUnit.objects.filter(evopic_id=evo_id)
-                min_x, min_y, max_x, max_y = find_min_max(landunits)
+                landunits_q = LandUnit.objects.filter(evopic_id=evo_id)
+                min_x, min_y, max_x, max_y = find_min_max(landunits_q)
 
-                size_x = (max_x - min_x + 1) * 50
-                size_y = (max_y - min_y + 1) * 50
-                output[-1]["svg"] = bob.svg_out(scale=0.1, bounding_box=(size_x, size_y))
-                output[-1]["min_x"] = min_x
-                output[-1]["min_y"] = min_y
-                output[-1]["max_x"] = max_x
-                output[-1]["max_y"] = max_y
+                size_x = (max_x - min_x + 1) * b_box_siz
+                size_y = (max_y - min_y + 1) * b_box_siz
+                output["evopix"][-1]["svg"] = evopic.svg_out(scale=svg_scale_factor, bounding_box=(size_x, size_y))
+                output["evopix"][-1]["min_x"] = min_x
+                output["evopix"][-1]["min_y"] = min_y
+                output["evopix"][-1]["max_x"] = max_x
+                output["evopix"][-1]["max_y"] = max_y
 
-            return HttpResponse(json.dumps(output))
+            output = json.dumps(output)
+            return HttpResponse(output)
 
         else:
+            print("Failed post.")
             return HttpResponse("Fail")
     except:
         typ, value, tback = sys.exc_info()
