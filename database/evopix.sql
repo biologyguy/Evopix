@@ -75,8 +75,8 @@ INSERT INTO `evp_stops` (`stop_id`, `parent_stop`, `parent_path_id`, `parent_evo
 -- Dumping data for table `world_fencetypes`
 --
 
-INSERT INTO `world_fencetypes` (`fence_id`, `name`, `description`) VALUES
-(1, 'basic', 'Just your standard, run-of-the-mill, wooden fence. Gets the job done.');
+INSERT INTO `world_fencetypes` (`fence_id`, `name`, `description`, `horiz_img_location`, `vert_img_location`) VALUES
+(1, 'basic', 'Just your standard, run-of-the-mill, wooden fence. Gets the job done.', '/static/img/horiz_fence1.svg', 'static/img/vert_fence1.svg');
 
 -- --------------------------------------------------------
 
@@ -86,7 +86,8 @@ INSERT INTO `world_fencetypes` (`fence_id`, `name`, `description`) VALUES
 
 INSERT INTO `world_landtypes` (`type_id`, `type`, `base_color`) VALUES
 (1, 'basic', 'FFFFFF'),
-(2, 'grass', '00CC03');
+(2, 'grass', '00CC03')
+(3, 'worlds_end', 'C5C1C9');
 
 -- --------------------------------------------------------
 
@@ -136,6 +137,7 @@ CREATE PROCEDURE `myFunction`()
       UPDATE `world_landunit` SET `t_fence_id`=1  WHERE (`y` = (max_size - 1) AND `x` >= 2 AND `x` <= (max_size - 1)) OR (`y` = 1  AND `x` >= 2 AND `x` <= (max_size - 1));
       UPDATE `world_landunit` SET `l_fence_id`=1  WHERE (`x` = 2  AND `y` >= 2 AND `y` <= (max_size - 1)) OR (`x` = max_size AND `y` >= 2 AND `y` <= (max_size - 1));
       UPDATE `world_landunit` SET `r_fence_id`=1  WHERE (`x` = (max_size - 1) AND `y` >= 2 AND `y` <= (max_size - 1)) OR (`x` = 1  AND `y` >= 2 AND `y` <= (max_size - 1));
+      UPDATE `world_landunit` SET `type_id`=3 WHERE `x`=1 or `y`=1 or `x`=max_size or `y`=max_size;
       UPDATE `world_landunit` SET `user_id`=1, `type_id`=2 WHERE `x`>=2 AND `x`<=12 AND `y`>=2 AND `y`<=12;
 
       -- TEMP: Testing farm fence --

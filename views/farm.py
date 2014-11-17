@@ -92,20 +92,36 @@ def populate_map(request):
             else:
                 return HttpResponse("Don't know what to do with that zoom level... Sorry.")
 
-            # Store land type colors so as not to query the database over and over
+            # Store land type colors and fence types so as not to query the database over and over
             land_types = {}
             land_types_q = LandTypes.objects.all()
             for land_type in land_types_q:
                 land_types[land_type.type_id] = land_type.base_color
 
+            fence_types = {}
+            fence_types_q = FenceTypes.objects.all()
+            for fence in fence_types_q:
+                fence_types[fence.fence_id] = {"horiz": fence.horiz_img_location, "vert": fence.vert_img_location}
+
+            print(fence_types)
             evo_ids = []
-            print(min_x, min_y, max_x, max_y)
             landunits_q = LandUnit.objects.filter(x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
             for landunit in landunits_q:
                 output["land"].append({"x": landunit.x, "y": landunit.y, "land_id": landunit.land_id,
-                                       "color": land_types[landunit.type_id], "t_fence": landunit.t_fence_id,
-                                       "r_fence": landunit.r_fence_id})
+                                       "color": land_types[landunit.type_id]})
 
+
+                if landunit.t_fence_id:
+                    output["land"][-1]["horiz_fence"] = fence_types[landunit.t_fence_id]["horiz"]
+                else:
+                    output["land"][-1]["horiz_fence"] = None
+
+                if landunit.r_fence_id:
+                    output["land"][-1]["vert_fence"] = fence_types[landunit.r_fence_id]["vert"]
+                else:
+                    output["land"][-1]["vert_fence"] = None
+
+                print(output["land"][-1])
                 if landunit.evopic_id:
                     if landunit.evopic_id not in evo_ids:
                         evo_ids.append(landunit.evopic_id)

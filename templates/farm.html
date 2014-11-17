@@ -21,6 +21,7 @@
             height:  50px;
             border: solid thin red;
             background: repeat-x url({% static 'img/fade_up.png' %});
+            z-index: 20;
         }
 
         #visible_bottom {
@@ -31,6 +32,7 @@
             height: 50px;
             border: solid thin red;
             background: repeat-x url({% static 'img/fade_down.png' %});
+            z-index: 20;
         }
 
         #visible_left {
@@ -41,6 +43,7 @@
             height: 650px;
             border: solid thin red;
             background: repeat-y url({% static 'img/fade_left.png' %});
+            z-index: 20;
         }
 
         #visible_right {
@@ -51,6 +54,7 @@
             height:650px;
             border: solid thin red;
             background: repeat-y url({% static 'img/fade_right.png' %});
+            z-index: 20;
         }
 
         #dev_box {
@@ -68,6 +72,7 @@
 
         .evopic {
             position: relative;
+            z-index: 2;
         }
 
         #nav_buttons{
@@ -143,6 +148,7 @@
             width: 50px;
             height: 50px;;
             border: solid thin black;
+            z-index: 1;
         }
 
         .landunit:hover {
@@ -150,6 +156,17 @@
             border: solid thin red;
         }
 
+        .h_fence {
+            position: absolute;
+            width: 50px;
+            z-index: 3;
+        }
+
+        .v_fence {
+            position: absolute;
+            height: 52px;
+            z-index: 3;
+        }
     </style>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="{%static 'js/jquery-cookie/jquery.cookie.js' %}"></script>
@@ -196,7 +213,20 @@
                     land_unit = server_reply.land[i];
                     var left = (land_unit.x - farm_bounds["min_x"]) / farm_bounds["width"] * 100;
                     var top = (land_unit.y - farm_bounds["min_y"]) / farm_bounds["height"] * 100;
+                    var horiz_fence = (land_unit.y - farm_bounds["min_y"] + 1) / farm_bounds["height"] * 100;
+                    var vert_fence = (land_unit.x - farm_bounds["min_x"] + 0.95) / farm_bounds["height"] * 100;
+                    $("#dev_box").append(horiz_fence + "<br />");
                     $("#farm_box").append("<div class='landunit' style='background-color:#" + land_unit.color + "; left:" + left + "%; bottom:" + top + "%;'></div>")
+                    if(land_unit.horiz_fence != null) {
+                        $("#farm_box").append("<img class='h_fence' style='left:" + left + "%; bottom:" + horiz_fence + "%;' src='" + land_unit.horiz_fence + "' />")
+                        //$("#dev_box").html("<img src='/static/img/fence.svg' />");
+                    }
+
+                    if(land_unit.vert_fence != null){
+                        $("#farm_box").append("<img class='v_fence' style='left:" + vert_fence + "%; bottom:" + top + "%;' src='" + land_unit.vert_fence + "' />")
+
+                    }
+
                 }
 
                 for (var i = 0; i < server_reply.evopix.length; i++) {
@@ -208,7 +238,7 @@
 
                     $("#farm_box").append("<div class='evopic_bounding_box' style='width:" + width + "px; height:" + height + "px; left: " + x + "%; bottom: " + y + "%'><div class='evopic'>" + evopic.svg + "</div></div>");
                 }
-                $("#dev_box").html(JSON.stringify(farm_bounds));
+
 
             }
 
