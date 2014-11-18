@@ -86,7 +86,7 @@ INSERT INTO `world_fencetypes` (`fence_id`, `name`, `description`, `horiz_img_lo
 
 INSERT INTO `world_landtypes` (`type_id`, `type`, `base_color`) VALUES
 (1, 'basic', 'FFFFFF'),
-(2, 'grass', '00CC03')
+(2, 'grass', '00CC03'),
 (3, 'worlds_end', 'C5C1C9');
 
 -- --------------------------------------------------------

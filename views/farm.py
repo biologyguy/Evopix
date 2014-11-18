@@ -103,7 +103,7 @@ def populate_map(request):
             for fence in fence_types_q:
                 fence_types[fence.fence_id] = {"horiz": fence.horiz_img_location, "vert": fence.vert_img_location}
 
-            print(fence_types)
+
             evo_ids = []
             landunits_q = LandUnit.objects.filter(x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
             for landunit in landunits_q:
@@ -121,7 +121,7 @@ def populate_map(request):
                 else:
                     output["land"][-1]["vert_fence"] = None
 
-                print(output["land"][-1])
+
                 if landunit.evopic_id:
                     if landunit.evopic_id not in evo_ids:
                         evo_ids.append(landunit.evopic_id)

@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from evp.models import *
 from world.models import *
 from random import choice
-
+import time
 
 def _move():
     def look(x_depth, y_depth):
@@ -188,10 +188,9 @@ def _move():
                 baby_dimensions["max_x"] = min_x - 1
                 baby_dimensions["min_x"] = baby_dimensions["max_x"] - int(baby_width - 1)
 
+        # Any fences in the way? There is still something wrong with this, because babys can be tossed over fences...
         landunits = LandUnit.objects.filter(x__lte=baby_dimensions["max_x"], x__gte=baby_dimensions["min_x"],
                                             y__gte=baby_dimensions["min_y"], y__lte=baby_dimensions["max_y"])
-
-        # Any fences in the way?
         clear = True
         for landunit in landunits:
             if landunit.x == baby_dimensions["max_x"] and landunit.y == baby_dimensions["max_y"]:
@@ -261,3 +260,9 @@ def move(request):
         try_move = _move()
         print(try_move)
     return HttpResponse()
+
+
+def run():
+    for i in range(100000):
+        _move()
+        time.sleep(0.25)
