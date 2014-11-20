@@ -3,8 +3,14 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title></title>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/farm.css' %}">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/farm.css' %}" />
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/slimbox2.css' %}" media="screen" />
+
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+    <script src="{%static 'js/slimbox2.js' %}"></script>
     <script src="{%static 'js/jquery-cookie/jquery.cookie.js' %}"></script>
     <script src="{%static 'js/ajax.js' %}"></script>
     <script>
@@ -24,6 +30,10 @@
 
             function populate_map(server_reply) {
                 server_reply = JSON.parse(server_reply);
+
+                if(long_poll_check === false){
+                    return;
+                }
 
                 $("#farm_box").empty();
                 visible_land = {};
@@ -74,7 +84,17 @@
                     $("#farm_box").append("<div class='evopic_bounding_box' style='width:" + width + "px; height:" + height + "px; left: " + x + "%; bottom: " + y + "%'><div class='evopic'>" + evopic.svg + "</div></div>");
                 }
 
-
+                $(function(){
+                   $(".h_fence").draggable({
+                       start: function(){
+                           long_poll_check = false;
+                       },
+                       stop: function(){
+                           long_poll_check = true;
+                           start_long_poll();
+                       }
+                   });
+                });
             }
 
             $("#left_button").click(function(){
@@ -109,21 +129,20 @@
                 post_populate_map();
             });
 
-            function long_poll(){
-                setTimeout(function(){post_populate_map(); long_poll();}, 1000)
-            }
-            long_poll();
-            post_populate_map();
 
-            {% comment %}$("#move_evos").click(function(){
-                $.post("{% url 'move' %}", function(test,status){
-                    if(test) {
-                        $.post("{% url 'populate_map' %}", farm_bounds, function(data, status) {
-                            populate_map(data);
-                        });
-                    }
-                });
-            });{% endcomment %}
+            var long_poll_check = true;
+            function start_long_poll(){
+                if (long_poll_check === true) {
+                    setTimeout(function () {
+                        post_populate_map();
+                        start_long_poll();
+                    }, 1000);
+                }
+            }
+            post_populate_map();
+            start_long_poll();
+
+
         });
     </script>
 
