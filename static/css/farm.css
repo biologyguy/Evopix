@@ -81,11 +81,11 @@ body
 }
 
 #dev_box {
-    position: fixed;
-    top:    100px;
+    position: absolute;
+    top:    200px;
     left:   700px;
     width:  350px;
-    #border: solid thin black;
+    border: solid thin black;
 }
 
 .evopic_bounding_box {

@@ -6,7 +6,19 @@ from world.models import *
 from random import choice
 import time
 
+
 def _move():
+    def battle(enemy_id, evo_id):
+        evo = Evopix.objects.filter(evo_id=evo_id).get()
+        enemy = Evopix.objects.filter(evo_id=enemy_id).get()
+        evo = Evopic(evo.evp)
+        enemy = Evopic(enemy.evp)
+
+        print(evo.paths_order)
+        sys.exit()
+        loser = choice((enemy_id, evo_id))
+        return loser
+
     def look(x_depth, y_depth):
         output = {"fences": {"top": [], "bottom": [], "left": [], "right": []}, "evopix": [], "self": []}
 
@@ -236,7 +248,7 @@ def _move():
             if choice((True, False, False)):
                 return "Tried to breed, but another evo was in the way"
             enemy_id = choice(evos_in_the_way)
-            who_dies = choice((enemy_id, evo_id))
+            who_dies = battle(enemy_id, evo_id)
             cleared_landunits = LandUnit.objects.filter(evopic_id=who_dies)
             cleared_landunits.update(evopic_id=None)
             dead_evo = Evopix.objects.filter(evo_id=who_dies)
@@ -265,4 +277,4 @@ def move(request):
 def run():
     for i in range(100000):
         _move()
-        time.sleep(0.25)
+        #time.sleep(0.25)

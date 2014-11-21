@@ -6,11 +6,9 @@
 
     <link rel="stylesheet" type="text/css" href="{% static 'css/farm.css' %}" />
     <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
-    <link rel="stylesheet" type="text/css" href="{% static 'css/slimbox2.css' %}" media="screen" />
 
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
-    <script src="{%static 'js/slimbox2.js' %}"></script>
     <script src="{%static 'js/jquery-cookie/jquery.cookie.js' %}"></script>
     <script src="{%static 'js/ajax.js' %}"></script>
     <script>
@@ -95,6 +93,15 @@
                        }
                    });
                 });
+
+                //Just playing around here, need to figure out how to show a full version of an evopic that's been clicked on
+                $("svg").click(function(){
+                    var html = $("<div id='big_evo'>").append($(this).clone()).append("</div>");
+
+                    $("#dev_box").html(html);
+                    $("#big_evo").attr("style", "border: solid thin red");
+                });
+
             }
 
             $("#left_button").click(function(){
@@ -158,9 +165,9 @@
         <div id="visible_right"></div>
         <div id="farm_box"><span class="evopic"></span>
 
-         </div>
+        </div>
 
-    <div id="dev_box"></div>
+    <div id="dev_box">Hello!</div>
     <div id="nav_buttons">
         <table>
             <tr>
