@@ -14,8 +14,6 @@ def _move():
         evo = Evopic(evo.evp)
         enemy = Evopic(enemy.evp)
 
-        print(evo.paths_order)
-        sys.exit()
         loser = choice((enemy_id, evo_id))
         return loser
 
@@ -157,6 +155,7 @@ def _move():
         new_landunits = LandUnit.objects.filter(x=min_x - 1, y__gte=min_y, y__lte=max_y)
         old_landunits = LandUnit.objects.filter(x=max_x, y__gte=min_y, y__lte=max_y)
 
+    # bumped into an evopic, so try breeding
     if len(neighborhood["evopix"]) > 0:
         evopic = Evopix.objects.filter(evo_id=evo_id).get().evp
         mate = Evopix.objects.filter(evo_id=choice(neighborhood["evopix"])[0])
@@ -201,35 +200,70 @@ def _move():
                 baby_dimensions["min_x"] = baby_dimensions["max_x"] - int(baby_width - 1)
 
         # Any fences in the way? There is still something wrong with this, because babys can be tossed over fences...
+        # check for adjacent fences first
+        if direction == "up":
+            neighborhood = look(0, 1)
+            for unit in neighborhood["fences"]["top"]:
+                if unit in adjacent_top(dimensions):
+                    return "Tried to breed, but found a fence"
+
+        elif direction == "down":
+            neighborhood = look(0, -1)
+            for unit in neighborhood["fences"]["bottom"]:
+                if unit in adjacent_bottom(dimensions):
+                    return "Tried to breed, but found a fence"
+
+        elif direction == "right":
+            neighborhood = look(1, 0)
+            for unit in neighborhood["fences"]["right"]:
+                if unit in adjacent_right(dimensions):
+                    return "Tried to breed, but found a fence"
+
+        else:  # direction == 'left'
+            neighborhood = look(-1, 0)
+            for unit in neighborhood["fences"]["left"]:
+                if unit in adjacent_left(dimensions):
+                    return "Tried to breed, but found a fence"
+
+        clear = True
         landunits = LandUnit.objects.filter(x__lte=baby_dimensions["max_x"], x__gte=baby_dimensions["min_x"],
                                             y__gte=baby_dimensions["min_y"], y__lte=baby_dimensions["max_y"])
-        clear = True
         for landunit in landunits:
+            # top-right corner
             if landunit.x == baby_dimensions["max_x"] and landunit.y == baby_dimensions["max_y"]:
-                if landunit.l_fence_id or landunit.b_fence_id:
+                if (landunit.l_fence_id and baby_width > 1) or (landunit.b_fence_id and baby_height > 1):
                     clear = False
                     break
-            elif landunit.x == baby_dimensions["max_x"] and landunit.y == baby_dimensions["min_y"]:
-                if landunit.l_fence_id or landunit.t_fence_id:
+            # bottom-right corner
+            if landunit.x == baby_dimensions["max_x"] and landunit.y == baby_dimensions["min_y"]:
+                if (landunit.l_fence_id and baby_width > 1) or (landunit.t_fence_id and baby_height > 1):
                     clear = False
                     break
-            elif landunit.x == baby_dimensions["min_x"] and landunit.y == baby_dimensions["min_y"]:
-                if landunit.r_fence_id or landunit.t_fence_id:
+            # bottom-left corner
+            if landunit.x == baby_dimensions["min_x"] and landunit.y == baby_dimensions["min_y"]:
+                if (landunit.r_fence_id and baby_width > 1) or (landunit.t_fence_id and baby_height > 1):
                     clear = False
                     break
-            elif landunit.x == baby_dimensions["min_x"] and landunit.y == baby_dimensions["max_y"]:
-                if landunit.r_fence_id or landunit.b_fence_id:
+            # top-left corner
+            if landunit.x == baby_dimensions["min_x"] and landunit.y == baby_dimensions["max_y"]:
+                if (landunit.r_fence_id and baby_width > 1) or (landunit.b_fence_id and baby_height > 1):
                     clear = False
                     break
-            elif landunit.x == baby_dimensions["max_y"] or landunit.x == baby_dimensions["min_y"]:
+            # bottom or top edge
+            if landunit.x not in [baby_dimensions["min_x"], baby_dimensions["max_x"]]\
+                    and (landunit.y in [baby_dimensions["max_y"], baby_dimensions["min_y"]]):
                 if landunit.r_fence_id or landunit.l_fence_id:
                     clear = False
                     break
-            elif landunit.x == baby_dimensions["max_x"] or landunit.x == baby_dimensions["min_x"]:
+            # left or right edge
+            if landunit.y not in [baby_dimensions["min_y"], baby_dimensions["max_y"]]\
+                    and (landunit.x in [baby_dimensions["max_x"], baby_dimensions["min_x"]]):
                 if landunit.t_fence_id or landunit.b_fence_id:
                     clear = False
                     break
-            else:
+            # anything internal
+            if landunit.x not in [baby_dimensions["min_x"], baby_dimensions["max_x"]]\
+                    and landunit.y not in [baby_dimensions["min_y"], baby_dimensions["max_y"]]:
                 if landunit.t_fence_id or landunit.b_fence_id or landunit.l_fence_id or landunit.r_fence_id:
                     clear = False
                     break
