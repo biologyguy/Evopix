@@ -1,10 +1,117 @@
 from resources.breed import *
 from math import ceil
 from django.http import HttpResponse
+from django.db.models import Q
 from evp.models import *
 from world.models import *
 from random import choice
 import time
+import pdb
+
+
+class Look():
+    """
+    Class for peeking around at nearby land units to see if they have fences, evopix, or lands_end units.
+    Evopix list contains tuples -> (land_id, evo_id), and all others are land_id
+    self_min_max is a dict, direction is in ["up", "down", "left", "right"]
+    """
+    def __init__(self, self_min_max, direction):
+        self.min_x, self.min_y, self.max_x, self.max_y = [self_min_max["min_x"], self_min_max["min_y"], self_min_max["max_x"], self_min_max["max_y"]]
+        self.direction = direction
+        self.fences = []
+        self.evopix = []
+        self.lands_end = []
+        self.land = []
+
+        self.visible_stuff()
+
+    def visible_stuff(self):
+        visible_stuff = {"fences": {"top": [], "bottom": [], "left": [], "right": []}, "evopix": [], "lands_end": [], "land": []}
+        # Get info on the visible land units
+        if self.direction == "up":
+            land = LandUnit.objects.filter(y=(self.max_y + 1), x__gte=self.min_x, x__lte=self.max_x)
+        elif self.direction == "down":
+            land = LandUnit.objects.filter(y=(self.min_y - 1), x__gte=self.min_x, x__lte=self.max_x)
+        elif self.direction == "right":
+            land = LandUnit.objects.filter(x=(self.max_x + 1), y__gte=self.min_y, y__lte=self.max_y)
+        elif self.direction == "left":
+            land = LandUnit.objects.filter(x=(self.min_x - 1), y__gte=self.min_y, y__lte=self.max_y)
+        else:
+            sys.exit("Error: '%s' is not a valid direction" % self.direction)
+
+        for land_unit in land:
+            visible_stuff["land"].append(land_unit)
+
+            if land_unit.evopic_id:
+                visible_stuff["evopix"].append((land_unit.land_id, land_unit.evopic_id))
+
+            if land_unit.t_fence_id:
+                visible_stuff["fences"]["top"].append(land_unit.land_id)
+            if land_unit.b_fence_id:
+                visible_stuff["fences"]["bottom"].append(land_unit.land_id)
+            if land_unit.l_fence_id:
+                visible_stuff["fences"]["left"].append(land_unit.land_id)
+            if land_unit.r_fence_id:
+                visible_stuff["fences"]["right"].append(land_unit.land_id)
+
+            if land_unit.type_id == 3:
+                visible_stuff["lands_end"].append(land_unit.land_id)
+
+        self.fences = visible_stuff["fences"]
+        self.evopix = visible_stuff["evopix"]
+        self.lands_end = visible_stuff["lands_end"]
+        self.land = visible_stuff["land"]
+
+        return
+
+    def blocking_fence(self):
+        # first check for flush fences
+        if self.direction == "up":
+            if len(self.fences["bottom"]) != 0:
+                return True
+
+        elif self.direction == "down":
+            if len(self.fences["top"]) != 0:
+                return True
+
+        elif self.direction == "right":
+            if len(self.fences["left"]) != 0:
+                return True
+
+        elif self.direction == "left":
+            if len(self.fences["right"]) != 0:
+                return True
+
+        # next check for side-on fences
+        if self.direction in ["up", "down"]:
+            vertical_fences = set(self.fences["right"]).intersection(self.fences["left"])
+            if len(vertical_fences) > 0:
+                return True
+
+        if self.direction in ["left", "right"]:
+            horizontal_fences = set(self.fences["top"]).intersection(self.fences["bottom"])
+            if len(horizontal_fences) > 0:
+                return True
+
+        # No blocking fences!!
+        return False
+
+    def step_deeper(self):
+        if self.direction == "up":
+            self.min_y += 1
+            self.max_y += 1
+        if self.direction == "down":
+            self.min_y -= 1
+            self.max_y -= 1
+        if self.direction == "right":
+            self.min_x += 1
+            self.max_x += 1
+        if self.direction == "left":
+            self.min_x -= 1
+            self.max_x -= 1
+
+        self.visible_stuff()
+        return
 
 
 def _battle(enemy_id, evo_id):
@@ -17,45 +124,12 @@ def _battle(enemy_id, evo_id):
         return loser
 
 
-def _look(self_min_max, direction):
-    """
-    This returns a dictionary of lists, containing land units that have fences, evopix, or lands_end units.
-    Evopix list contains tuples -> (land_id, evo_id), and all others are land_id
-    self_min_max is a dict, direction is in ["up", "down", "left", "right"]
-    Only look to a depth of 1 in direction specified
-    """
-    min_x, min_y, max_x, max_y = [self_min_max["min_x"], self_min_max["min_y"], self_min_max["max_x"], self_min_max["max_y"]]
-    visible_stuff = {"fences": {"top": [], "bottom": [], "left": [], "right": []}, "evopix": [], "lands_end": [], "land": []}
-
-    # Get info on the visible land units
-    if direction == "up":
-        land = LandUnit.objects.filter(y__gte=(max_y + 1), x__gte=min_x, x__lte=max_x)
-    elif direction == "down":
-        land = LandUnit.objects.filter(y__lte=(min_y - 1), x__gte=min_x, x__lte=max_x)
-    elif direction == "right":
-        land = LandUnit.objects.filter(x__gte=(max_x + 1), y__gte=min_y, y__lte=max_y)
-    else:  # left
-        land = LandUnit.objects.filter(x__lte=(min_x - 1), y__gte=min_y, y__lte=max_y)
-
-    for land_unit in land:
-        visible_stuff["land"].append(land)
-
-        if land_unit.evopic_id:
-            visible_stuff["evopix"].append((land_unit.land_id, land_unit.evopic_id))
-
-        if land_unit.t_fence_id:
-            visible_stuff["fences"]["top"].append(land_unit.land_id)
-        if land_unit.b_fence_id:
-            visible_stuff["fences"]["bottom"].append(land_unit.land_id)
-        if land_unit.l_fence_id:
-            visible_stuff["fences"]["left"].append(land_unit.land_id)
-        if land_unit.r_fence_id:
-            visible_stuff["fences"]["right"].append(land_unit.land_id)
-
-        if land_unit.type_id == 3:
-            visible_stuff["lands_end"].append(land_unit.land_id)
-
-    return visible_stuff
+def _get_land_units(dimensions):  # dimensions -> {"min_x", "max_x", "min_y", "max_y"}
+    land_units = LandUnit.objects.filter(x__gte=dimensions["min_x"],
+                                         x__lte=dimensions["max_x"],
+                                         y__gte=dimensions["min_y"],
+                                         y__lte=dimensions["max_y"])
+    return land_units
 
 
 def _place_baby(parent_min_max, baby):
@@ -63,123 +137,67 @@ def _place_baby(parent_min_max, baby):
     baby_height = ceil(((baby.min_max_points["max_y"] - baby.min_max_points["min_y"]) * 0.1) / 50)
     baby_dimensions = {"min_x": 0, "max_x": 0, "min_y": 0, "max_y": 0}
 
+    # start by overlaying the parent, starting at a random corner (in case the baby is bigger or smaller)
+    corner = choice(["tl", "tr", "bl", "br"])
+    if corner == "tl":
+        baby_dimensions["min_x"] = parent_min_max["min_x"]
+        baby_dimensions["max_x"] = parent_min_max["min_x"] + (baby_width - 1)
+        baby_dimensions["min_y"] = parent_min_max["max_y"] - (baby_height - 1)
+        baby_dimensions["max_y"] = parent_min_max["max_y"]
+
+    elif corner == "tr":
+        baby_dimensions["min_x"] = parent_min_max["max_x"] - (baby_width - 1)
+        baby_dimensions["max_x"] = parent_min_max["max_x"]
+        baby_dimensions["min_y"] = parent_min_max["max_y"] - (baby_height - 1)
+        baby_dimensions["max_y"] = parent_min_max["max_y"]
+
+    elif corner == "bl":
+        baby_dimensions["min_x"] = parent_min_max["min_x"]
+        baby_dimensions["max_x"] = parent_min_max["min_x"] + (baby_width - 1)
+        baby_dimensions["min_y"] = parent_min_max["min_y"]
+        baby_dimensions["max_y"] = parent_min_max["min_y"] + (baby_height - 1)
+
+    else:  # "corner == br"
+        baby_dimensions["min_x"] = parent_min_max["max_x"] - (baby_width - 1)
+        baby_dimensions["max_x"] = parent_min_max["max_x"]
+        baby_dimensions["min_y"] = parent_min_max["min_y"]
+        baby_dimensions["max_y"] = parent_min_max["min_y"] + (baby_height - 1)
+
+    # Ensure that the baby isn't sitting on top of any fences after overlay (in case baby is bigger than parent)
+    land_units = _get_land_units(baby_dimensions)
+    fences = {"t": [], "b": [], "r": [], "l": []}
+    for l in land_units:
+        fences["t"].append(l.t_fence_id) if l.t_fence_id else False
+        fences["b"].append(l.b_fence_id) if l.b_fence_id else False
+        fences["r"].append(l.r_fence_id) if l.r_fence_id else False
+        fences["l"].append(l.l_fence_id) if l.l_fence_id else False
+
+    horizontal_fences = set(fences["t"]).intersection(fences["b"])
+    if len(horizontal_fences) > 0:
+        return "fence"
+
+    vertical_fences = set(fences["r"]).intersection(fences["l"])
+    if len(vertical_fences) > 0:
+        return "fence"
+
+    # pick a direction, and see if it's clear
     direction = choice(["up", "down", "left", "right"])
-    if direction in ["up", "down"]:
-        edge = choice(("right", "left"))
-        if edge == "right":
-            baby_dimensions["max_x"] = max_x
-            baby_dimensions["min_x"] = max_x - int(baby_width - 1)
-        else:  # "left"
-            baby_dimensions["max_x"] = min_x + int(baby_width - 1)
-            baby_dimensions["min_x"] = min_x
-
-        if direction == "up":
-            baby_dimensions["min_y"] = max_y + 1
-            baby_dimensions["max_y"] = baby_dimensions["min_y"] + int(baby_height)
-
-        else:  # down
-            baby_dimensions["max_y"] = min_y - 1
-            baby_dimensions["min_y"] = baby_dimensions["max_y"] - int(baby_height)
-
-    else:  # direction in ["right", "left"]:
-        edge = choice(("top", "bottom"))
-        if edge == "top":
-            baby_dimensions["max_y"] = max_y
-            baby_dimensions["min_y"] = max_y - int(baby_height)
-        else:  # "bottom"
-            baby_dimensions["max_y"] = min_y + int(baby_height)
-            baby_dimensions["min_y"] = min_y
-
-        if direction == "right":
-            baby_dimensions["min_x"] = max_x + 1
-            baby_dimensions["max_x"] = baby_dimensions["min_x"] + int(baby_width - 1)
-
-        else:  # left
-            baby_dimensions["max_x"] = min_x - 1
-            baby_dimensions["min_x"] = baby_dimensions["max_x"] - int(baby_width - 1)
-
-    # Any fences in the way? There is still something wrong with this, because babys can be tossed over fences...
-    # check for adjacent fences first
-    if direction == "up":
-        vis_stuff = _look(0, 1)
-        for unit in vis_stuff["fences"]["top"]:
-            if unit in adjacent_top(dimensions):
-                return "Tried to breed, but found a fence"
-
-    elif direction == "down":
-        vis_stuff = _look(0, -1)
-        for unit in vis_stuff["fences"]["bottom"]:
-            if unit in adjacent_bottom(dimensions):
-                return "Tried to breed, but found a fence"
-
-    elif direction == "right":
-        vis_stuff = _look(1, 0)
-        for unit in vis_stuff["fences"]["right"]:
-            if unit in adjacent_right(dimensions):
-                return "Tried to breed, but found a fence"
-
-    else:  # direction == 'left'
-        vis_stuff = _look(-1, 0)
-        for unit in vis_stuff["fences"]["left"]:
-            if unit in adjacent_left(dimensions):
-                return "Tried to breed, but found a fence"
-
-    clear = True
-    land_units = LandUnit.objects.filter(x__lte=baby_dimensions["max_x"], x__gte=baby_dimensions["min_x"],
-                                        y__gte=baby_dimensions["min_y"], y__lte=baby_dimensions["max_y"])
-    for land_unit in land_units:
-        # top-right corner
-        if land_unit.x == baby_dimensions["max_x"] and land_unit.y == baby_dimensions["max_y"]:
-            if (land_unit.l_fence_id and baby_width > 1) or (land_unit.b_fence_id and baby_height > 1):
-                clear = False
-                break
-        # bottom-right corner
-        if land_unit.x == baby_dimensions["max_x"] and land_unit.y == baby_dimensions["min_y"]:
-            if (land_unit.l_fence_id and baby_width > 1) or (land_unit.t_fence_id and baby_height > 1):
-                clear = False
-                break
-        # bottom-left corner
-        if land_unit.x == baby_dimensions["min_x"] and land_unit.y == baby_dimensions["min_y"]:
-            if (land_unit.r_fence_id and baby_width > 1) or (land_unit.t_fence_id and baby_height > 1):
-                clear = False
-                break
-        # top-left corner
-        if land_unit.x == baby_dimensions["min_x"] and land_unit.y == baby_dimensions["max_y"]:
-            if (land_unit.r_fence_id and baby_width > 1) or (land_unit.b_fence_id and baby_height > 1):
-                clear = False
-                break
-        # bottom or top edge
-        if land_unit.x not in [baby_dimensions["min_x"], baby_dimensions["max_x"]]\
-                and (land_unit.y in [baby_dimensions["max_y"], baby_dimensions["min_y"]]):
-            if land_unit.r_fence_id or land_unit.l_fence_id:
-                clear = False
-                break
-        # left or right edge
-        if land_unit.y not in [baby_dimensions["min_y"], baby_dimensions["max_y"]]\
-                and (land_unit.x in [baby_dimensions["max_x"], baby_dimensions["min_x"]]):
-            if land_unit.t_fence_id or land_unit.b_fence_id:
-                clear = False
-                break
-        # anything internal
-        if land_unit.x not in [baby_dimensions["min_x"], baby_dimensions["max_x"]]\
-                and land_unit.y not in [baby_dimensions["min_y"], baby_dimensions["max_y"]]:
-            if land_unit.t_fence_id or land_unit.b_fence_id or land_unit.l_fence_id or land_unit.r_fence_id:
-                clear = False
-                break
-
-    if not clear:
-        return "Tried to breed, but found a fence"
-
-    # Any Evopix in the way?
+    dist_moved = baby_width if direction in ["left", "right"] else baby_height
+    look = Look(baby_dimensions, direction)
+    pdb.set_trace()
     evos_in_the_way = []
-    for land_unit in land_units:
-        if land_unit.evopic_id:
-            evos_in_the_way.append(land_unit.evopic_id)
+    for i in range(dist_moved):
+        if look.blocking_fence():
+            return "fence"
+        evos_in_the_way += look.evopix
+        if i + 1 < dist_moved:
+            look.step_deeper()
 
     # If there are Evoix present, maybe fight to the death!
     if len(evos_in_the_way) > 0:
         if choice((True, False, False)):
-            return "Tried to breed, but another evo was in the way"
+            return "evoip in the way"
+
         enemy_id = choice(evos_in_the_way)
         who_dies = _battle(enemy_id, evo_id)
         cleared_landunits = LandUnit.objects.filter(evopic_id=who_dies)
@@ -200,6 +218,7 @@ def _move():
     evo_id = choice(living_evopix).evo_id
     land_units = LandUnit.objects.filter(evopic_id=evo_id)
     min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
+
     for land_unit in land_units:
         min_x = land_unit.x if land_unit.x < min_x else min_x
         min_y = land_unit.y if land_unit.y < min_y else min_y
@@ -209,52 +228,23 @@ def _move():
     dimensions = {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y}
 
     direction = choice(["up", "down", "left", "right"])
-    # first check for flush fences
-    if direction == "up":
-        vis_stuff = _look(dimensions, "up")
-        if len(vis_stuff["fences"]["bottom"]) != 0:
-            return "fence"
+    look = Look(dimensions, direction)
+    if look.blocking_fence():
+        return "fence"
 
-    elif direction == "down":
-        vis_stuff = _look(dimensions, "down")
-        if len(vis_stuff["fences"]["top"]) != 0:
-            return "fence"
-
-    elif direction == "right":
-        vis_stuff = _look(dimensions, "right")
-        if len(vis_stuff["fences"]["left"]) != 0:
-            return "fence"
-
-    else:  # direction == 'left'
-        vis_stuff = _look(dimensions, "left")
-        if len(vis_stuff["fences"]["right"]) != 0:
-            return "fence"
-
-    # next check for side-on fences
-    if direction in ["up", "down"]:
-        vertical_fences = set(vis_stuff["fences"]["right"]).intersection(vis_stuff["fences"]["left"])
-        if len(vertical_fences) > 0:
-            return "fence"
-
-    if direction in ["left", "right"]:
-        horizontal_fences = set(vis_stuff["fences"]["top"]).intersection(vis_stuff["fences"]["bottom"])
-        if len(horizontal_fences) > 0:
-            return "fence"
-
-    # bumped into an evopic, so try breeding
-    if len(vis_stuff["evopix"]) > 0:
-        mate_id = choice(vis_stuff["evopix"][1])
-        mate = Evopix.objects.filter(evo_id=mate_id).get()
+    if len(look.evopix) > 0: # bumped into an evopic, so try breeding
+        mate_id = choice(look.evopix)  # Note: the evopix are tuples -> (land_id, evopic_id)
+        mate = Evopix.objects.filter(evo_id=mate_id[1]).get()
         evopic = Evopix.objects.filter(evo_id=evo_id).get()
         baby = breed(evopic.evp, mate.evp)
-        outcome_of_breed_attempt = _place_baby(dimensions, baby)
+        outcome_of_breed_attempt = _place_baby(dimensions, baby, evopic)
         return outcome_of_breed_attempt
 
     else:
-        if direction == "right":
+        if direction == "up":
             new_land = LandUnit.objects.filter(y=max_y + 1, x__gte=min_x, x__lte=max_x)
             old_land = LandUnit.objects.filter(y=min_y, x__gte=min_x, x__lte=max_x)
-        elif direction == "left":
+        elif direction == "down":
             new_land = LandUnit.objects.filter(y=min_y - 1, x__gte=min_x, x__lte=max_x)
             old_land = LandUnit.objects.filter(y=max_y, x__gte=min_x, x__lte=max_x)
         elif direction == "right":
@@ -278,5 +268,5 @@ def move(request):
 
 def run():
     for i in range(100000):
-        _move()
+        print(_move())
         #time.sleep(0.25)
