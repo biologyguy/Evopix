@@ -1,21 +1,54 @@
 #! /usr/bin/python3
 import sys
 from evp.models import *
+from world.models import *
 from resources import mutation
 from resources.LineSeg import *
 
 
 class Evopic():
-    def __init__(self, evp=""):
+    def __init__(self, evp="", evo_id=0):
         self.evp = evp
-        self.id = 0
+        self.id = evo_id
         self.paths = {}
         self.paths_order = []
         self._num_points = 0
         self._point_locations = []
         self.min_max_points = {"min_x": 0., "min_y": 0., "max_x": 0., "max_y": 0.}
+        self.health = None
+        self.world_dimensions = None
         if evp != "":
             self._parse_evp()
+        elif evo_id > 0:
+            self._database()
+
+    @staticmethod
+    def world_xy(evo_id):
+        land_units = LandUnit.objects.filter(evopic_id=evo_id)
+        if len(land_units) == 0:
+            return None
+
+        min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
+        for land_unit in land_units:
+            min_x = land_unit.x if land_unit.x < min_x else min_x
+            min_y = land_unit.y if land_unit.y < min_y else min_y
+            max_x = land_unit.x if land_unit.x > max_x else max_x
+            max_y = land_unit.y if land_unit.y > max_y else max_y
+
+        dimensions = {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y}
+        return dimensions
+
+    def _database(self):
+        evopic = Evopix.objects.filter(evo_id=self.id).get()
+        self.health = evopic.health
+        if self.health > 0:
+            self.world_dimensions = self.world_xy(self.id)
+            if not self.world_dimensions:  # A little house keeping, in case an evopic has no land, but still has health
+                evopic.health = 0
+                evopic.save()
+        self.evp = evopic.evp
+        self._parse_evp()
+        return
 
     def _parse_evp(self):
         """Convert evp genome file into a dictionary of lists of its component attributes"""
@@ -159,7 +192,8 @@ class Evopic():
                 line_segments.append([point_1[1], point_1[2], point_2[0], point_1[1]])
 
             for seg in line_segments:
-                bezier_bounds = (get_curve_bounds(seg[0][0], seg[0][1], seg[1][0], seg[1][1], seg[2][0], seg[2][1], seg[3][0], seg[3][1]))
+                bezier_bounds = (get_curve_bounds(seg[0][0], seg[0][1], seg[1][0], seg[1][1], seg[2][0], seg[2][1],
+                                                  seg[3][0], seg[3][1]))
 
                 min_x = bezier_bounds['left'] if bezier_bounds['left'] < min_x else min_x
                 min_y = bezier_bounds['top'] if bezier_bounds['top'] < min_y else min_y
@@ -222,14 +256,14 @@ class Evopic():
             box_width = round(self.min_max_points["max_x"] * scale, 6)
             box_height = round(self.min_max_points["max_y"] * scale, 6)
 
-        #header info
+        # header info
         svg = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
 
         svg += "<svg xmlns:svg='http://www.w3.org/2000/svg' xmlns='http://www.w3.org/2000/svg' " \
                "xmlns:xlink='http://www.w3.org/1999/xlink' version='1.0' width='%spx' height='%spx' id='svg%s'>\n" % \
                (box_width, box_height, self.id)
 
-        #gradient/color info
+        # gradient/color info
         svg += "<defs>\n"
         for i in self.paths_order:
             path = self.paths[i]
@@ -257,7 +291,7 @@ class Evopic():
 
         svg += "</defs>\n"
 
-        #paths
+        # paths
         for i in self.paths_order:
             path = self.paths[i]
             grad_type = "linear" if path.type == "l" else "radial"
@@ -312,7 +346,8 @@ class Evopic():
 
                 points_string += " %s %s z" % start_point
                 strings = (path.id, points_string, grad_type, path.id, color, width, opacity)
-                svg += "<path id='path%s' d='%s' style='fill:url(#%sGradient%s);fill-rule:evenodd;stroke:#%s;stroke-width:%s;stroke-opacity:%s' />\n" % strings
+                svg += "<path id='path%s' d='%s' style='fill:url(#%sGradient%s);fill-rule:evenodd;stroke:#%s;" \
+                       "stroke-width:%s;stroke-opacity:%s' />\n" % strings
         svg += "</svg>"
         return svg
 

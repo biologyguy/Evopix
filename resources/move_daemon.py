@@ -117,8 +117,8 @@ class Look():
 def _battle(enemy_id, evo_id):
         evo = Evopix.objects.filter(evo_id=evo_id).get()
         enemy = Evopix.objects.filter(evo_id=enemy_id).get()
-        evo = Evopic(evo.evp)
-        enemy = Evopic(enemy.evp)
+        # evo = Evopic(evo.evp)
+        # enemy = Evopic(enemy.evp)
 
         loser = choice((enemy_id, evo_id))
         return loser
@@ -132,36 +132,37 @@ def _get_land_units(dimensions):  # dimensions -> {"min_x", "max_x", "min_y", "m
     return land_units
 
 
-def _place_baby(parent_min_max, baby):
+def _place_baby(parent1, parent2, baby):
     baby_width = ceil(((baby.min_max_points["max_x"] - baby.min_max_points["min_x"]) * 0.1) / 50)
     baby_height = ceil(((baby.min_max_points["max_y"] - baby.min_max_points["min_y"]) * 0.1) / 50)
     baby_dimensions = {"min_x": 0, "max_x": 0, "min_y": 0, "max_y": 0}
 
     # start by overlaying the parent, starting at a random corner (in case the baby is bigger or smaller)
+    d = parent1.world_dimensions
     corner = choice(["tl", "tr", "bl", "br"])
     if corner == "tl":
-        baby_dimensions["min_x"] = parent_min_max["min_x"]
-        baby_dimensions["max_x"] = parent_min_max["min_x"] + (baby_width - 1)
-        baby_dimensions["min_y"] = parent_min_max["max_y"] - (baby_height - 1)
-        baby_dimensions["max_y"] = parent_min_max["max_y"]
+        baby_dimensions["min_x"] = d["min_x"]
+        baby_dimensions["max_x"] = d["min_x"] + (baby_width - 1)
+        baby_dimensions["min_y"] = d["max_y"] - (baby_height - 1)
+        baby_dimensions["max_y"] = d["max_y"]
 
     elif corner == "tr":
-        baby_dimensions["min_x"] = parent_min_max["max_x"] - (baby_width - 1)
-        baby_dimensions["max_x"] = parent_min_max["max_x"]
-        baby_dimensions["min_y"] = parent_min_max["max_y"] - (baby_height - 1)
-        baby_dimensions["max_y"] = parent_min_max["max_y"]
+        baby_dimensions["min_x"] = d["max_x"] - (baby_width - 1)
+        baby_dimensions["max_x"] = d["max_x"]
+        baby_dimensions["min_y"] = d["max_y"] - (baby_height - 1)
+        baby_dimensions["max_y"] = d["max_y"]
 
     elif corner == "bl":
-        baby_dimensions["min_x"] = parent_min_max["min_x"]
-        baby_dimensions["max_x"] = parent_min_max["min_x"] + (baby_width - 1)
-        baby_dimensions["min_y"] = parent_min_max["min_y"]
-        baby_dimensions["max_y"] = parent_min_max["min_y"] + (baby_height - 1)
+        baby_dimensions["min_x"] = d["min_x"]
+        baby_dimensions["max_x"] = d["min_x"] + (baby_width - 1)
+        baby_dimensions["min_y"] = d["min_y"]
+        baby_dimensions["max_y"] = d["min_y"] + (baby_height - 1)
 
     else:  # "corner == br"
-        baby_dimensions["min_x"] = parent_min_max["max_x"] - (baby_width - 1)
-        baby_dimensions["max_x"] = parent_min_max["max_x"]
-        baby_dimensions["min_y"] = parent_min_max["min_y"]
-        baby_dimensions["max_y"] = parent_min_max["min_y"] + (baby_height - 1)
+        baby_dimensions["min_x"] = d["max_x"] - (baby_width - 1)
+        baby_dimensions["max_x"] = d["max_x"]
+        baby_dimensions["min_y"] = d["min_y"]
+        baby_dimensions["max_y"] = d["min_y"] + (baby_height - 1)
 
     # Ensure that the baby isn't sitting on top of any fences after overlay (in case baby is bigger than parent)
     land_units = _get_land_units(baby_dimensions)
@@ -184,7 +185,6 @@ def _place_baby(parent_min_max, baby):
     direction = choice(["up", "down", "left", "right"])
     dist_moved = baby_width if direction in ["left", "right"] else baby_height
     look = Look(baby_dimensions, direction)
-    pdb.set_trace()
     evos_in_the_way = []
     for i in range(dist_moved):
         if look.blocking_fence():
@@ -198,8 +198,9 @@ def _place_baby(parent_min_max, baby):
         if choice((True, False, False)):
             return "evoip in the way"
 
+        return "Someone would have died"
         enemy_id = choice(evos_in_the_way)
-        who_dies = _battle(enemy_id, evo_id)
+        who_dies = _battle(enemy_id, parent1.id)
         cleared_landunits = LandUnit.objects.filter(evopic_id=who_dies)
         cleared_landunits.update(evopic_id=None)
         dead_evo = Evopix.objects.filter(evo_id=who_dies)
@@ -208,7 +209,7 @@ def _place_baby(parent_min_max, baby):
 
     # Save the baby evopic and place it on the map
     else:
-        baby.save(location="db", parents=(evo_id, mate.get().evo_id))
+        baby.save(location="db", parents=(parent1.id, parent2.id))
         land_units.update(evopic_id=baby.id)
         return "Got a new Evopic!"
 
@@ -216,31 +217,26 @@ def _place_baby(parent_min_max, baby):
 def _move():
     living_evopix = Evopix.objects.filter(health__gt=0)
     evo_id = choice(living_evopix).evo_id
-    land_units = LandUnit.objects.filter(evopic_id=evo_id)
-    min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
-
-    for land_unit in land_units:
-        min_x = land_unit.x if land_unit.x < min_x else min_x
-        min_y = land_unit.y if land_unit.y < min_y else min_y
-        max_x = land_unit.x if land_unit.x > max_x else max_x
-        max_y = land_unit.y if land_unit.y > max_y else max_y
-
-    dimensions = {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y}
+    dimensions = Evopic.world_xy(evo_id)
 
     direction = choice(["up", "down", "left", "right"])
     look = Look(dimensions, direction)
     if look.blocking_fence():
         return "fence"
 
-    if len(look.evopix) > 0: # bumped into an evopic, so try breeding
+    if len(look.evopix) > 0:  # bumped into an evopic, so try breeding
         mate_id = choice(look.evopix)  # Note: the evopix are tuples -> (land_id, evopic_id)
-        mate = Evopix.objects.filter(evo_id=mate_id[1]).get()
-        evopic = Evopix.objects.filter(evo_id=evo_id).get()
-        baby = breed(evopic.evp, mate.evp)
-        outcome_of_breed_attempt = _place_baby(dimensions, baby, evopic)
+        # mate = Evopix.objects.filter(evo_id=mate_id[1]).get()
+        mate = Evopic(evo_id=mate_id[1])
+        # evopic = Evopix.objects.filter(evo_id=evo_id).get()
+        evopic = Evopic(evo_id=evo_id)
+        baby = breed(evopic, mate)
+        outcome_of_breed_attempt = _place_baby(evopic, mate, baby)
         return outcome_of_breed_attempt
 
     else:
+        d = dimensions
+        min_x, min_y, max_x, max_y = [d["min_x"], d["min_y"], d["max_x"], d["max_y"]]
         if direction == "up":
             new_land = LandUnit.objects.filter(y=max_y + 1, x__gte=min_x, x__lte=max_x)
             old_land = LandUnit.objects.filter(y=min_y, x__gte=min_x, x__lte=max_x)
