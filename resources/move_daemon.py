@@ -186,35 +186,36 @@ def _place_baby(parent1, parent2, baby):
     direction = choice(["up", "down", "left", "right"])
     if direction == "left":
         baby_dimensions["min_x"] = parent_dimensions["min_x"]
-        baby_dimensions["max_x"] = baby_dimensions["min_x"] + baby_width
+        baby_dimensions["max_x"] = baby_dimensions["min_x"] + baby_width - 1
     elif direction == "right":
         baby_dimensions["max_x"] = parent_dimensions["max_x"]
-        baby_dimensions["min_x"] = baby_dimensions["max_x"] - baby_width
+        baby_dimensions["min_x"] = baby_dimensions["max_x"] - baby_width + 1
     elif direction == "down":
         baby_dimensions["min_y"] = parent_dimensions["min_y"]
-        baby_dimensions["max_y"] = baby_dimensions["min_y"] + baby_height
+        baby_dimensions["max_y"] = baby_dimensions["min_y"] + baby_height - 1
     elif direction == "up":
         baby_dimensions["max_y"] = parent_dimensions["max_y"]
-        baby_dimensions["min_y"] = baby_dimensions["max_y"] - baby_height
+        baby_dimensions["min_y"] = baby_dimensions["max_y"] - baby_height + 1
     else:
-        sys.exit("Error: direction is detected")
+        sys.exit("Error: no direction is detected")
     dist_moved = baby_width if direction in ["right", "left"] else baby_height
 
     look = Look(baby_dimensions, direction)
     evos_in_the_way = []
+    final_position = []
     for i in range(dist_moved):
         if look.blocking_fence():
             return "fence"
         evos_in_the_way += look.evopix
+        final_position += look.land
         if i + 1 < dist_moved:
             look.step_deeper()
     # If there are Evoix present, maybe fight to the death!
     if len(evos_in_the_way) > 0:
-        if choice((True, True, False)):
+        if choice((True, False, False)):
             return "evo in the way"
 
-        return "Someone would have died"
-        enemy_id = choice(evos_in_the_way)
+        enemy_id = choice(evos_in_the_way)[1]  # The first index is land_id
         who_dies = _battle(enemy_id, parent1.id)
         cleared_landunits = LandUnit.objects.filter(evopic_id=who_dies)
         cleared_landunits.update(evopic_id=None)
@@ -224,8 +225,10 @@ def _place_baby(parent1, parent2, baby):
 
     # Save the baby evopic and place it on the map
     else:
-        #baby.save(location="db", parents=(parent1.id, parent2.id))
-        #land_units.update(evopic_id=baby.id)
+        look.step_deeper()  # just bump the look min_max one more step to finish the move
+        land = LandUnit.objects.filter(y__gte=look.min_y, y__lte=look.max_y, x__gte=look.min_x, x__lte=look.max_x)
+        baby.save(location="db", parents=(parent1.id, parent2.id))
+        land.update(evopic_id=baby.id)
         return "Got a new Evopic!"
 
 
@@ -278,6 +281,6 @@ def move(request):
 
 
 def run():
-    for i in range(100000):
+    for i in range(10000):
         print(_move())
         #time.sleep(0.25)
