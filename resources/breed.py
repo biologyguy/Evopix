@@ -12,8 +12,6 @@ def breed(evopic1, evopic2):
              -Pass in parents as evopic objects.
     """
     parent = choice([evopic1, evopic2])
-    import pdb
-    pdb.set_trace()
     baby = mutation.mutate(parent)
     return baby
 

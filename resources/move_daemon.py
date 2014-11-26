@@ -18,7 +18,7 @@ class Look():
     def __init__(self, self_min_max, direction):
         self.min_x, self.min_y, self.max_x, self.max_y = [self_min_max["min_x"], self_min_max["min_y"], self_min_max["max_x"], self_min_max["max_y"]]
         self.direction = direction
-        self.fences = []
+        self.fences = {"top": [], "bottom": [], "left": [], "right": []}
         self.evopix = []
         self.lands_end = []
         self.land = []
@@ -138,7 +138,8 @@ def _place_baby(parent1, parent2, baby):
     baby_dimensions = {"min_x": 0, "max_x": 0, "min_y": 0, "max_y": 0}
 
     # start by overlaying the parent, starting at a random corner (in case the baby is bigger or smaller)
-    d = parent1.world_dimensions
+    parent_dimensions = parent1.world_dimensions
+    d = parent_dimensions
     corner = choice(["tl", "tr", "bl", "br"])
     if corner == "tl":
         baby_dimensions["min_x"] = d["min_x"]
@@ -181,9 +182,24 @@ def _place_baby(parent1, parent2, baby):
     if len(vertical_fences) > 0:
         return "fence"
 
-    # pick a direction, and see if it's clear
+    # pick a direction, shift baby to edge, and see if the way is clear
     direction = choice(["up", "down", "left", "right"])
-    dist_moved = baby_width if direction in ["left", "right"] else baby_height
+    if direction == "left":
+        baby_dimensions["min_x"] = parent_dimensions["min_x"]
+        baby_dimensions["max_x"] = baby_dimensions["min_x"] + baby_width
+    elif direction == "right":
+        baby_dimensions["max_x"] = parent_dimensions["max_x"]
+        baby_dimensions["min_x"] = baby_dimensions["max_x"] - baby_width
+    elif direction == "down":
+        baby_dimensions["min_y"] = parent_dimensions["min_y"]
+        baby_dimensions["max_y"] = baby_dimensions["min_y"] + baby_height
+    elif direction == "up":
+        baby_dimensions["max_y"] = parent_dimensions["max_y"]
+        baby_dimensions["min_y"] = baby_dimensions["max_y"] - baby_height
+    else:
+        sys.exit("Error: direction is detected")
+    dist_moved = baby_width if direction in ["right", "left"] else baby_height
+
     look = Look(baby_dimensions, direction)
     evos_in_the_way = []
     for i in range(dist_moved):
@@ -192,11 +208,10 @@ def _place_baby(parent1, parent2, baby):
         evos_in_the_way += look.evopix
         if i + 1 < dist_moved:
             look.step_deeper()
-
     # If there are Evoix present, maybe fight to the death!
     if len(evos_in_the_way) > 0:
-        if choice((True, False, False)):
-            return "evoip in the way"
+        if choice((True, True, False)):
+            return "evo in the way"
 
         return "Someone would have died"
         enemy_id = choice(evos_in_the_way)
@@ -209,8 +224,8 @@ def _place_baby(parent1, parent2, baby):
 
     # Save the baby evopic and place it on the map
     else:
-        baby.save(location="db", parents=(parent1.id, parent2.id))
-        land_units.update(evopic_id=baby.id)
+        #baby.save(location="db", parents=(parent1.id, parent2.id))
+        #land_units.update(evopic_id=baby.id)
         return "Got a new Evopic!"
 
 
