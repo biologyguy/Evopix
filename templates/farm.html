@@ -59,14 +59,14 @@
                     var top = (land_unit.y - farm_bounds["min_y"]) / farm_bounds["height"] * 100;
                     var horiz_fence = (land_unit.y - farm_bounds["min_y"] + 1) / farm_bounds["height"] * 100;
                     var vert_fence = (land_unit.x - farm_bounds["min_x"] + 0.95) / farm_bounds["height"] * 100;
-                    $("#farm_box").append("<div class='landunit' style='background-color:#" + land_unit.color + "; left:" + left + "%; bottom:" + top + "%;'></div>")
+                    $("#farm_box").append("<div class='landunit' style='background-color:#" + land_unit.color + "; left:" + left + "%; bottom:" + top + "%;'></div>");
                     if(land_unit.horiz_fence != null) {
-                        $("#farm_box").append("<img class='h_fence' style='left:" + left + "%; bottom:" + horiz_fence + "%;' src='" + land_unit.horiz_fence + "' />")
+                        $("#farm_box").append("<img class='h_fence' style='left:" + left + "%; bottom:" + horiz_fence + "%;' src='" + land_unit.horiz_fence + "' />");
                         //$("#dev_box").html("<img src='/static/img/fence.svg' />");
                     }
 
                     if(land_unit.vert_fence != null){
-                        $("#farm_box").append("<img class='v_fence' style='left:" + vert_fence + "%; bottom:" + top + "%;' src='" + land_unit.vert_fence + "' />")
+                        $("#farm_box").append("<img class='v_fence' style='left:" + vert_fence + "%; bottom:" + top + "%;' src='" + land_unit.vert_fence + "' />");
 
                     }
 
@@ -83,15 +83,44 @@
                 }
 
                 $(function(){
-                   $(".h_fence").draggable({
-                       start: function(){
-                           long_poll_check = false;
-                       },
-                       stop: function(){
-                           long_poll_check = true;
-                           start_long_poll();
-                       }
-                   });
+                    $(".h_fence").draggable({
+                        start: function(){
+                            long_poll_check = false;
+                        },
+                        stop: function(){
+                            long_poll_check = true;
+                            start_long_poll();
+                        }
+                    });
+                });
+                // This adds snap-to-grid functionality, and need to call the server to place a fence.
+                $(function(){
+                    $('.v_fence').draggable({
+                        start: function(){
+                            long_poll_check = false;
+                        },
+                        stop: function(){
+                            long_poll_check = true;
+                            start_long_poll();
+                        },
+                        drag: function( event, ui ) {
+                            var snapTolerance = $(this).draggable('option', 'snapTolerance');
+                            var topRemainder = ui.position.top % 50;
+                            var leftRemainder = ui.position.left % 50;
+
+                            if (topRemainder <= snapTolerance) {
+                                ui.position.top = ui.position.top - topRemainder;
+                                //$(this).attr("src", "../static/img/horiz_fence1.svg", "width", "50px");
+                                $(this).switchClass('v_fence', 'h_fence', 10, "swing");
+                            }
+
+                            if (leftRemainder <= snapTolerance) {
+                                ui.position.left = ui.position.left - leftRemainder;
+                                //$(this).attr("src", "../static/img/vert_fence1.svg", "height", "52px");
+                                $(this).switchClass('h_fence', 'v_fence', 10, "swing");
+                            }
+                        }
+                    });
                 });
 
                 //Just playing around here, need to figure out how to show a full version of an evopic that's been clicked on
