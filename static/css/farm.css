@@ -182,12 +182,10 @@ body
 
 .h_fence {
     position: absolute;
-    width: 50px;
     z-index: 3;
 }
 
 .v_fence {
     position: absolute;
-    height: 52px;
     z-index: 3;
 }

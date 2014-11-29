@@ -1,9 +1,103 @@
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="25px" height="6.833px" viewBox="12.5 0 25 6.833" enable-background="new 12.5 0 25 6.833" xml:space="preserve">
-<rect x="20.528" fill="#754C24" stroke="#42210B" stroke-width="0.1" width="2.187" height="6.833"/>
-<rect x="32.439" fill="#754C24" stroke="#42210B" stroke-width="0.1" width="2.187" height="6.833"/>
-<rect x="12.5" y="1.167" fill="#7F5736" stroke="#42210B" stroke-width="0.1" width="25" height="1.083"/>
-<rect x="12.5" y="3.458" fill="#7F5736" stroke="#42210B" stroke-width="0.1" width="25" height="1.083"/>
-<rect x="14.573" fill="#8C6239" stroke="#42210B" stroke-width="0.1" width="2.187" height="6.833"/>
-<rect x="26.484" fill="#8C6239" stroke="#42210B" stroke-width="0.1" width="2.187" height="6.833"/>
-</svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Layer_1"
+   x="0px"
+   y="0px"
+   width="50"
+   height="13.9"
+   viewBox="12.5 0 50 13.899999"
+   enable-background="new 12.5 0 25 6.833"
+   xml:space="preserve"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="horiz_fence1.svg"><metadata
+     id="metadata3075"><rdf:RDF><cc:Work
+         rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata><defs
+     id="defs3073" /><sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1085"
+     inkscape:window-height="868"
+     id="namedview3071"
+     showgrid="false"
+     inkscape:zoom="8"
+     inkscape:cx="26.819199"
+     inkscape:cy="12.67953"
+     inkscape:window-x="445"
+     inkscape:window-y="71"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="Layer_1" /><rect
+     x="28.58526"
+     width="4.3565736"
+     height="13.611554"
+     id="rect3059"
+     y="0.10146777"
+     style="fill:#754c24;stroke:#42210b;stroke-width:0.19920319" /><rect
+     x="52.312347"
+     width="4.3565736"
+     height="13.611554"
+     id="rect3061"
+     y="0.10146777"
+     style="fill:#754c24;stroke:#42210b;stroke-width:0.19920319" /><rect
+     x="12.593227"
+     y="2.4261689"
+     width="49.800797"
+     height="2.1573706"
+     id="rect3063"
+     style="fill:#7f5736;stroke:#42210b;stroke-width:0.19920319" /><rect
+     x="12.593227"
+     y="6.9899144"
+     width="49.800797"
+     height="2.1573706"
+     id="rect3065"
+     style="fill:#7f5736;stroke:#42210b;stroke-width:0.19920319" /><rect
+     x="16.72271"
+     width="4.3565736"
+     height="13.611554"
+     id="rect3067"
+     y="0.10146777"
+     style="fill:#8c6239;stroke:#42210b;stroke-width:0.19920319" /><rect
+     x="40.449799"
+     width="4.3565736"
+     height="13.611554"
+     id="rect3069"
+     y="0.10146777"
+     style="fill:#8c6239;stroke:#42210b;stroke-width:0.19920319" /><rect
+     style="fill:#7f5736;fill-opacity:1;fill-rule:evenodd;stroke:none"
+     id="rect3079"
+     width="0.49448028"
+     height="1.9551735"
+     x="12.500344"
+     y="2.5255735" /><rect
+     style="fill:#7f5736;fill-opacity:1;fill-rule:evenodd;stroke:none"
+     id="rect3079-0"
+     width="0.49448028"
+     height="1.9590797"
+     x="12.491041"
+     y="7.0903811" /><rect
+     style="fill:#7f5736;fill-opacity:1;fill-rule:evenodd;stroke:none"
+     id="rect3079-03"
+     width="0.49448028"
+     height="1.9551735"
+     x="61.994946"
+     y="2.5278811" /><rect
+     style="fill:#7f5736;fill-opacity:1;fill-rule:evenodd;stroke:none"
+     id="rect3079-6"
+     width="0.49448028"
+     height="1.9551735"
+     x="61.998852"
+     y="7.0903811" /></svg>
