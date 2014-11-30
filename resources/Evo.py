@@ -38,6 +38,12 @@ class Evopic():
         dimensions = {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y}
         return dimensions
 
+    def size(self):
+        size = 0.
+        for path in self.paths:
+            size += self.paths[path].path_size()
+        return size
+
     def _database(self):
         evopic = Evopix.objects.filter(evo_id=self.id).get()
         self.health = evopic.health

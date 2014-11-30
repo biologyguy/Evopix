@@ -117,8 +117,32 @@ class Look():
 def _battle(enemy_id, evo_id):
         evo = Evopix.objects.filter(evo_id=evo_id).get()
         enemy = Evopix.objects.filter(evo_id=enemy_id).get()
-        # evo = Evopic(evo.evp)
-        # enemy = Evopic(enemy.evp)
+        evo = Evopic(evo.evp)
+        enemy = Evopic(enemy.evp)
+
+        advantage_factors = {"biggest": 1.5, "oldest": 1.5, "most_points": 1.5}
+
+        evo_score = 1
+        enemy_score = 1
+        # Largest evopic has an advantage
+        evo_size = evo.size()
+        enemy_size = enemy.size()
+        if evo_size > enemy_size:
+            evo_score *= advantage_factors["biggest"]
+        elif evo_size < enemy_size:
+            enemy_score *= advantage_factors["biggest"]
+
+        # Older (smaller id) points have an advantage
+
+
+        # More points has an advantage
+        if evo.num_points() > enemy.num_points():
+            evo_score *= advantage_factors["most_points"]
+        elif evo.num_points() < enemy.num_points():
+            enemy_score *= advantage_factors["most_points"]
+
+
+
 
         loser = choice((enemy_id, evo_id))
         return loser
