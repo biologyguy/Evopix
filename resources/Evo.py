@@ -44,6 +44,12 @@ class Evopic():
             size += self.paths[path].path_size()
         return size
 
+    def ave_points_age(self):
+        point_sum = 0.
+        for point in self.point_locations():
+            point_sum += point[1]
+        return point_sum / len(self._point_locations)
+
     def _database(self):
         evopic = Evopix.objects.filter(evo_id=self.id).get()
         self.health = evopic.health

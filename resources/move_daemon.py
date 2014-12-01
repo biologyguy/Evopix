@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.db.models import Q
 from evp.models import *
 from world.models import *
-from random import choice
+from random import choice, random
 import time
 import pdb
 
@@ -122,8 +122,8 @@ def _battle(enemy_id, evo_id):
 
         advantage_factors = {"biggest": 1.5, "oldest": 1.5, "most_points": 1.5}
 
-        evo_score = 1
-        enemy_score = 1
+        evo_score = 1.
+        enemy_score = 1.
         # Largest evopic has an advantage
         evo_size = evo.size()
         enemy_size = enemy.size()
@@ -133,7 +133,10 @@ def _battle(enemy_id, evo_id):
             enemy_score *= advantage_factors["biggest"]
 
         # Older (smaller id) points have an advantage
-
+        if evo.ave_points_age() > enemy.ave_points_age():
+            evo_score *= advantage_factors["oldest"]
+        elif evo.ave_points_age() < enemy.ave_points_age():
+            enemy_score *= advantage_factors["oldest"]
 
         # More points has an advantage
         if evo.num_points() > enemy.num_points():
@@ -141,10 +144,12 @@ def _battle(enemy_id, evo_id):
         elif evo.num_points() < enemy.num_points():
             enemy_score *= advantage_factors["most_points"]
 
+        # Select the winner from weighted probability based on score
+        if evo_score / (evo_score + enemy_score) < random():
+            loser = enemy_id
+        else:
+            loser = evo_id
 
-
-
-        loser = choice((enemy_id, evo_id))
         return loser
 
 
