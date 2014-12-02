@@ -235,13 +235,16 @@ def _place_baby(parent1, parent2, baby):
     for i in range(dist_moved):
         if look.blocking_fence():
             return "fence"
+        if len(look.lands_end) > 0:
+            return "Edge of the world"
         evos_in_the_way += look.evopix
         final_position += look.land
         if i + 1 < dist_moved:
             look.step_deeper()
+
     # If there are Evoix present, maybe fight to the death!
     if len(evos_in_the_way) > 0:
-        if choice((True, False, False)):
+        if choice((True, False, False)):  # Arbitrarily setting the likelihood of fight
             return "evo in the way"
 
         enemy_id = choice(evos_in_the_way)[1]  # The first index is land_id
@@ -270,6 +273,9 @@ def _move():
     look = Look(dimensions, direction)
     if look.blocking_fence():
         return "fence"
+
+    if len(look.lands_end) != 0:
+        return "Edge of the world"
 
     if len(look.evopix) > 0:  # bumped into an evopic, so try breeding
         mate_id = choice(look.evopix)  # Note: the evopix are tuples -> (land_id, evopic_id)
@@ -310,6 +316,6 @@ def move(request):
 
 
 def run():
-    for i in range(10000):
+    for i in range(1000):
         print(_move())
         #time.sleep(0.25)
