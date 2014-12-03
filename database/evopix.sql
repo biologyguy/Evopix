@@ -156,3 +156,14 @@ DELETE FROM `mysql`.`proc` WHERE `proc`.`db` = 'evopix' AND `proc`.`name` = 'myF
 --
 
 INSERT INTO `world_userinfo`(`user_id`, `farm_midpoint_id`) VALUES (1,127);
+
+-- --------------------------------------------------------
+--
+-- Dumping data for table `the_shop_breedingPellets`
+--
+
+INSERT INTO `evopix`.`the_shop_breedingpellets` (`type`, `description`, `path_split`, `point_split`,
+`del_point`, `point_move`, `gradient_param`, `stop_split`, `del_stop`, `stop_params`, `stroke_color`, `stroke_width`,
+`stroke_opacity`)
+VALUES ('Standard', 'Run of the mill breeding pellet. Does not change the breeding params.', '0.0001', '0.003', '0.001',
+        '0.02', '0.01', '0.002', '0.001', '0.03', '0.01', '0.01', '0.01');

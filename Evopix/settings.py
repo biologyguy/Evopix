@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     # Evopix specific apps from here down
     'evp',
     'world',
+    'the_shop',
 )
 
 MIDDLEWARE_CLASSES = (

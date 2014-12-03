@@ -1,4 +1,5 @@
 from django.db import models
+from the_shop.models import BreedingPellets
 
 
 # Create your models here.
@@ -11,6 +12,7 @@ class Evopix(models.Model):
     hype_score = models.IntegerField()
     health = models.IntegerField()
     birthday = models.DateTimeField(auto_now_add=True)
+    breeding_pellet = models.ForeignKey(BreedingPellets, null=True)
 
     def __unicode__(self):
         return self.evo_id
@@ -46,3 +48,4 @@ class Stops(models.Model):
 
     def __unicode__(self):
         return self.stop_id
+

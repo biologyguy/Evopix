@@ -419,15 +419,3 @@ def mutate(evopic):
 if __name__ == '__main__':
     with open("../genomes/sue.evp", "r") as infile:
         bob = Evopic(infile.read())
-
-    for i in range(100):
-        bob = mutate(bob)
-        #print(bob.paths[1].points)
-
-    for p_id in baby.paths_order:
-        print(baby.paths[p_id].stops)
-
-    with open("../genomes/baby.svg", "w") as ofile:
-        ofile.write(baby.svg_out())
-
-    print("Done")
