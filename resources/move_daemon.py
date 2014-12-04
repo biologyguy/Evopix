@@ -317,7 +317,14 @@ def move(request):
     return HttpResponse()
 
 
+import sys, select
+
 def run():
-    for i in range(1000):
+    # This will break if the Enter key if pressed
+    i = 0
+    while True:
         print(_move())
-        #time.sleep(0.25)
+        if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+            line = input()
+            break
+        i += 1
