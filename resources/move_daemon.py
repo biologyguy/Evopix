@@ -250,12 +250,11 @@ def _place_baby(parent1, parent2, baby):
         if len(Evopix.objects.filter(health__gt=0)) < 5:
             return "Too few Evos alive to allow fighting..."
         enemy_id = choice(evos_in_the_way)[1]  # The first index is land_id
-        who_dies = _battle(enemy_id, parent1.id)
-        cleared_landunits = LandUnit.objects.filter(evopic_id=who_dies)
-        cleared_landunits.update(evopic_id=None)
-        dead_evo = Evopix.objects.filter(evo_id=who_dies)
-        dead_evo.update(health=0)
-        return "Killed evopic %s" % who_dies
+
+        loser = Evopic()  # No need to actually fill the object in the constructor, just set the id after instantiate
+        loser.id = _battle(enemy_id, parent1.id)
+        loser.death()
+        return "Killed evopic %s" % loser.id
 
     # Save the baby evopic and place it on the map
     else:

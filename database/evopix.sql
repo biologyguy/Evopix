@@ -137,10 +137,10 @@ CREATE PROCEDURE `myFunction`()
       UPDATE `world_landunit` SET `user_id`=1, `type_id`=2 WHERE `x`>=2 AND `x`<=12 AND `y`>=2 AND `y`<=12;
 
       -- TEMP: Testing farm fence --
-      UPDATE `world_landunit` SET `b_fence_id`=1  WHERE `y` = 12 AND `y` = 2 AND `x` >= 2 AND `x` <= 11;
-      UPDATE `world_landunit` SET `t_fence_id`=1  WHERE `y` = 11 AND `y` = 1 AND `x` >= 2 AND `x` <= 11;
-      UPDATE `world_landunit` SET `l_fence_id`=1  WHERE `x` = 12 AND `x` = 2 AND `y` >= 2 AND `y` <= 11;
-      UPDATE `world_landunit` SET `r_fence_id`=1  WHERE `x` = 11 AND `x` = 1 AND `y` >= 2 AND `y` <= 11;
+      UPDATE `world_landunit` SET `b_fence_id`=1  WHERE (`y` = 12 OR `y` = 2) AND `x` >= 2 AND `x` <= 11;
+      UPDATE `world_landunit` SET `t_fence_id`=1  WHERE (`y` = 11 OR `y` = 1) AND `x` >= 2 AND `x` <= 11;
+      UPDATE `world_landunit` SET `l_fence_id`=1  WHERE (`x` = 12 OR `x` = 2) AND `y` >= 2 AND `y` <= 11;
+      UPDATE `world_landunit` SET `r_fence_id`=1  WHERE (`x` = 11 OR `x` = 1) AND `y` >= 2 AND `y` <= 11;
       -- End temp
 	END$$
 

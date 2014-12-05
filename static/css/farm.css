@@ -138,33 +138,33 @@ body
 
 
 #down_button {
-    background: url('../img/arrowhead_down_simp.png') no-repeat transparent;
-    width:14px;
-    height:19px;
+    background: url('../img/arrowhead_down_button.png') no-repeat transparent;
+    width:19px;
+    height:14px;
 
 }
 
 #down_button:hover {
-    background-image: url('../img/arrowhead_down_simp.png');
+    background-image: url('../img/arrowhead_down_button_hover.png');
 }
 
 #down_button:active {
-    background-image: url('../img/arrowhead_down_simp.png');
+    background-image: url('../img/arrowhead_down_button_click.png');
 }
 
 #up_button {
-    background: url('../img/arrowhead_down_simp.png') no-repeat transparent;
-    width:14px;
-    height:19px;
+    background: url('../img/arrowhead_up_button.png') no-repeat transparent;
+    width:19px;
+    height:14px;
 
 }
 
 #up_button:hover {
-    background-image: url('../img/arrowhead_down_simp.png');
+    background-image: url('../img/arrowhead_up_button_hover.png');
 }
 
 #up_button:active {
-    background-image: url('../img/arrowhead_down_simp.png');
+    background-image: url('../img/arrowhead_up_button_click.png');
 }
 
 .landunit {

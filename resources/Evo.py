@@ -38,6 +38,12 @@ class Evopic():
         dimensions = {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y}
         return dimensions
 
+    def death(self):
+        evopic = Evopix.objects.filter(evo_id=self.id)
+        evopic.update(health=0, hype_score=0, breeding_pellet_id=None)
+        land_units = LandUnit.objects.filter(evopic_id=self.id)
+        land_units.update(evopic_id=None)
+
     def size(self):
         size = 0.
         for path in self.paths:
