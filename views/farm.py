@@ -42,7 +42,12 @@ def farm(request):
     midpoint = UserInfo.objects.filter(user_id=user_id)[0].farm_midpoint_id
     midpoint = LandUnit.objects.filter(land_id=midpoint)[0]
 
-    return render(request, 'templates/farm.html', {"midpoint": midpoint.land_id})
+    num_fences = 5
+    num_breeding = 5
+
+    tool_shed = "<ul><li>Fences: %s</li><li>Breeding pellets: %s</li></ul>" % (num_fences, num_breeding)
+
+    return render(request, 'templates/farm.html', {"midpoint": midpoint.land_id, "tool_shed": {"fences": num_fences, "pellets": num_breeding}})
 
 
 # AJAX called functions below here.
