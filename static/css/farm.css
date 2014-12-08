@@ -80,11 +80,33 @@ body
     z-index: 20;
 }
 
+#tool_shed_border {
+    position: absolute;
+    top:    132px;
+    left:   682px;
+    width:  350px;
+    height: 485px;
+    border: solid 25px transparent;
+    -webkit-border-image: url("../img/border1.png") 45 45 stretch; /* Safari 3.1-5 */
+    -o-border-image: url("../img/border1.png") 45 45 stretch; /* Opera 11-12.1 */
+    border-image: url("../img/border1.png") 45 45 stretch;
+}
+
+#tool_shed {
+    position: absolute;
+    top:    150px;
+    left:   700px;
+    width:  340px;
+    height: 500px;
+    padding-left: 25px;
+    background-color: #bbbbbb;
+}
+
 #dev_box {
     position: absolute;
-    top:    200px;
-    left:   700px;
-    width:  350px;
+    top: 720px;
+    left: 150px;
+    width: 350px;
     border: solid thin black;
 }
 

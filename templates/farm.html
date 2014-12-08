@@ -198,11 +198,21 @@
         <div id="visible_bottom"></div>
         <div id="visible_left"></div>
         <div id="visible_right"></div>
-        <div id="farm_box"><span class="evopic"></span>
+        <div id="farm_box"><span class="evopic"></span></div>
 
-        </div>
 
     <div id="dev_box">Hello!</div>
+
+        <div id="tool_shed">
+        <h1>Your stuff!</h1>
+            <ul>
+                {%  for key, value in tool_shed.items %}
+                <li>{{ key }}: {{ value }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    <div id="tool_shed_border"></div>
+
     <div id="nav_buttons">
         <table>
             <tr>
