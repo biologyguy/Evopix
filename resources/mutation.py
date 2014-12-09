@@ -14,9 +14,9 @@ import sys
 from scipy.stats import gamma
 
 # Mutation rates are the probability of an event happening per mutable character
-mutation_rates = {"path_split": 0.0001, "point_split": 0.003, "del_point": 0.001, "point_move": 0.02,
+mutation_rates = {"path_split": 0.0001, "point_split": 0.01, "del_point": 0.001, "point_move": 0.03,
                   "gradient_param": 0.01, "stop_split": 0.002, "del_stop": 0.001, "stop_params": 0.03,
-                  "stroke_color": 0.01, "stroke_width": 0.01, "stroke_opacity": 0.01}
+                  "stroke_color": 0.05, "stroke_width": 0.01, "stroke_opacity": 0.01}
 
 # test values for mutation rates.
 #mutation_rates = {"path_split": 0.1, "point_split": 0.3, "del_point": 0.1, "point_move": 0.2,

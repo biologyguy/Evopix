@@ -167,3 +167,14 @@ INSERT INTO `evopix`.`the_shop_breedingpellets` (`type`, `description`, `path_sp
 `stroke_opacity`)
 VALUES ('Standard', 'Run of the mill breeding pellet. Does not change the breeding params.', '0.0001', '0.003', '0.001',
         '0.02', '0.01', '0.002', '0.001', '0.03', '0.01', '0.01', '0.01');
+
+
+/*DROP TABLE world_userinfo;
+DROP TABLE world_landunit;
+DROP TABLE world_landtypes;
+DROP TABLE world_fencetypes;
+DROP TABLE evp_stops;
+DROP TABLE evp_points;
+DROP TABLE evp_paths;
+DROP TABLE evp_evopix;
+DROP TABLE the_shop_breedingpellets;*/
