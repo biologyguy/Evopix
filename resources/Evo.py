@@ -50,6 +50,26 @@ class Evopic():
             size += self.paths[path].path_size()
         return size
 
+    def color(self):
+        path_rgb_vals = []
+        path_sizes = []
+        for path_id in self.paths:
+            path = self.paths[path_id]
+            if path.type == "x":
+                continue
+            path_sizes.append(path.path_size())
+            path_rgb_vals.append(path.color())
+        total_size = sum(path_sizes)
+        ave_rgb = [0, 0, 0]
+
+        for i in range(len(path_rgb_vals)):
+            ave_rgb[0] += path_rgb_vals[i][0] * (path_sizes[i] / total_size)
+            ave_rgb[1] += path_rgb_vals[i][1] * (path_sizes[i] / total_size)
+            ave_rgb[2] += path_rgb_vals[i][2] * (path_sizes[i] / total_size)
+
+        ave_rgb = [int(x) for x in ave_rgb]
+        return ave_rgb
+
     def ave_points_age(self):
         point_sum = 0.
         for point in self.point_locations():
@@ -468,6 +488,17 @@ class Path():
     def __str__(self):
         return("id: %s\ntype: %s\npoints order: %s\npoints: %s\n" %
                (self.id, self.type, self.points_order, self.points))
+
+    def color(self):  # return the rgb hex value of the path
+        rgb = [0, 0, 0]
+        for stop in self.stops:
+            color = stop["params"][0]
+            components = [int(color[:2], 16), int(color[2:4], 16), int(color[4:], 16)]
+            rgb[0] += components[0]
+            rgb[1] += components[1]
+            rgb[2] += components[2]
+
+        return [int(x / len(self.stops)) for x in rgb]
 
     def find_area(self):  # Input is an individual path from Evopic.paths
         """
