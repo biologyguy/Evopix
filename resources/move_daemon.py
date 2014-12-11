@@ -1,5 +1,5 @@
 from resources.breed import *
-from math import ceil
+from math import ceil, sqrt
 from django.http import HttpResponse
 from django.db.models import Q
 from evp.models import *
@@ -114,16 +114,45 @@ class Look():
         return
 
 
+def rgb_advantage_score(evo1_rgb, evo2_rgb):
+    sqr_sum = sqrt(sum(evo1_rgb))
+    r2g = min(evo1_rgb[0], evo2_rgb[1]) * evo1_rgb[0]
+    g2b = min(evo1_rgb[1], evo2_rgb[2]) * evo1_rgb[1]
+    b2r = min(evo1_rgb[2], evo2_rgb[0]) * evo1_rgb[2]
+    if sum([r2g, g2b, b2r]) == 0:
+        evo1_score = 0.
+    else:
+        evo1_score = sum([r2g, g2b, b2r]) / sqr_sum
+
+    sqr_sum = sqrt(sum(evo2_rgb))
+    r2g = min(evo2_rgb[0], evo1_rgb[1]) * evo2_rgb[0]
+    g2b = min(evo2_rgb[1], evo1_rgb[2]) * evo2_rgb[1]
+    b2r = min(evo2_rgb[2], evo1_rgb[0]) * evo2_rgb[2]
+    if sum([r2g, g2b, b2r]) == 0:
+        evo2_score = 0.
+    else:
+        evo2_score = sum([r2g, g2b, b2r]) / sqr_sum
+
+    return (evo1_score - evo2_score) / 4072  # This 'magic' number is the max advantage score possible (I think)
+
+
 def _battle(enemy_id, evo_id):
         evo = Evopix.objects.filter(evo_id=evo_id).get()
         enemy = Evopix.objects.filter(evo_id=enemy_id).get()
         evo = Evopic(evo.evp)
         enemy = Evopic(enemy.evp)
 
-        advantage_factors = {"biggest": 1.5, "oldest": 1.5, "most_points": 1.5}
+        advantage_factors = {"biggest": 1.5, "oldest": 1.5, "most_points": 1.5, "rgb": 10}
 
         evo_score = 1.
         enemy_score = 1.
+
+        # Rock-paper-scissors for color: red beats green beats blue beats red
+        # This is a messy looking function, but it moves nicely. The abs highest color advantage possible is 4040.24, so
+        # set this as a very likely win, then scale down from there in the final weighted probability at the end
+        evo_rgb_adv = rgb_advantage_score(evo.color(), enemy.color())
+
+
         # Largest evopic has an advantage
         evo_size = evo.size()
         enemy_size = enemy.size()
@@ -143,6 +172,7 @@ def _battle(enemy_id, evo_id):
             evo_score *= advantage_factors["most_points"]
         elif evo.num_points() < enemy.num_points():
             enemy_score *= advantage_factors["most_points"]
+
 
         # Select the winner from weighted probability based on score
         if evo_score / (evo_score + enemy_score) < random():
