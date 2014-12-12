@@ -151,7 +151,10 @@ def _battle(enemy_id, evo_id):
         # This is a messy looking function, but it moves nicely. The abs highest color advantage possible is 4040.24, so
         # set this as a very likely win, then scale down from there in the final weighted probability at the end
         evo_rgb_adv = rgb_advantage_score(evo.color(), enemy.color())
-
+        if evo_rgb_adv > 0:
+            evo_score += evo_rgb_adv * advantage_factors["rgb"]
+        else:
+            enemy_score += evo_rgb_adv * (-1) * advantage_factors["rgb"]
 
         # Largest evopic has an advantage
         evo_size = evo.size()
@@ -173,9 +176,10 @@ def _battle(enemy_id, evo_id):
         elif evo.num_points() < enemy.num_points():
             enemy_score *= advantage_factors["most_points"]
 
-
+        print("Battle scores --> Evo %s: %s\tEvo %s: %s" % (evo.id, evo_score, enemy.id, enemy_score))
         # Select the winner from weighted probability based on score
-        if evo_score / (evo_score + enemy_score) < random():
+        rand_val = random()
+        if evo_score / (evo_score + enemy_score) >= rand_val:
             loser = enemy_id
         else:
             loser = evo_id
