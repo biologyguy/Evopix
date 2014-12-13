@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
-from views import public, farm
+from views import public, farm, the_shop
 admin.autodiscover()
 
 
@@ -18,5 +18,6 @@ urlpatterns = patterns('',
     #AJAX views
     url(r'^populate_map/?$', farm.populate_map, name='populate_map'),
     url(r'^user_login/?$', public.user_login, name='login'),
+    url(r'^corner_store/?$', the_shop.store, name='corner_store'),
     url(r'^.*', public.not_found, name='not_found'),
 )
