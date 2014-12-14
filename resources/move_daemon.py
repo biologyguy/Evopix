@@ -171,6 +171,7 @@ def _battle(enemy_id, evo_id):
             enemy_score *= advantage_factors["oldest"]
 
         # More points has an advantage
+        # TODO: This should only be true up to a point. Need to reign in the # of points
         if evo.num_points() > enemy.num_points():
             evo_score *= advantage_factors["most_points"]
         elif evo.num_points() < enemy.num_points():

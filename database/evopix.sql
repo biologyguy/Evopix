@@ -70,15 +70,35 @@ INSERT INTO `evp_stops` (`stop_id`, `parent_stop`, `parent_path_id`, `parent_evo
 (4, 0, 3, 1, '2014-09-19 01:35:38');
 
 -- --------------------------------------------------------
-
 --
--- Dumping data for table `world_fencetypes`
+-- Dumping data for table `the_shop_breedingPellets`
 --
 
-INSERT INTO `world_fencetypes` (`fence_id`, `name`, `description`, `horiz_img_location`, `vert_img_location`) VALUES
-(1, 'basic', 'Just your standard, run-of-the-mill, wooden fence. Gets the job done.', '/static/img/horiz_fence1.svg', 'static/img/vert_fence1.svg');
+INSERT INTO `the_shop_breedingpellets` (`type`, `description`, `path_split`, `point_split`,
+`del_point`, `point_move`, `gradient_param`, `stop_split`, `del_stop`, `stop_params`, `stroke_color`, `stroke_width`,
+`stroke_opacity`, `base_price`)
+VALUES ('Standard', 'Run of the mill breeding pellet. Does not change the breeding params.', '0.0001', '0.003', '0.001',
+        '0.02', '0.01', '0.002', '0.001', '0.03', '0.01', '0.01', '0.01', 20);
 
 -- --------------------------------------------------------
+--
+-- Dumping data for table `the_shop_fencetypes`
+--
+
+INSERT INTO `the_shop_fences` (`name`, `description`, `horiz_img_location`, `vert_img_location`, `base_price`)
+VALUES ('basic', 'Just your standard, run-of-the-mill, wooden fence. Gets the job done.',
+        '/static/img/horiz_fence1.svg', 'static/img/vert_fence1.svg', 20);
+
+-- --------------------------------------------------------
+
+-- --------------------------------------------------------
+--
+-- Dumping data for table `the_shop_grassseed`
+--
+INSERT INTO `the_shop_grassseed` (`color`, `svg`, `base_price`) VALUES
+('00FF00', '<svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.0" width="100" height="400"><g transform="translate(0,-652.36215)"><path d="m 76.052589,1051.4297 c 0,0 22.332208,-102.70068 20.615248,-219.53111 C 94.950875,715.06812 51.91764,654.06143 51.91764,654.06143 c 0,0 -42.8184938,61.05011 -44.5354554,177.88057 -1.7169604,116.83049 20.6152474,219.5311 20.6152474,219.5311" style="fill:#00ff00;stroke:#000000;stroke-width:1.0814867px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" /></g></svg>', 20);
+
+--  --------------------------------------------------------
 
 --
 -- Dumping data for table `world_landtypes`
@@ -157,24 +177,15 @@ DELETE FROM `mysql`.`proc` WHERE `proc`.`db` = 'evopix' AND `proc`.`name` = 'myF
 
 INSERT INTO `world_userinfo`(`user_id`, `farm_midpoint_id`) VALUES (1,127);
 
--- --------------------------------------------------------
---
--- Dumping data for table `the_shop_breedingPellets`
---
-
-INSERT INTO `evopix`.`the_shop_breedingpellets` (`type`, `description`, `path_split`, `point_split`,
-`del_point`, `point_move`, `gradient_param`, `stop_split`, `del_stop`, `stop_params`, `stroke_color`, `stroke_width`,
-`stroke_opacity`)
-VALUES ('Standard', 'Run of the mill breeding pellet. Does not change the breeding params.', '0.0001', '0.003', '0.001',
-        '0.02', '0.01', '0.002', '0.001', '0.03', '0.01', '0.01', '0.01');
 
 
 /*DROP TABLE world_userinfo;
 DROP TABLE world_landunit;
 DROP TABLE world_landtypes;
-DROP TABLE world_fencetypes;
 DROP TABLE evp_stops;
 DROP TABLE evp_points;
 DROP TABLE evp_paths;
 DROP TABLE evp_evopix;
-DROP TABLE the_shop_breedingpellets;*/
+DROP TABLE the_shop_breedingpellets;
+DROP TABLE the_shop_fences;
+DROP TABLE the_shop_grassseed;*/

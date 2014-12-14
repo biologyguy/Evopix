@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from resources.Evo import Evopic
 from evp.models import *
 from world.models import *
+from the_shop.models import *
 from resources.breed import *
 import json
 import traceback
@@ -104,7 +105,7 @@ def populate_map(request):
                 land_types[land_type.type_id] = land_type.base_color
 
             fence_types = {}
-            fence_types_q = FenceTypes.objects.all()
+            fence_types_q = Fences.objects.all()
             for fence in fence_types_q:
                 fence_types[fence.fence_id] = {"horiz": fence.horiz_img_location, "vert": fence.vert_img_location}
 
