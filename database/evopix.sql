@@ -87,7 +87,7 @@ VALUES ('Standard', 'Run of the mill breeding pellet. Does not change the breedi
 
 INSERT INTO `the_shop_fences` (`name`, `description`, `horiz_img_location`, `vert_img_location`, `base_price`)
 VALUES ('basic', 'Just your standard, run-of-the-mill, wooden fence. Gets the job done.',
-        '/static/img/horiz_fence1.svg', 'static/img/vert_fence1.svg', 20);
+        '/static/img/horiz_fence1.svg', '/static/img/vert_fence1.svg', 20);
 
 -- --------------------------------------------------------
 

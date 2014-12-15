@@ -1,12 +1,8 @@
 #!/usr/bin/python3
-try:
-    from Evo import *
 
-except ImportError:
-    from resources.Evo import *
-    from resources.LineSeg import *
-    from evp.models import *
-
+from resources.Evo import *
+from resources.LineSeg import *
+from evp.models import *
 from random import random, choice, randint
 from math import cos, sin, radians, factorial
 from copy import copy
@@ -413,6 +409,7 @@ def mutate(evopic):
         evopic.paths[new_path.id] = new_path
         evopic.paths_order.insert(new_position, new_path.id)
 
+    evopic.find_extremes()
     return evopic
 
 #-------------------------Sandbox-------------------------------#

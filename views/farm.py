@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 # magic numbers... need to keep track manually for now
 world_size = {"x": 20, "y": 20}
 
+
 # Support functions
 def find_min_max(landunits):
     min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
@@ -109,13 +110,11 @@ def populate_map(request):
             for fence in fence_types_q:
                 fence_types[fence.fence_id] = {"horiz": fence.horiz_img_location, "vert": fence.vert_img_location}
 
-
             evo_ids = []
             landunits_q = LandUnit.objects.filter(x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
             for landunit in landunits_q:
                 output["land"].append({"x": landunit.x, "y": landunit.y, "land_id": landunit.land_id,
                                        "color": land_types[landunit.type_id]})
-
 
                 if landunit.t_fence_id:
                     output["land"][-1]["horiz_fence"] = fence_types[landunit.t_fence_id]["horiz"]
@@ -126,7 +125,6 @@ def populate_map(request):
                     output["land"][-1]["vert_fence"] = fence_types[landunit.r_fence_id]["vert"]
                 else:
                     output["land"][-1]["vert_fence"] = None
-
 
                 if landunit.evopic_id:
                     if landunit.evopic_id not in evo_ids:
