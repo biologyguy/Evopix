@@ -14,17 +14,6 @@ from django.contrib.auth.decorators import login_required
 world_size = {"x": 20, "y": 20}
 
 
-# Support functions
-def find_min_max(landunits):
-    min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
-    for landunit in landunits:
-        min_x = landunit.x if landunit.x < min_x else min_x
-        min_y = landunit.y if landunit.y < min_y else min_y
-        max_x = landunit.x if landunit.x > max_x else max_x
-        max_y = landunit.y if landunit.y > max_y else max_y
-    return [min_x, min_y, max_x, max_y]
-
-
 # Create your views here.
 def welcome(request):
     return render(request, 'templates/welcome.html')
@@ -51,8 +40,88 @@ def farm(request):
 
     return render(request, 'templates/farm.html', {"midpoint": midpoint.land_id, "tool_shed": {"fences": num_fences, "pellets": num_breeding}})
 
+# Support functions
+def find_min_max(landunits):
+    min_x, min_y, max_x, max_y = 9999999999, 9999999999, 0, 0
+    for landunit in landunits:
+        min_x = landunit.x if landunit.x < min_x else min_x
+        min_y = landunit.y if landunit.y < min_y else min_y
+        max_x = landunit.x if landunit.x > max_x else max_x
+        max_y = landunit.y if landunit.y > max_y else max_y
+    return [min_x, min_y, max_x, max_y]
+
+
+def get_land(min_x, min_y, max_x, max_y):
+    output = []
+    land_types = {}
+    land_types_q = LandTypes.objects.all()
+    for land_type in land_types_q:
+        land_types[land_type.type_id] = land_type.base_color
+
+    fence_types = {}
+    fence_types_q = Fences.objects.all()
+    for fence in fence_types_q:
+        fence_types[fence.fence_id] = {"horiz": fence.horiz_img_location, "vert": fence.vert_img_location}
+
+    landunits_q = LandUnit.objects.filter(x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
+    for landunit in landunits_q:
+        output.append({"x": landunit.x, "y": landunit.y, "land_id": landunit.land_id,
+                       "color": land_types[landunit.type_id]})
+
+        if landunit.t_fence_id:
+            output[-1]["horiz_fence"] = fence_types[landunit.t_fence_id]["horiz"]
+        else:
+            output[-1]["horiz_fence"] = None
+
+        if landunit.r_fence_id:
+            output[-1]["vert_fence"] = fence_types[landunit.r_fence_id]["vert"]
+        else:
+            output[-1]["vert_fence"] = None
+
+    return output
+
+
+def get_evopix(min_x, min_y, max_x, max_y, b_box_size, svg_scale_factor):
+    output = []
+    evo_ids = []
+    landunits_q = LandUnit.objects.filter(x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
+    for landunit in landunits_q:
+        if landunit.evopic_id:
+            if landunit.evopic_id not in evo_ids:
+                evo_ids.append(landunit.evopic_id)
+
+    for evo_id in evo_ids:
+        evopic = Evopic(Evopix.objects.filter(evo_id=evo_id).get().evp)
+        output.append({"id": evo_id})
+
+        landunits_q = LandUnit.objects.filter(evopic_id=evo_id)
+        min_x, min_y, max_x, max_y = find_min_max(landunits_q)
+
+        size_x = (max_x - min_x + 1) * b_box_size
+        size_y = (max_y - min_y + 1) * b_box_size
+        output[-1]["svg"] = evopic.svg_out(scale=svg_scale_factor, bounding_box=(size_x, size_y))
+        output[-1]["min_x"] = min_x
+        output[-1]["min_y"] = min_y
+        output[-1]["max_x"] = max_x
+        output[-1]["max_y"] = max_y
+    return output
+
 
 # AJAX called functions below here.
+# TODO!!!!!!!!!!
+def extend_land(request):  # Only access the bits of land required if the frame moves
+    try:
+        if request.method == "POST":
+            return
+        else:
+            print("Failed post.")
+            return HttpResponse("Fail")
+    except:
+        typ, value, tback = sys.exc_info()
+        print("Error caught! %s" % traceback.print_tb(tback))
+        return HttpResponse("Fail")
+# !!!!!!!!!!!
+
 def populate_map(request):
     try:
         if request.method == "POST":
@@ -91,7 +160,7 @@ def populate_map(request):
                         min_y = midpoint.y - 6
                         max_y = midpoint.y + 6
 
-                b_box_siz = 50
+                b_box_size = 50
                 svg_scale_factor = 0.1
                 if update_midpoint:
                     midpoint = LandUnit.objects.filter(x=min_x + 6, y=min_y + 6)[0]
@@ -99,52 +168,8 @@ def populate_map(request):
             else:
                 return HttpResponse("Don't know what to do with that zoom level... Sorry.")
 
-            # Store land type colors and fence types so as not to query the database over and over
-            land_types = {}
-            land_types_q = LandTypes.objects.all()
-            for land_type in land_types_q:
-                land_types[land_type.type_id] = land_type.base_color
-
-            fence_types = {}
-            fence_types_q = Fences.objects.all()
-            for fence in fence_types_q:
-                fence_types[fence.fence_id] = {"horiz": fence.horiz_img_location, "vert": fence.vert_img_location}
-
-            evo_ids = []
-            landunits_q = LandUnit.objects.filter(x__gte=min_x, x__lte=max_x, y__gte=min_y, y__lte=max_y)
-            for landunit in landunits_q:
-                output["land"].append({"x": landunit.x, "y": landunit.y, "land_id": landunit.land_id,
-                                       "color": land_types[landunit.type_id]})
-
-                if landunit.t_fence_id:
-                    output["land"][-1]["horiz_fence"] = fence_types[landunit.t_fence_id]["horiz"]
-                else:
-                    output["land"][-1]["horiz_fence"] = None
-
-                if landunit.r_fence_id:
-                    output["land"][-1]["vert_fence"] = fence_types[landunit.r_fence_id]["vert"]
-                else:
-                    output["land"][-1]["vert_fence"] = None
-
-                if landunit.evopic_id:
-                    if landunit.evopic_id not in evo_ids:
-                        evo_ids.append(landunit.evopic_id)
-
-            for evo_id in evo_ids:
-                evopic = Evopic(Evopix.objects.filter(evo_id=evo_id).get().evp)
-                output["evopix"].append({"id": evo_id})
-
-                landunits_q = LandUnit.objects.filter(evopic_id=evo_id)
-                min_x, min_y, max_x, max_y = find_min_max(landunits_q)
-
-                size_x = (max_x - min_x + 1) * b_box_siz
-                size_y = (max_y - min_y + 1) * b_box_siz
-                output["evopix"][-1]["svg"] = evopic.svg_out(scale=svg_scale_factor, bounding_box=(size_x, size_y))
-                output["evopix"][-1]["min_x"] = min_x
-                output["evopix"][-1]["min_y"] = min_y
-                output["evopix"][-1]["max_x"] = max_x
-                output["evopix"][-1]["max_y"] = max_y
-
+            output["land"] = get_land(min_x, min_y, max_x, max_y)
+            output["evopix"] = get_evopix(min_x, min_y, max_x, max_y, b_box_size, svg_scale_factor)
             output["midpoint"] = midpoint.land_id
             output = json.dumps(output)
             return HttpResponse(output)
