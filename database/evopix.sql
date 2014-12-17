@@ -189,3 +189,5 @@ DROP TABLE evp_evopix;
 DROP TABLE the_shop_breedingpellets;
 DROP TABLE the_shop_fences;
 DROP TABLE the_shop_grassseed;*/
+
+#UPDATE `world_landunit` SET `l_fence_id`=null,`r_fence_id`=null,`t_fence_id`=null,`b_fence_id`=null WHERE 1

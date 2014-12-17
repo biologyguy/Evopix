@@ -1,16 +1,9 @@
+{% extends "templates/base.html" %}
 {% load staticfiles %}
-<html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <title></title>
-
-    <link rel="stylesheet" type="text/css" href="{% static 'css/farm.css' %}" />
-    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
-
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
-    <script src="{%static 'js/jquery-cookie/jquery.cookie.js' %}"></script>
-    <script src="{%static 'js/ajax.js' %}"></script>
+    {% block css %}
+    <link rel="stylesheet" type="text/css" href="/static/css/farm.css" />
+    {% endblock css %}
+    {%  block scripts %}
     <script>
         $(document).ready(function(){
             var farm_bounds;
@@ -107,10 +100,22 @@
                             var snapTolerance = $(this).draggable('option', 'snapTolerance');
                             var topRemainder = ui.position.top % 50;
                             var leftRemainder = ui.position.left % 50;
+                            var bottomRemainder = ui.position.top % 50;
+                            var rightRemainder = ui.position.right % 50;
+
+
 
                             if (topRemainder <= snapTolerance) {
                                 ui.position.top = ui.position.top - topRemainder;
-                                $("#dev_box").html(ui.position.top)
+                                $(this).switchClass('v_fence', 'h_fence', 10, "swing");
+                                $(this).attr("src", "static/img/horiz_fence1.svg");
+                                $(this).width("50px");
+                                $(this).height("14px");
+                            }
+
+                            if (topRemainder >= 50 - snapTolerance) {
+                                ui.position.top = ui.position.top + (50 - topRemainder);
+                                $("#dev_box").html(50 - snapTolerance);
                                 $(this).switchClass('v_fence', 'h_fence', 10, "swing");
                                 $(this).attr("src", "static/img/horiz_fence1.svg");
                                 $(this).width("50px");
@@ -119,11 +124,18 @@
 
                             if (leftRemainder <= snapTolerance) {
                                 ui.position.left = ui.position.left - leftRemainder;
-                                $("#dev_box").html(ui.position.left)
                                 $(this).switchClass('h_fence', 'v_fence', 10, "swing");
                                 $(this).attr("src", "static/img/vert_fence1.svg");
-                                $(this).width("7px")
-                                $(this).height("52px")
+                                $(this).width("7px");
+                                $(this).height("52px");
+                            }
+
+                            if (rightRemainder >= snapTolerance) {
+                                ui.position.right = ui.position.right - rightRemainder;
+                                $(this).switchClass('h_fence', 'v_fence', 10, "swing");
+                                $(this).attr("src", "static/img/vert_fence1.svg");
+                                $(this).width("7px");
+                                $(this).height("52px");
                             }
                         }
                     });
@@ -187,12 +199,10 @@
 
         });
     </script>
+{% endblock scripts %}
 
+{% block content %}
 
-</head>
-<body>
-<img id="background_image" src="../static/img/background_sun.svg"/>
-    <img id="background_hills" src="../static/img/background_hills.svg"/>
     <div id="main_content">
         <div id="visible_top"></div>
         <div id="visible_bottom"></div>
@@ -233,5 +243,4 @@
         </table>
     </div>
 </div>
-</body>
-</html>
+{% endblock content %}
