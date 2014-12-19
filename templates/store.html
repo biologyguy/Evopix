@@ -6,7 +6,39 @@
 {% block content %}
     <div id="store_window">
         <h1>Welcome to the corner store</h1>
+        <hr />
+        Breeding pellets
+        <table>
+        {% for pellet in breeding_pellets %}
+            <tr>
+                <td>{{ pellet.type }}</td>
+                <td>{{ pellet.description }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+        <br />
+
+        Fences
+        <table>
+        {% for fence in fences %}
+            <tr>
+                <td>{{ fence.name }}</td>
+                <td>{{ fence.description }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+        <br />
+
+        Grass seed
+        <table>
+        {% for seed in grasseed %}
+            <tr>
+                <td>{{ seed.color }}</td>
+                <td>{{ seed.svg | safe }}</td>
+            </tr>
+        {% endfor %}
+        </table>
 
     </div>
-    <div id="store_window_border"></div>
+
 {% endblock content %}

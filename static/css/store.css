@@ -1,32 +1,14 @@
-#store_window_border
-    {
-    position: absolute;
-    top:0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin: auto;
-
-    width:  550px;
-    height: 585px;
-    border: solid 25px transparent;
-    -webkit-border-image: url("../img/border1.png") 45 45 stretch; /* Safari 3.1-5 */
-    -o-border-image: url("../img/border1.png") 45 45 stretch; /* Opera 11-12.1 */
-    border-image: url("../img/border1.png") 45 45 stretch;
-    }
-
 #store_window
     {
     position: absolute;
-    top:0;
-    bottom: 0;
+    text-align: center;
+    z-index: -1;
     left: 0;
     right: 0;
     margin: auto;
-
-    width:  565px;
-    height: 600px;
-    text-align: center;
-
-    background-color: #bbbbbb;
+    width:  650px;
+    border: solid 25px #bbbbbb;
+    -webkit-border-image: url("../img/border1.png") 45 45 fill stretch; /* Safari 3.1-5 */
+    -o-border-image: url("../img/border1.png") 45 45 fill stretch; /* Opera 11-12.1 */
+    border-image: url("../img/border1.png") 45 45 fill stretch;
     }
