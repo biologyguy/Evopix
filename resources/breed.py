@@ -29,23 +29,23 @@ def run():
         num_points_before_change = 2 if num_points_before_change < 2 else num_points_before_change
         return {"num_points": num_points_before_change, "rel_weight": set_parent_weight()}
 
-    def new_paths_order(evo1, evo2):
+    def new_order_list(order_list1, order_list2):
         path_ids = []
         output = []
         bob_index = 0
         sue_index = 0
-        while bob_index < len(evo1.paths_order) and sue_index < len(evo2.paths_order):
-            if evo1.paths_order[bob_index] not in evo2.paths_order:
+        while bob_index < len(order_list1) and sue_index < len(order_list2):
+            if order_list1[bob_index] not in order_list2:
                 if random.random() > 0.5:  # Coin flip to keep if path is unique to Bob
-                    path_ids.append(evo1.paths_order[bob_index])
+                    path_ids.append(order_list1[bob_index])
                 bob_index += 1
-            elif evo2.paths_order[sue_index] not in evo1.paths_order:
+            elif order_list2[sue_index] not in order_list1:
                 if random.random() > 0.5:  # Coin flip to keep if path is unique to Sue
-                    path_ids.append(evo2.paths_order[sue_index])
+                    path_ids.append(order_list2[sue_index])
                 sue_index += 1
             else:
-                path_ids.append(evo1.paths_order[bob_index])
-                path_ids.append(evo2.paths_order[sue_index])
+                path_ids.append(order_list1[bob_index])
+                path_ids.append(order_list2[sue_index])
                 bob_index += 1
                 sue_index += 1
         # Only ever keep one instance of a path index, randomly choosing one or the other (in the event that there are
@@ -73,7 +73,6 @@ def run():
 
     baby = Evopic()
 
-    # Start by building paths_order.
-
-    baby.paths_order = new_paths_order(bob, sue)
+    # Start by building baby paths_order.
+    baby.paths_order = new_order_list(bob.paths_order, sue.paths_order)
     print(baby.paths_order)
