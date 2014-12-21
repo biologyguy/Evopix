@@ -29,6 +29,43 @@ def run():
         num_points_before_change = 2 if num_points_before_change < 2 else num_points_before_change
         return {"num_points": num_points_before_change, "rel_weight": set_parent_weight()}
 
+    def new_paths_order(evo1, evo2):
+        path_ids = []
+        output = []
+        bob_index = 0
+        sue_index = 0
+        while bob_index < len(evo1.paths_order) and sue_index < len(evo2.paths_order):
+            if evo1.paths_order[bob_index] not in evo2.paths_order:
+                if random.random() > 0.5:  # Coin flip to keep if path is unique to Bob
+                    path_ids.append(evo1.paths_order[bob_index])
+                bob_index += 1
+            elif evo2.paths_order[sue_index] not in evo1.paths_order:
+                if random.random() > 0.5:  # Coin flip to keep if path is unique to Sue
+                    path_ids.append(evo2.paths_order[sue_index])
+                sue_index += 1
+            else:
+                path_ids.append(evo1.paths_order[bob_index])
+                path_ids.append(evo2.paths_order[sue_index])
+                bob_index += 1
+                sue_index += 1
+        # Only ever keep one instance of a path index, randomly choosing one or the other (in the event that there are
+        # descrepencies in index position).
+        while len(path_ids) > 0:
+            remaining = path_ids[1:]
+            if path_ids[0] not in remaining:
+                output.append(path_ids[0])
+                path_ids = path_ids[1:]
+            else:
+                if random.random() > 0.5:
+                    output.append(path_ids[0])
+                    duplicate_index = remaining.index(path_ids[0])
+                    remaining = remaining[:duplicate_index] + remaining[duplicate_index + 1:]
+                    path_ids = remaining
+                else:
+                    path_ids = path_ids[1:]
+
+        return output
+
     bob = Evopix.objects.filter(evo_id=1).get()
     bob = Evopic(bob.evp)
     sue = Evopix.objects.filter(evo_id=1903).get()
@@ -37,37 +74,6 @@ def run():
     baby = Evopic()
 
     # Start by building paths_order.
-    path_ids = []
-    bob_index = 0
-    sue_index = 0
-    while bob_index < len(bob.paths_order) and sue_index < len(sue.paths_order):
-        if bob.paths_order[bob_index] not in sue.paths_order:
-            if random.random() > 0.5:  # Coin flip to keep if path is unique to Bob
-                path_ids.append(bob.paths_order[bob_index])
-            bob_index += 1
-        elif sue.paths_order[sue_index] not in bob.paths_order:
-            if random.random() > 0.5:  # Coin flip to keep if path is unique to Sue
-                path_ids.append(sue.paths_order[sue_index])
-            sue_index += 1
-        else:
-            path_ids.append(bob.paths_order[bob_index])
-            path_ids.append(sue.paths_order[sue_index])
-            bob_index += 1
-            sue_index += 1
-    # Only ever keep one instance of a path index, randomly choosing one or the other (in the event that there are
-    # descrepencies in index position).
-    while len(path_ids) > 0:
-        remaining = path_ids[1:]
-        if path_ids[0] not in remaining:
-            baby.paths_order.append(path_ids[0])
-            path_ids = path_ids[1:]
-        else:
-            if random.random() > 0.5:
-                baby.paths_order.append(path_ids[0])
-                duplicate_index = remaining.index(path_ids[0])
-                remaining = remaining[:duplicate_index] + remaining[duplicate_index + 1:]
-                path_ids = remaining
-            else:
-                path_ids = path_ids[1:]
 
+    baby.paths_order = new_paths_order(bob, sue)
     print(baby.paths_order)
