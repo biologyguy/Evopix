@@ -75,4 +75,42 @@ def run():
 
     # Start by building baby paths_order.
     baby.paths_order = new_order_list(bob.paths_order, sue.paths_order)
-    print(baby.paths_order)
+    #print(baby.paths_order)
+
+    # Loop through all the new paths, and create the path objects
+    for path in baby.paths_order:
+        new_path = Path()
+        new_path.id = path
+        if path in bob.paths_order and path in sue.paths_order:
+            new_path.points_order = new_order_list(bob.paths[path].points_order, sue.paths[path].points_order)
+            new_path.type = bob.paths[path].type
+        elif path in bob.paths_order:
+            new_path.points_order = bob.paths[path].points_order
+            new_path.type = bob.paths[path].type
+        elif path in sue.paths_order:
+            new_path.points_order = sue.paths[path].points_order
+            new_path.type = sue.paths[path].type
+        else:
+            sys.exit("Error: Path '%s' not present in either parent evopic" % path)
+
+        baby.paths[path] = new_path
+
+    # Loop through new paths again, and this time fill in the points in each path object
+    points_til_recomb = recombination()
+    for path in baby.paths_order:
+        path = baby.paths[path]
+        if path.id in bob.paths_order and path.id in sue.paths_order:
+            bob_path = bob.paths[path.id]
+            sue_path = sue.paths[path.id]
+            print(path.points_order)
+            print(bob_path.points_order)
+            print(sue_path.points_order)
+            for point in path.points_order:
+                if point in bob_path.points_order and point in sue_path.points_order:
+
+                    print(bob_path.points[point])
+                    sys.exit()
+                else:
+                    print("hello")
+
+    #print(baby.paths[2])
