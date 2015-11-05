@@ -32,7 +32,7 @@ evopic.prototype.find_min_max = function()
 		if(!x) var x=0;
 		if(!y) var y=0;
 		return {x: x, y: y};
-		}
+		};
 		
 	function B1(t) { return t*t*t }
 	function B2(t) { return 3*t*t*(1-t) }
@@ -277,7 +277,7 @@ evopic.prototype.evp2svg = function($world_canvas)
 			}		
 		}	
 	return $evopic_group;
-	}
+	};
 
 function coords($x,$y)
 	{
@@ -288,12 +288,12 @@ function coords($x,$y)
 		{
 		main_x = is_int($newX) ? $newX : 0;
 		main_y = is_int($newY) ? $newY : 0;	
-		}
+		};
 	
 	this.x = function()
 		{
 		return main_x;	
-		}
+		};
 	
 	this.y = function()
 		{
