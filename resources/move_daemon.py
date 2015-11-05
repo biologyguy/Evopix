@@ -1,5 +1,5 @@
 from resources.breed import *
-from math import ceil
+from math import ceil, sqrt
 from django.http import HttpResponse
 from django.db.models import Q
 from evp.models import *
@@ -114,16 +114,48 @@ class Look():
         return
 
 
+def rgb_advantage_score(evo1_rgb, evo2_rgb):
+    sqr_sum = sqrt(sum(evo1_rgb))
+    r2g = min(evo1_rgb[0], evo2_rgb[1]) * evo1_rgb[0]
+    g2b = min(evo1_rgb[1], evo2_rgb[2]) * evo1_rgb[1]
+    b2r = min(evo1_rgb[2], evo2_rgb[0]) * evo1_rgb[2]
+    if sum([r2g, g2b, b2r]) == 0:
+        evo1_score = 0.
+    else:
+        evo1_score = sum([r2g, g2b, b2r]) / sqr_sum
+
+    sqr_sum = sqrt(sum(evo2_rgb))
+    r2g = min(evo2_rgb[0], evo1_rgb[1]) * evo2_rgb[0]
+    g2b = min(evo2_rgb[1], evo1_rgb[2]) * evo2_rgb[1]
+    b2r = min(evo2_rgb[2], evo1_rgb[0]) * evo2_rgb[2]
+    if sum([r2g, g2b, b2r]) == 0:
+        evo2_score = 0.
+    else:
+        evo2_score = sum([r2g, g2b, b2r]) / sqr_sum
+
+    return (evo1_score - evo2_score) / 4072  # This 'magic' number is the max advantage score possible (I think)
+
+
 def _battle(enemy_id, evo_id):
         evo = Evopix.objects.filter(evo_id=evo_id).get()
         enemy = Evopix.objects.filter(evo_id=enemy_id).get()
         evo = Evopic(evo.evp)
         enemy = Evopic(enemy.evp)
 
-        advantage_factors = {"biggest": 1.5, "oldest": 1.5, "most_points": 1.5}
+        advantage_factors = {"biggest": 1.5, "oldest": 1.5, "most_points": 1.5, "rgb": 10}
 
         evo_score = 1.
         enemy_score = 1.
+
+        # Rock-paper-scissors for color: red beats green beats blue beats red
+        # This is a messy looking function, but it moves nicely. The abs highest color advantage possible is 4040.24, so
+        # set this as a very likely win, then scale down from there in the final weighted probability at the end
+        evo_rgb_adv = rgb_advantage_score(evo.color(), enemy.color())
+        if evo_rgb_adv > 0:
+            evo_score += evo_rgb_adv * advantage_factors["rgb"]
+        else:
+            enemy_score += evo_rgb_adv * (-1) * advantage_factors["rgb"]
+
         # Largest evopic has an advantage
         evo_size = evo.size()
         enemy_size = enemy.size()
@@ -139,13 +171,16 @@ def _battle(enemy_id, evo_id):
             enemy_score *= advantage_factors["oldest"]
 
         # More points has an advantage
+        # TODO: This should only be true up to a point. Need to reign in the # of points
         if evo.num_points() > enemy.num_points():
             evo_score *= advantage_factors["most_points"]
         elif evo.num_points() < enemy.num_points():
             enemy_score *= advantage_factors["most_points"]
 
+        print("Battle scores --> Evo %s: %s\tEvo %s: %s" % (evo.id, evo_score, enemy.id, enemy_score))
         # Select the winner from weighted probability based on score
-        if evo_score / (evo_score + enemy_score) < random():
+        rand_val = random()
+        if evo_score / (evo_score + enemy_score) >= rand_val:
             loser = enemy_id
         else:
             loser = evo_id
@@ -250,12 +285,11 @@ def _place_baby(parent1, parent2, baby):
         if len(Evopix.objects.filter(health__gt=0)) < 5:
             return "Too few Evos alive to allow fighting..."
         enemy_id = choice(evos_in_the_way)[1]  # The first index is land_id
-        who_dies = _battle(enemy_id, parent1.id)
-        cleared_landunits = LandUnit.objects.filter(evopic_id=who_dies)
-        cleared_landunits.update(evopic_id=None)
-        dead_evo = Evopix.objects.filter(evo_id=who_dies)
-        dead_evo.update(health=0)
-        return "Killed evopic %s" % who_dies
+
+        loser = Evopic()  # No need to actually fill the object in the constructor, just set the id after instantiate
+        loser.id = _battle(enemy_id, parent1.id)
+        loser.death()
+        return "Killed evopic %s" % loser.id
 
     # Save the baby evopic and place it on the map
     else:

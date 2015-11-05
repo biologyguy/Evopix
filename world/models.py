@@ -1,4 +1,5 @@
 from evp.models import Evopix
+from the_shop.models import Fences
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -10,24 +11,16 @@ class LandTypes(models.Model):
     base_color = models.CharField(max_length=6)
 
 
-class FenceTypes(models.Model):
-    fence_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=40)
-    description = models.TextField()
-    horiz_img_location = models.TextField()
-    vert_img_location = models.TextField()
-
-
 class LandUnit(models.Model):
     land_id = models.AutoField(primary_key=True)
     x = models.IntegerField()
     y = models.IntegerField()
     type = models.ForeignKey(LandTypes)
     evopic = models.ForeignKey(Evopix, null=True)
-    l_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesL', null=True)
-    r_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesR', null=True)
-    t_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesT', null=True)
-    b_fence = models.ForeignKey('FenceTypes', related_name='FenceTypesB', null=True)
+    l_fence = models.ForeignKey('the_shop.Fences', related_name='FenceTypesL', null=True)
+    r_fence = models.ForeignKey('the_shop.Fences', related_name='FenceTypesR', null=True)
+    t_fence = models.ForeignKey('the_shop.Fences', related_name='FenceTypesT', null=True)
+    b_fence = models.ForeignKey('the_shop.Fences', related_name='FenceTypesB', null=True)
     user = models.ForeignKey(User, null=True)
 
     class Meta:

@@ -1,0 +1,25 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+
+    <link rel="stylesheet" type="text/css" href="/static/css/base.css" />
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
+    <link href='http://fonts.googleapis.com/css?family=Lobster+Two' rel='stylesheet' type='text/css'>
+
+    {% block css %}{% endblock css %}
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+    <script src="{%static 'js/jquery-cookie/jquery.cookie.js' %}"></script>
+    <script src="{%static 'js/ajax.js' %}"></script>
+    {% block scripts %}{% endblock scripts %}
+</head>
+<body>
+<img id="background_image" src="../static/img/background_sun.svg"/>
+<img id="background_hills" src="../static/img/background_hills.svg"/>
+{%  block content %}{% endblock content %}
+</body>
+</html>

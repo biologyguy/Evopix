@@ -1,0 +1,14 @@
+#store_window
+    {
+    position: absolute;
+    text-align: center;
+    z-index: -1;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width:  650px;
+    border: solid 25px #bbbbbb;
+    -webkit-border-image: url("../img/border1.png") 45 45 fill stretch; /* Safari 3.1-5 */
+    -o-border-image: url("../img/border1.png") 45 45 fill stretch; /* Opera 11-12.1 */
+    border-image: url("../img/border1.png") 45 45 fill stretch;
+    }
